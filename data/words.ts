@@ -11,6 +11,8 @@ export interface JourneyStop {
 export interface Sound {
   label: string;
   ipa: string;
+  text?: string; // Text for speech synthesis
+  lang?: string; // BCP 47 language code (e.g., "ar", "en", "hi")
 }
 
 export interface RelativeWord {
@@ -57,9 +59,9 @@ export const words: Word[] = [
       { location: "Global", period: "present", form: "coffee", context: "$400+ billion industry", coordinates: [-74, 40.7] }
     ],
     sounds: [
-      { label: "Original Arabic", ipa: "/\u02C8qah.wa/" },
-      { label: "Ottoman Turkish", ipa: "/kah\u02C8ve/" },
-      { label: "Modern English", ipa: "/\u02C8k\u0252f.i/" }
+      { label: "Original Arabic", ipa: "/\u02C8qah.wa/", text: "\u0642\u0647\u0648\u0629", lang: "ar" },
+      { label: "Ottoman Turkish", ipa: "/kah\u02C8ve/", text: "kahve", lang: "tr" },
+      { label: "Modern English", ipa: "/\u02C8k\u0252f.i/", text: "coffee", lang: "en" }
     ],
     relatives: [
       { word: "caf\u00e9", language: "French", connection: "the drink and the place", available: false },
@@ -90,8 +92,8 @@ export const words: Word[] = [
       { location: "Global", period: "present", form: "pr\u0101\u1E47\u0101y\u0101ma", context: "Yoga: breath control", coordinates: [-118, 34] }
     ],
     sounds: [
-      { label: "Sanskrit", ipa: "/\u02C8\u0255\u028B\u0251\u02D0.s\u0259/" },
-      { label: "Hindi", ipa: "/sa\u02D0n\u0327s/" }
+      { label: "Sanskrit", ipa: "/\u02C8\u0255\u028B\u0251\u02D0.s\u0259/", text: "\u0936\u094D\u0935\u093E\u0938", lang: "hi" },
+      { label: "Hindi", ipa: "/sa\u02D0n\u0327s/", text: "\u0938\u093E\u0901\u0938", lang: "hi" }
     ],
     relatives: [
       { word: "psyche", language: "Greek/English", connection: "mind soul from breath", available: false },
@@ -121,8 +123,8 @@ export const words: Word[] = [
       { location: "Indian Ocean", period: "2004", form: "tsunami", context: "Boxing Day tsunami word becomes universal", coordinates: [96, 3] }
     ],
     sounds: [
-      { label: "Japanese", ipa: "/t\u0361s\u026F.na.mi/" },
-      { label: "English", ipa: "/su\u02D0\u02C8n\u0251\u02D0mi/" }
+      { label: "Japanese", ipa: "/t\u0361s\u026F.na.mi/", text: "\u6D25\u6CE2", lang: "ja" },
+      { label: "English", ipa: "/su\u02D0\u02C8n\u0251\u02D0mi/", text: "tsunami", lang: "en" }
     ],
     relatives: [
       { word: "\u6D25 tsu", language: "Japanese", connection: "harbor port", available: false },
@@ -152,8 +154,8 @@ export const words: Word[] = [
       { location: "Global", period: "present", form: "saudade", script: "saudade", context: "Untranslatable borrowed whole", coordinates: [2.3, 48.9] }
     ],
     sounds: [
-      { label: "Portuguese (Portugal)", ipa: "/saw.\u02C8da.d\u0268/" },
-      { label: "Portuguese (Brazil)", ipa: "/saw.\u02C8da.d\u0292i/" }
+      { label: "Portuguese (Portugal)", ipa: "/saw.\u02C8da.d\u0268/", text: "saudade", lang: "pt-PT" },
+      { label: "Portuguese (Brazil)", ipa: "/saw.\u02C8da.d\u0292i/", text: "saudade", lang: "pt-BR" }
     ],
     relatives: [
       { word: "solitude", language: "English", connection: "from same Latin root but meaning diverged", available: false },
@@ -181,8 +183,8 @@ export const words: Word[] = [
       { location: "Global", period: "present", form: "wanderlust", context: "Instagram hashtag 150+ million posts", coordinates: [-118, 34] }
     ],
     sounds: [
-      { label: "German", ipa: "/\u02C8vand\u0250\u02CCl\u028Ast/" },
-      { label: "English", ipa: "/\u02C8w\u0252nd\u0259l\u028Cst/" }
+      { label: "German", ipa: "/\u02C8vand\u0250\u02CCl\u028Ast/", text: "Wanderlust", lang: "de" },
+      { label: "English", ipa: "/\u02C8w\u0252nd\u0259l\u028Cst/", text: "wanderlust", lang: "en" }
     ],
     relatives: [
       { word: "Fernweh", language: "German", connection: "far-sickness longing for distant places", available: false },
@@ -213,8 +215,8 @@ export const words: Word[] = [
       { location: "Global", period: "now", form: "algorithm", context: "Shapes attention commerce society", coordinates: [-74, 40.7] }
     ],
     sounds: [
-      { label: "Arabic", ipa: "/al\u02C8xwa\u02D0rizmi\u02D0/" },
-      { label: "English", ipa: "/\u02C8\u00E6l\u0261\u0259\u02CCr\u026A\u00F0\u0259m/" }
+      { label: "Arabic", ipa: "/al\u02C8xwa\u02D0rizmi\u02D0/", text: "\u0627\u0644\u062E\u0648\u0627\u0631\u0632\u0645\u064A", lang: "ar" },
+      { label: "English", ipa: "/\u02C8\u00E6l\u0261\u0259\u02CCr\u026A\u00F0\u0259m/", text: "algorithm", lang: "en" }
     ],
     relatives: [
       { word: "algebra", language: "English", connection: "from his book title", available: false },
@@ -243,9 +245,9 @@ export const words: Word[] = [
       { location: "London", period: "1400s", form: "donate", script: "donate", context: "From Latin institutional giving", color: "#4a5568", coordinates: [-0.1, 51.5] }
     ],
     sounds: [
-      { label: "Sanskrit", ipa: "/da\u02D0n\u0259/" },
-      { label: "Hindi", ipa: "/d\u032Aa\u02D0n/" },
-      { label: "English \"donate\"", ipa: "/do\u028A\u02C8ne\u026At/" }
+      { label: "Sanskrit", ipa: "/da\u02D0n\u0259/", text: "\u0926\u093E\u0928\u092E\u094D", lang: "hi" },
+      { label: "Hindi", ipa: "/d\u032Aa\u02D0n/", text: "\u0926\u093E\u0928", lang: "hi" },
+      { label: "English \"donate\"", ipa: "/do\u028A\u02C8ne\u026At/", text: "donate", lang: "en" }
     ],
     relatives: [
       { word: "donate", language: "English", connection: "same root Western branch", available: false },
@@ -274,8 +276,8 @@ export const words: Word[] = [
       { location: "England", period: "1530s", form: "assassin", script: "assassin", context: "Shakespeare uses it", color: "#4a5568", coordinates: [-0.1, 51.5] }
     ],
     sounds: [
-      { label: "Arabic", ipa: "/\u0127a\u0283\u02D0a\u02D0\u0283i\u02D0n/" },
-      { label: "English", ipa: "/\u0259\u02C8s\u00E6s\u026An/" }
+      { label: "Arabic", ipa: "/\u0127a\u0283\u02D0a\u02D0\u0283i\u02D0n/", text: "\u062D\u0634\u0627\u0634\u064A\u0646", lang: "ar" },
+      { label: "English", ipa: "/\u0259\u02C8s\u00E6s\u026An/", text: "assassin", lang: "en" }
     ],
     relatives: [
       { word: "hashish", language: "English", connection: "same Arabic root dried herb", available: false },
@@ -304,10 +306,10 @@ export const words: Word[] = [
       { location: "England", period: "1588", form: "typhoon", script: "typhoon", context: "First recorded use", color: "#4a5568", coordinates: [-0.1, 51.5] }
     ],
     sounds: [
-      { label: "Greek", ipa: "/typ\u02B0\u0254\u0302\u02D0n/" },
-      { label: "Arabic", ipa: "/t\u02E4u\u02D0\u02C8fa\u02D0n/" },
-      { label: "Mandarin", ipa: "/t\u02B0ai\u02E7\u02E5.f\u0264\u014B\u02E5/" },
-      { label: "English", ipa: "/ta\u026A\u02C8fu\u02D0n/" }
+      { label: "Greek", ipa: "/typ\u02B0\u0254\u0302\u02D0n/", text: "\u03C4\u03C5\u03C6\u03CE\u03BD", lang: "el" },
+      { label: "Arabic", ipa: "/t\u02E4u\u02D0\u02C8fa\u02D0n/", text: "\u0637\u0648\u0641\u0627\u0646", lang: "ar" },
+      { label: "Mandarin", ipa: "/t\u02B0ai\u02E7\u02E5.f\u0264\u014B\u02E5/", text: "\u53F0\u98CE", lang: "zh" },
+      { label: "English", ipa: "/ta\u026A\u02C8fu\u02D0n/", text: "typhoon", lang: "en" }
     ],
     relatives: [
       { word: "hurricane", language: "English", connection: "from Taino hurak\u00E1n Caribbean storms", available: false },
@@ -335,8 +337,8 @@ export const words: Word[] = [
       { location: "Global", period: "2000s", form: "ubuntu", script: "ubuntu", context: "Linux OS TED talks management books", coordinates: [-122, 37.4] }
     ],
     sounds: [
-      { label: "Zulu/Xhosa", ipa: "/\u00F9\u0253\u00FAnt\u02BC\u00F9/" },
-      { label: "English approximation", ipa: "/\u028A\u02C8b\u028Antu\u02D0/" }
+      { label: "Zulu/Xhosa", ipa: "/\u00F9\u0253\u00FAnt\u02BC\u00F9/", text: "ubuntu", lang: "zu" },
+      { label: "English approximation", ipa: "/\u028A\u02C8b\u028Antu\u02D0/", text: "ubuntu", lang: "en" }
     ],
     relatives: [
       { word: "umuntu", language: "Zulu", connection: "a person singular", available: false },

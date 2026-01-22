@@ -38,6 +38,7 @@ const notoJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://thejourney.app"),
   title: "The Journey — Ten Words. Ten Worlds.",
   description: "An immersive exploration of 10 words and their etymological journeys across languages, cultures, and centuries.",
 };

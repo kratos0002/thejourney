@@ -25,6 +25,7 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAnimated = useRef(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
   // Auto-center map on active node
   const centerOnNode = useCallback((index: number) => {
@@ -173,6 +174,30 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
         zoomRef.current.transform as never, d3.zoomIdentity
       );
     }
+  };
+
+  // Swipe detection for mobile prev/next
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const dt = Date.now() - touchStartRef.current.time;
+
+    // Only register as swipe if horizontal movement > 60px, more horizontal than vertical, and fast enough
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 500) {
+      if (dx < 0) {
+        handleNext();
+      } else {
+        handlePrev();
+      }
+    }
+    touchStartRef.current = null;
   };
 
   const renderMap = useCallback(async () => {
@@ -450,16 +475,20 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
         </h3>
 
         {/* SVG World Map */}
-        <div className="relative overflow-hidden rounded-2xl bg-deep-water/50 border border-moonlight/5">
+        <div
+          className="relative overflow-hidden rounded-2xl bg-deep-water/50 border border-moonlight/5"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
           <svg
             ref={svgRef}
             className="w-full"
-            style={{ minHeight: "400px", cursor: "grab" }}
+            style={{ minHeight: "350px", cursor: "grab" }}
             preserveAspectRatio="xMidYMid meet"
           />
 
           {/* Zoom controls */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2">
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-col gap-1.5 sm:gap-2">
             <button
               onClick={() => {
                 if (!svgRef.current || !zoomRef.current) return;
@@ -468,7 +497,7 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
                   zoomRef.current.scaleBy as never, 1.5
                 );
               }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-sm cursor-pointer"
+              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-base sm:text-sm cursor-pointer"
               aria-label="Zoom in"
             >
               +
@@ -481,14 +510,14 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
                   zoomRef.current.scaleBy as never, 0.67
                 );
               }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-sm cursor-pointer"
+              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-base sm:text-sm cursor-pointer"
               aria-label="Zoom out"
             >
               −
             </button>
             <button
               onClick={handleReset}
-              className="w-8 h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 cursor-pointer"
+              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 cursor-pointer"
               aria-label="Reset view"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -498,11 +527,11 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
           </div>
 
           {/* Playback controls - bottom center */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2.5 rounded-xl bg-ink/85 border border-moonlight/10 backdrop-blur-sm">
+          <div className="absolute bottom-5 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-ink/90 border border-moonlight/10 backdrop-blur-sm">
             {/* Reset */}
             <button
               onClick={handleReset}
-              className="text-fog/60 hover:text-moonlight transition-colors duration-200 cursor-pointer"
+              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 cursor-pointer"
               aria-label="Reset journey"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -515,10 +544,10 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
             <button
               onClick={handlePrev}
               disabled={currentStep <= 0}
-              className="text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label="Previous stop"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="sm:w-4 sm:h-4">
                 <path d="M19 20L9 12l10-8v16zM7 19V5H5v14h2z" />
               </svg>
             </button>
@@ -526,7 +555,7 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
             {/* Play/Pause */}
             <button
               onClick={isPlaying ? handlePause : handlePlay}
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-amber-glow/20 border border-amber-glow/30 text-amber-glow hover:bg-amber-glow/30 transition-all duration-300 cursor-pointer"
+              className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-amber-glow/20 border border-amber-glow/30 text-amber-glow hover:bg-amber-glow/30 active:scale-95 transition-all duration-300 cursor-pointer"
               aria-label={isPlaying ? "Pause" : "Play journey"}
             >
               {isPlaying ? (
@@ -545,16 +574,16 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
             <button
               onClick={handleNext}
               disabled={currentStep >= journey.length - 1}
-              className="text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label="Next stop"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="sm:w-4 sm:h-4">
                 <path d="M5 4l10 8-10 8V4zm12-1v14h2V5h-2z" />
               </svg>
             </button>
 
-            {/* Speed controls */}
-            <div className="flex items-center gap-1 ml-2 border-l border-moonlight/10 pl-3">
+            {/* Speed controls - hidden on small screens */}
+            <div className="hidden sm:flex items-center gap-1 ml-2 border-l border-moonlight/10 pl-3">
               {[0.5, 1, 2].map(speed => (
                 <button
                   key={speed}
@@ -582,8 +611,9 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
           </div>
 
           {/* Hint text */}
-          <div className="absolute top-4 left-4 text-[10px] text-fog/40 font-body">
-            Scroll to zoom · Drag to pan · Click nodes to explore
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[9px] sm:text-[10px] text-fog/40 font-body">
+            <span className="hidden sm:inline">Scroll to zoom · Drag to pan · Click nodes to explore</span>
+            <span className="sm:hidden">Pinch to zoom · Swipe for prev/next</span>
           </div>
         </div>
 

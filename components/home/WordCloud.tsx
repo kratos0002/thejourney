@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainer } from "@/lib/animations";
 import { words } from "@/data/words";
 import WordCard from "./WordCard";
@@ -19,7 +20,23 @@ const positions = [
   { x: 65, y: 62 },
 ];
 
-export default function WordCloud() {
+interface WordCloudProps {
+  searchQuery: string;
+}
+
+export default function WordCloud({ searchQuery }: WordCloudProps) {
+  const filteredWords = useMemo(() => {
+    if (!searchQuery.trim()) return words;
+    const q = searchQuery.toLowerCase().trim();
+    return words.filter(word =>
+      word.romanization.toLowerCase().includes(q) ||
+      word.language.toLowerCase().includes(q) ||
+      word.word.includes(q) ||
+      word.slug.toLowerCase().includes(q) ||
+      word.hook.toLowerCase().includes(q)
+    );
+  }, [searchQuery]);
+
   return (
     <motion.div
       className="relative w-full h-full min-h-[600px]"
@@ -27,14 +44,34 @@ export default function WordCloud() {
       initial="hidden"
       animate="visible"
     >
-      {words.map((word, index) => (
-        <WordCard
-          key={word.slug}
-          word={word}
-          index={index}
-          position={positions[index]}
-        />
-      ))}
+      <AnimatePresence>
+        {words.map((word, index) => {
+          const isVisible = filteredWords.includes(word);
+          return (
+            <WordCard
+              key={word.slug}
+              word={word}
+              index={index}
+              position={positions[index]}
+              dimmed={!isVisible && searchQuery.trim().length > 0}
+            />
+          );
+        })}
+      </AnimatePresence>
+
+      {/* No results message */}
+      {searchQuery.trim() && filteredWords.length === 0 && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <p className="text-fog/50 font-body text-sm">
+            No words match &ldquo;{searchQuery}&rdquo;
+          </p>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
