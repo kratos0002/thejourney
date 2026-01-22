@@ -2,8 +2,8 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { useRouter } from "next/navigation";
 import { RelativeWord } from "@/data/words";
+import { useTransition } from "@/components/TransitionProvider";
 
 interface WordRelativesProps {
   relatives: RelativeWord[];
@@ -12,12 +12,13 @@ interface WordRelativesProps {
 export default function WordRelatives({ relatives }: WordRelativesProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-15%" });
-  const router = useRouter();
+  const { navigateToWord } = useTransition();
 
-  const handleClick = (relative: RelativeWord) => {
-    if (relative.available && relative.slug) {
-      router.push(`/word/${relative.slug}`);
-    }
+  const handleClick = (relative: RelativeWord, e: React.MouseEvent) => {
+    if (!relative.available || !relative.slug) return;
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    navigateToWord(relative.slug, relative.word, origin);
   };
 
   return (
@@ -39,13 +40,13 @@ export default function WordRelatives({ relatives }: WordRelativesProps) {
           {relatives.map((relative, index) => (
             <motion.button
               key={index}
-              onClick={() => handleClick(relative)}
+              onClick={(e) => handleClick(relative, e)}
               disabled={!relative.available}
               className={`
-                relative p-5 sm:p-6 rounded-2xl text-center group cursor-pointer
+                relative p-5 sm:p-6 rounded-2xl text-center group
                 transition-all duration-500
                 ${relative.available
-                  ? "bg-ink/60 hover:bg-ink border border-moonlight/5 hover:border-moonlight/10 hover:glow-amber"
+                  ? "bg-ink/60 hover:bg-ink border border-moonlight/5 hover:border-amber-glow/20 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)] cursor-pointer"
                   : "bg-ink/30 border border-moonlight/3 opacity-60 cursor-default"
                 }
               `}
@@ -66,6 +67,11 @@ export default function WordRelatives({ relatives }: WordRelativesProps) {
               <p className="mt-2 text-xs text-mist/50 font-body leading-relaxed">
                 {relative.connection}
               </p>
+              {relative.available && (
+                <span className="absolute top-2 right-2 text-[10px] text-amber-glow/50 font-body">
+                  explore &rarr;
+                </span>
+              )}
               {!relative.available && (
                 <span className="absolute top-2 right-2 text-[10px] text-fog/40 font-body">
                   coming soon

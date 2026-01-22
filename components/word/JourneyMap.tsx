@@ -457,6 +457,47 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
     renderMap();
   }, [isInView, renderMap]);
 
+  // Keyboard controls for the map (when visible)
+  useEffect(() => {
+    if (!isInView) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Check if map section is roughly in view
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const isMapVisible = rect.top < window.innerHeight * 0.5 && rect.bottom > window.innerHeight * 0.3;
+      if (!isMapVisible) return;
+
+      switch (e.key) {
+        case " ": {
+          e.preventDefault();
+          if (isPlaying) {
+            handlePause();
+          } else {
+            handlePlay();
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          e.preventDefault();
+          handlePrev();
+          break;
+        }
+        case "ArrowRight": {
+          e.preventDefault();
+          handleNext();
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isInView, isPlaying]);
+
   const progress = currentStep >= 0 ? ((currentStep + 1) / journey.length) * 100 : 0;
 
   return (

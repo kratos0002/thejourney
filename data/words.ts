@@ -66,7 +66,7 @@ export const words: Word[] = [
     relatives: [
       { word: "caf\u00e9", language: "French", connection: "the drink and the place", available: false },
       { word: "caffeine", language: "English", connection: "the chemical named after the drink", available: false },
-      { word: "Kaffee", language: "German", connection: "same journey different mouth", available: false },
+      { word: "\u0627\u0644\u062E\u0648\u0627\u0631\u0632\u0645\u064A", language: "Arabic", connection: "another Arabic word that shaped the world", available: true, slug: "algorithm" },
       { word: "kahvi", language: "Finnish", connection: "borrowed from Swedish kaffe", available: false }
     ],
     meaningNow: "Coffee now names the drink, the bean, the color, the culture, and a $400 billion global industry. It's the second most traded commodity on Earth.\n\nBut inside the word, Sufi monks still pray through the night, and the original meaning\u2014that which keeps you awake for God\u2014echoes in every exhausted student, every late-night worker, every quiet morning ritual."
@@ -98,7 +98,7 @@ export const words: Word[] = [
     relatives: [
       { word: "psyche", language: "Greek/English", connection: "mind soul from breath", available: false },
       { word: "spirit", language: "Latin/English", connection: "from spirare to breathe", available: false },
-      { word: "pr\u0101\u1E47a", language: "Sanskrit", connection: "vital breath life force", available: false },
+      { word: "\u0926\u093E\u0928", language: "Hindi", connection: "another Sanskrit word that traveled west", available: true, slug: "daan" },
       { word: "\u0101tman", language: "Sanskrit", connection: "self soul from breath", available: false },
       { word: "animal", language: "Latin", connection: "from anima breath/soul", available: false }
     ],
@@ -129,7 +129,7 @@ export const words: Word[] = [
     relatives: [
       { word: "\u6D25 tsu", language: "Japanese", connection: "harbor port", available: false },
       { word: "\u6CE2 nami", language: "Japanese", connection: "wave", available: false },
-      { word: "\u795E\u98A8 kamikaze", language: "Japanese", connection: "divine wind another Japanese word that traveled", available: false },
+      { word: "typhoon", language: "English", connection: "another word for nature's fury from Asian seas", available: true, slug: "typhoon" },
       { word: "\u5730\u9707 jishin", language: "Japanese", connection: "earthquake often the tsunami's cause", available: false }
     ],
     meaningNow: "Tsunami is now used metaphorically in every language\u2014a tsunami of information, a tsunami of refugees. The word has become shorthand for any overwhelming, unstoppable force.\n\nBut the original meaning persists: a wave you cannot see coming until it's too late. The fishermen's tragedy, named."
@@ -159,7 +159,7 @@ export const words: Word[] = [
     ],
     relatives: [
       { word: "solitude", language: "English", connection: "from same Latin root but meaning diverged", available: false },
-      { word: "nostalgia", language: "Greek", connection: "return + pain similar but not identical", available: false },
+      { word: "Wanderlust", language: "German", connection: "longing that pulls you forward not back", available: true, slug: "wanderlust" },
       { word: "Sehnsucht", language: "German", connection: "longing but more forward-looking", available: false },
       { word: "hiraeth", language: "Welsh", connection: "longing for home but more specific", available: false }
     ],
@@ -220,7 +220,7 @@ export const words: Word[] = [
     ],
     relatives: [
       { word: "algebra", language: "English", connection: "from his book title", available: false },
-      { word: "logarithm", language: "English", connection: "different root but often confused", available: false },
+      { word: "\u0642\u0647\u0648\u0629", language: "Arabic", connection: "another Arabic gift to every language", available: true, slug: "qahwa" },
       { word: "arithmetic", language: "English", connection: "from Greek predates algorithm", available: false }
     ],
     meaningNow: "Al-Khw\u0101rizm\u012B couldn't have imagined that his name would become a word muttered with suspicion by billions\u2014\"the algorithm is hiding this,\" \"the algorithm is pushing that.\"\n\nHis legacy is strange: a name that became a neutral tool that became an opaque power. When we talk about algorithms, we're talking about the man from Khwarezm, whether we know it or not."
@@ -251,7 +251,7 @@ export const words: Word[] = [
     ],
     relatives: [
       { word: "donate", language: "English", connection: "same root Western branch", available: false },
-      { word: "pardon", language: "French/English", connection: "from Latin per + donare", available: false },
+      { word: "\u0938\u093E\u0901\u0938", language: "Hindi", connection: "another word from the Sanskrit family", available: true, slug: "saans" },
       { word: "Anna-daan", language: "Hindi", connection: "gift of food highest form", available: false }
     ],
     meaningNow: "In Indian languages, daan remains sacred\u2014part of daily practice, wedding rituals, religious observance. To give daan is to participate in the cosmic order.\n\nWhen English speakers \"donate,\" they're using the same ancient root but speaking a different language of generosity\u2014one where giving has been separated from spiritual practice.\n\nThe word remembers when these two things were one."
@@ -313,7 +313,7 @@ export const words: Word[] = [
     ],
     relatives: [
       { word: "hurricane", language: "English", connection: "from Taino hurak\u00E1n Caribbean storms", available: false },
-      { word: "cyclone", language: "English", connection: "from Greek k\u00FDklos circle", available: false },
+      { word: "\u6D25\u6CE2", language: "Japanese", connection: "another Asian word for nature's devastating power", available: true, slug: "tsunami" },
       { word: "monsoon", language: "English", connection: "from Arabic mawsim season", available: false }
     ],
     meaningNow: "We now have precise meteorological definitions: typhoons are in the Northwest Pacific, hurricanes in the Atlantic, cyclones in the Indian Ocean. Same storm, different names\u2014the legacy of which sailors named which seas.\n\nBut typhoon remains the only one of these words with three possible parents. It carries the whole history of global trade in its syllables."

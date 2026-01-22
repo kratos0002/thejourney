@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getWordBySlug, Word } from "@/data/words";
+import { useTransition } from "@/components/TransitionProvider";
 import WordHero from "@/components/word/WordHero";
 import WordHook from "@/components/word/WordHook";
 import WordStory from "@/components/word/WordStory";
@@ -12,10 +13,13 @@ import WordSound from "@/components/word/WordSound";
 import WordRelatives from "@/components/word/WordRelatives";
 import WordMeaning from "@/components/word/WordMeaning";
 import ProgressIndicator from "@/components/word/ProgressIndicator";
+import AmbientBackground from "@/components/word/AmbientBackground";
+import KeyboardNav from "@/components/word/KeyboardNav";
 
 export default function WordPage() {
   const params = useParams();
   const router = useRouter();
+  const { navigateHome } = useTransition();
   const [word, setWord] = useState<Word | null>(null);
 
   useEffect(() => {
@@ -38,8 +42,11 @@ export default function WordPage() {
 
   return (
     <main className="relative bg-abyss">
-      {/* Background gradient that subtly shifts */}
-      <div className="fixed inset-0 bg-gradient-to-b from-abyss via-deep-water to-abyss pointer-events-none" />
+      {/* Keyboard navigation */}
+      <KeyboardNav />
+
+      {/* Ambient background that shifts with scroll */}
+      <AmbientBackground />
 
       {/* Top bar with word name and back button */}
       <motion.header
@@ -49,7 +56,7 @@ export default function WordPage() {
         transition={{ delay: 1.5, duration: 0.8 }}
       >
         <button
-          onClick={() => router.push("/")}
+          onClick={navigateHome}
           className="text-fog/50 hover:text-moonlight transition-colors duration-300 font-body text-sm cursor-pointer"
           aria-label="Return home"
         >
@@ -63,8 +70,8 @@ export default function WordPage() {
       {/* Progress indicator */}
       <ProgressIndicator />
 
-      {/* Layers */}
-      <div className="relative z-10">
+      {/* Layers with scroll-snap */}
+      <div className="relative z-10 snap-y snap-mandatory">
         <WordHero word={word} />
         <WordHook hook={word.hook} />
         <WordStory story={word.story} />

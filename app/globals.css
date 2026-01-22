@@ -113,3 +113,8 @@ body {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.8; }
 }
+
+/* Scroll-snap for word page sections */
+.snap-y > section {
+  scroll-snap-align: start;
+}

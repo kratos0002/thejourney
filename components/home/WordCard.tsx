@@ -1,9 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { wordCardVariants } from "@/lib/animations";
 import { Word } from "@/data/words";
+import { useTransition } from "@/components/TransitionProvider";
 
 interface WordCardProps {
   word: Word;
@@ -13,15 +14,21 @@ interface WordCardProps {
 }
 
 export default function WordCard({ word, index, position, dimmed }: WordCardProps) {
-  const router = useRouter();
+  const { navigateToWord } = useTransition();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const handleClick = () => {
     if (dimmed) return;
-    router.push(`/word/${word.slug}`);
+    const rect = buttonRef.current?.getBoundingClientRect();
+    const origin = rect
+      ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+      : { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+    navigateToWord(word.slug, word.word, origin);
   };
 
   return (
     <motion.button
+      ref={buttonRef}
       className="absolute group text-center"
       style={{
         left: `${position.x}%`,
