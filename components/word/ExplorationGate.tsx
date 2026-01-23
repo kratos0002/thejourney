@@ -119,17 +119,17 @@ export default function ExplorationGate() {
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    maxLength={6}
+                    maxLength={8}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    placeholder="000000"
-                    className="w-full bg-deep-water/80 border border-fog/20 rounded-lg px-4 py-3 text-moonlight/80 font-mono text-2xl text-center tracking-[0.5em] placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/40 focus:ring-1 focus:ring-amber-glow/20 transition-all duration-300"
+                    placeholder="00000000"
+                    className="w-full bg-deep-water/80 border border-fog/20 rounded-lg px-4 py-3 text-moonlight/80 font-mono text-2xl text-center tracking-[0.3em] placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/40 focus:ring-1 focus:ring-amber-glow/20 transition-all duration-300"
                     required
                     autoFocus
                   />
                   <button
                     type="submit"
-                    disabled={loading || otp.length < 6}
+                    disabled={loading || otp.length < 8}
                     className="w-full bg-amber-glow/10 border border-amber-glow/30 rounded-lg px-4 py-3 text-amber-glow font-body text-sm tracking-wider hover:bg-amber-glow/20 hover:border-amber-glow/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
                   >
                     {loading ? "Verifying..." : "Verify"}

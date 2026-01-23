@@ -153,17 +153,17 @@ export default function ProfilePanel({ words, open, onClose }: { words: Word[]; 
                   <input
                     type="text"
                     inputMode="numeric"
-                    maxLength={6}
+                    maxLength={8}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                    placeholder="000000"
-                    className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-mono text-sm text-center tracking-[0.3em] placeholder:text-fog/15 focus:outline-none focus:border-amber-glow/30 transition-colors"
+                    placeholder="00000000"
+                    className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-mono text-sm text-center tracking-[0.2em] placeholder:text-fog/15 focus:outline-none focus:border-amber-glow/30 transition-colors"
                     required
                     autoFocus
                   />
                   <button
                     type="submit"
-                    disabled={authLoading || otp.length < 6}
+                    disabled={authLoading || otp.length < 8}
                     className="w-full py-2 text-xs text-amber-glow font-body bg-amber-glow/8 border border-amber-glow/20 rounded-lg hover:bg-amber-glow/12 disabled:opacity-40 transition-colors cursor-pointer"
                   >
                     {authLoading ? "Verifying..." : "Verify"}
