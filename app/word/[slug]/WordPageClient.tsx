@@ -1,9 +1,11 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { Word } from "@/data/words";
 import { useTransition } from "@/components/TransitionProvider";
+import { useExploration } from "@/components/ExplorationProvider";
 import WordHero from "@/components/word/WordHero";
 import WordHook from "@/components/word/WordHook";
 import WordStory from "@/components/word/WordStory";
@@ -12,6 +14,8 @@ import WordMeaning from "@/components/word/WordMeaning";
 import ProgressIndicator from "@/components/word/ProgressIndicator";
 import AmbientBackground from "@/components/word/AmbientBackground";
 import KeyboardNav from "@/components/word/KeyboardNav";
+import ExplorationGate from "@/components/word/ExplorationGate";
+import ExplorationProgress from "@/components/word/ExplorationProgress";
 
 const JourneyMap = dynamic(() => import("@/components/word/JourneyMap"), {
   ssr: false,
@@ -33,9 +37,19 @@ const WordSound = dynamic(() => import("@/components/word/WordSound"), {
 
 export default function WordPageClient({ word }: { word: Word }) {
   const { navigateHome } = useTransition();
+  const { markExplored } = useExploration();
+
+  // Mark word as explored after 3s dwell time
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      markExplored(word.slug);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [word.slug, markExplored]);
 
   return (
     <main className="relative bg-abyss">
+      <ExplorationGate />
       <KeyboardNav />
       <AmbientBackground />
 
@@ -52,9 +66,12 @@ export default function WordPageClient({ word }: { word: Word }) {
         >
           &larr; Back
         </button>
-        <span className="text-fog/40 text-xs font-body tracking-wider">
-          {word.romanization}
-        </span>
+        <div className="flex flex-col items-end gap-0.5">
+          <span className="text-fog/40 text-xs font-body tracking-wider">
+            {word.romanization}
+          </span>
+          <ExplorationProgress />
+        </div>
       </motion.header>
 
       <ProgressIndicator />
