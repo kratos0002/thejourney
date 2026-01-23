@@ -89,7 +89,7 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
 
           {/* Compact dropdown card */}
           <motion.div
-            className="absolute top-16 right-5 z-30 w-64"
+            className="fixed top-16 right-5 z-30 w-64"
             initial={{ opacity: 0, y: -8, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
