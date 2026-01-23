@@ -9,7 +9,7 @@ const FRICTION = 0.91;
 const MAX_VEL = 0.015;
 const IDLE_SPEED = 0.0008;
 const DRAG_SENSITIVITY = 0.0035;
-const MAX_ROT_X = Math.PI / 3; // ±60° vertical clamp
+const MAX_ROT_X = Math.PI / 3;
 const MIN_RADIUS = 120;
 const MAX_RADIUS = 500;
 
@@ -34,9 +34,9 @@ function project3D(
   radius: number, perspective: number,
   cx: number, cy: number
 ): { x: number; y: number; z: number; scale: number } {
-  let x = Math.cos(lat) * Math.cos(lon);
-  let y = Math.sin(lat);
-  let z = Math.cos(lat) * Math.sin(lon);
+  const x = Math.cos(lat) * Math.cos(lon);
+  const y = Math.sin(lat);
+  const z = Math.cos(lat) * Math.sin(lon);
 
   const cosRY = Math.cos(rotY), sinRY = Math.sin(rotY);
   const x1 = x * cosRY + z * sinRY;
@@ -67,8 +67,10 @@ export default function BubbleNav() {
   const [isDragging, setIsDragging] = useState(false);
   const [viewSize, setViewSize] = useState({ w: 800, h: 600 });
 
+  // All mutable animation state in refs (no re-renders)
   const target = useRef({ rx: 0, ry: 0, radius: 280 });
   const vel = useRef({ rx: 0, ry: 0 });
+  const anim = useRef({ rx: 0, ry: 0, radius: 280 }); // current animated values
   const dragging = useRef(false);
   const dragOrigin = useRef({ x: 0, y: 0, rx: 0, ry: 0 });
   const moveDistRef = useRef(0);
@@ -78,7 +80,7 @@ export default function BubbleNav() {
   const lastInteraction = useRef(0);
   const pinchRef = useRef<{ dist: number; radius: number } | null>(null);
 
-  // Animation loop
+  // Single persistent animation loop (runs once, never recreated)
   useEffect(() => {
     let active = true;
     const tick = () => {
@@ -88,7 +90,6 @@ export default function BubbleNav() {
       const idleTime = now - lastInteraction.current;
 
       if (!dragging.current) {
-        // Apply momentum with high friction for quick settling
         target.current.rx += vel.current.rx;
         target.current.ry += vel.current.ry;
         vel.current.rx *= FRICTION;
@@ -96,29 +97,29 @@ export default function BubbleNav() {
         if (Math.abs(vel.current.rx) < 0.0001) vel.current.rx = 0;
         if (Math.abs(vel.current.ry) < 0.0001) vel.current.ry = 0;
 
-        // Gentle idle auto-rotation after momentum settles
+        // Gentle idle auto-rotation
         if (vel.current.rx === 0 && vel.current.ry === 0 && idleTime > 2000) {
           target.current.ry += IDLE_SPEED;
         }
       }
 
-      // Clamp vertical rotation
       target.current.rx = clamp(target.current.rx, -MAX_ROT_X, MAX_ROT_X);
 
-      // Lerp toward target
-      const nrx = lerpFn(rendered.rx, target.current.rx, LERP);
-      const nry = lerpFn(rendered.ry, target.current.ry, LERP);
-      const nrad = lerpFn(rendered.radius, target.current.radius, LERP);
+      // Lerp from current animated values (not from React state)
+      const nrx = lerpFn(anim.current.rx, target.current.rx, LERP);
+      const nry = lerpFn(anim.current.ry, target.current.ry, LERP);
+      const nrad = lerpFn(anim.current.radius, target.current.radius, LERP);
 
       const changed =
-        Math.abs(nrx - rendered.rx) > 0.000005 ||
-        Math.abs(nry - rendered.ry) > 0.000005 ||
-        Math.abs(nrad - rendered.radius) > 0.05 ||
+        Math.abs(nrx - anim.current.rx) > 0.000005 ||
+        Math.abs(nry - anim.current.ry) > 0.000005 ||
+        Math.abs(nrad - anim.current.radius) > 0.05 ||
         vel.current.rx !== 0 ||
         vel.current.ry !== 0 ||
         (idleTime > 2000 && !dragging.current);
 
       if (changed) {
+        anim.current = { rx: nrx, ry: nry, radius: nrad };
         setRendered({ rx: nrx, ry: nry, radius: nrad });
       }
 
@@ -126,7 +127,7 @@ export default function BubbleNav() {
     };
     loopRef.current = requestAnimationFrame(tick);
     return () => { active = false; cancelAnimationFrame(loopRef.current); };
-  });
+  }, []); // Empty deps — loop runs once, reads from refs
 
   // Viewport tracking
   useEffect(() => {
@@ -141,7 +142,7 @@ export default function BubbleNav() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Wheel zoom (desktop only, non-passive)
+  // Wheel zoom (non-passive)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -155,7 +156,7 @@ export default function BubbleNav() {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // Pointer handlers
+  // Pointer handlers — drag direction matches finger movement
   const onDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true;
     setIsDragging(true);
@@ -172,22 +173,23 @@ export default function BubbleNav() {
     const dy = e.clientY - dragOrigin.current.y;
     moveDistRef.current = Math.sqrt(dx * dx + dy * dy);
 
+    // Drag left → sphere rotates left (content follows finger)
     target.current.rx = clamp(
-      dragOrigin.current.rx + dy * DRAG_SENSITIVITY,
+      dragOrigin.current.rx - dy * DRAG_SENSITIVITY,
       -MAX_ROT_X, MAX_ROT_X
     );
-    target.current.ry = dragOrigin.current.ry - dx * DRAG_SENSITIVITY;
+    target.current.ry = dragOrigin.current.ry + dx * DRAG_SENSITIVITY;
 
-    // Velocity for momentum (clamped)
+    // Velocity for momentum (matching direction)
     const now = Date.now();
     const dt = now - lastPointer.current.t;
     if (dt > 0 && dt < 100) {
       vel.current.rx = clamp(
-        ((e.clientY - lastPointer.current.y) * DRAG_SENSITIVITY / dt) * 16,
+        (-(e.clientY - lastPointer.current.y) * DRAG_SENSITIVITY / dt) * 16,
         -MAX_VEL, MAX_VEL
       );
       vel.current.ry = clamp(
-        (-(e.clientX - lastPointer.current.x) * DRAG_SENSITIVITY / dt) * 16,
+        ((e.clientX - lastPointer.current.x) * DRAG_SENSITIVITY / dt) * 16,
         -MAX_VEL, MAX_VEL
       );
     }
@@ -224,7 +226,7 @@ export default function BubbleNav() {
 
   const wasDrag = useCallback(() => moveDistRef.current > 8, []);
 
-  // Projection — gentler perspective for less distortion
+  // Projection
   const perspective = rendered.radius * 3.5;
   const cx = viewSize.w / 2;
   const cy = viewSize.h / 2;
