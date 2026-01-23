@@ -95,7 +95,7 @@ export default function WordPage() {
         <JourneyMap journey={word.journey} />
         <WordSound sounds={word.sounds} />
         <WordRelatives relatives={word.relatives} />
-        <WordMeaning meaningNow={word.meaningNow} />
+        <WordMeaning word={word} />
       </div>
     </main>
   );

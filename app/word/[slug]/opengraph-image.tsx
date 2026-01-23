@@ -44,96 +44,90 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#0a0a14",
-          backgroundImage: "linear-gradient(180deg, #0a0a14 0%, #0f1a2e 50%, #0a0a14 100%)",
-          padding: "60px",
+          backgroundImage: "radial-gradient(ellipse at 50% 40%, #0f1a2e 0%, #0a0a14 70%)",
+          padding: "60px 80px",
+          position: "relative",
         }}
       >
-        {/* Subtle decorative circles */}
+        {/* Top: word in original script + romanization */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "400px",
-            height: "400px",
-            borderRadius: "50%",
-            border: "1px solid rgba(212, 165, 116, 0.1)",
+            top: "50px",
             display: "flex",
+            alignItems: "baseline",
+            gap: "16px",
           }}
-        />
+        >
+          <div
+            style={{
+              fontSize: "48px",
+              color: "rgba(240, 237, 230, 0.9)",
+              fontFamily: "serif",
+              display: "flex",
+            }}
+          >
+            {word.word}
+          </div>
+          <div
+            style={{
+              fontSize: "24px",
+              color: "#d4a574",
+              fontFamily: "serif",
+              fontStyle: "italic",
+              display: "flex",
+            }}
+          >
+            {word.romanization}
+          </div>
+        </div>
+
+        {/* Language tag */}
         <div
           style={{
             position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "500px",
-            height: "500px",
-            borderRadius: "50%",
-            border: "1px solid rgba(212, 165, 116, 0.05)",
-            display: "flex",
-          }}
-        />
-
-        {/* Word in original script */}
-        <div
-          style={{
-            fontSize: "96px",
-            color: "#f0ede6",
-            fontFamily: "serif",
-            marginBottom: "16px",
-            display: "flex",
-          }}
-        >
-          {word.word}
-        </div>
-
-        {/* Romanization */}
-        <div
-          style={{
-            fontSize: "36px",
-            color: "#d4a574",
-            fontFamily: "serif",
-            fontStyle: "italic",
-            marginBottom: "12px",
-            display: "flex",
-          }}
-        >
-          {word.romanization}
-        </div>
-
-        {/* Language */}
-        <div
-          style={{
-            fontSize: "20px",
-            color: "rgba(168, 164, 160, 0.7)",
+            top: "115px",
+            fontSize: "13px",
+            color: "rgba(168, 164, 160, 0.5)",
             letterSpacing: "4px",
             textTransform: "uppercase",
-            marginBottom: "32px",
             display: "flex",
           }}
         >
           {word.language}
         </div>
 
-        {/* Hook */}
+        {/* Hero: The hook — the intriguing question */}
         <div
           style={{
-            fontSize: "22px",
-            color: "rgba(168, 164, 160, 0.6)",
+            fontSize: "32px",
+            color: "rgba(240, 237, 230, 0.85)",
             fontFamily: "serif",
             fontStyle: "italic",
             textAlign: "center",
-            maxWidth: "700px",
+            maxWidth: "900px",
             lineHeight: 1.5,
             display: "flex",
           }}
         >
-          &ldquo;{word.hook}&rdquo;
+          {`\u201C${word.hook}\u201D`}
         </div>
 
-        {/* Footer */}
+        {/* CTA hint */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: "80px",
+            fontSize: "18px",
+            color: "rgba(212, 165, 116, 0.6)",
+            display: "flex",
+            letterSpacing: "1px",
+          }}
+        >
+          Trace the journey →
+        </div>
+
+        {/* Footer branding */}
         <div
           style={{
             position: "absolute",
@@ -141,8 +135,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            fontSize: "16px",
-            color: "rgba(107, 104, 102, 0.6)",
+            fontSize: "14px",
+            color: "rgba(107, 104, 102, 0.5)",
             letterSpacing: "3px",
             textTransform: "uppercase",
           }}

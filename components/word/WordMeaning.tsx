@@ -1,32 +1,40 @@
 "use client";
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { allWords, Word } from "@/data/words";
 
 interface WordMeaningProps {
-  meaningNow: string;
+  word: Word;
 }
 
-export default function WordMeaning({ meaningNow }: WordMeaningProps) {
+export default function WordMeaning({ word }: WordMeaningProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
   const [shareFeedback, setShareFeedback] = useState(false);
 
   const handleShare = () => {
-    const text = paragraphs[0] || meaningNow;
+    const shareText = `"${word.hook}"\n\nTrace the journey of '${word.romanization}' →`;
     const url = window.location.href;
     if (navigator.share) {
-      navigator.share({ title: "The Journey", text, url });
+      navigator.share({ title: `${word.romanization} — The Journey`, text: shareText, url });
     } else {
-      navigator.clipboard.writeText(`${text}\n${url}`);
+      navigator.clipboard.writeText(`${shareText}\n${url}`);
       setShareFeedback(true);
       setTimeout(() => setShareFeedback(false), 2000);
     }
   };
 
-  const paragraphs = meaningNow.split("\n\n");
+  // Pick 3 random words to suggest (excluding current word)
+  const suggestions = useMemo(() => {
+    const others = allWords.filter(w => w.slug !== word.slug);
+    const shuffled = [...others].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, 3);
+  }, [word.slug]);
+
+  const paragraphs = word.meaningNow.split("\n\n");
 
   return (
     <section
@@ -86,6 +94,29 @@ export default function WordMeaning({ meaningNow }: WordMeaningProps) {
             </svg>
             Share
           </button>
+        </motion.div>
+
+        {/* Explore more words */}
+        <motion.div
+          className="mt-20 pt-12 border-t border-moonlight/5"
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 1.2 }}
+        >
+          <p className="text-xs uppercase tracking-[0.2em] text-fog/40 font-body mb-6">
+            Explore more words
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {suggestions.map((s) => (
+              <button
+                key={s.slug}
+                onClick={() => router.push(`/word/${s.slug}`)}
+                className="px-4 py-2 text-sm text-mist/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer"
+              >
+                {s.romanization}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
         {/* Share feedback toast */}
