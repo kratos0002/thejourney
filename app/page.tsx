@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { fadeIn, fadeInUp } from "@/lib/animations";
-import WordCloud from "@/components/home/WordCloud";
+import BubbleNav from "@/components/home/BubbleNav";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
   ssr: false,
@@ -112,9 +112,9 @@ export default function Home() {
         </div>
       </motion.div>
 
-      {/* Word Cloud */}
-      <div className="relative z-10 flex-1 w-full max-w-6xl mx-auto px-6 sm:px-12 py-12 sm:py-16">
-        <WordCloud searchQuery={searchQuery} />
+      {/* Bubble Navigation */}
+      <div className="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
+        <BubbleNav searchQuery={searchQuery} />
       </div>
     </main>
   );
