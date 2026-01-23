@@ -10,7 +10,6 @@ interface BubbleItemProps {
   screenY: number;
   depth: number; // -1 (back) to 1 (front)
   projScale: number; // perspective scale factor
-  dimmed?: boolean;
   wasDrag: () => boolean;
 }
 
@@ -22,7 +21,6 @@ export default function BubbleItem({
   screenY,
   depth,
   projScale,
-  dimmed,
   wasDrag,
 }: BubbleItemProps) {
   const { navigateToWord } = useTransition();
@@ -30,7 +28,7 @@ export default function BubbleItem({
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (dimmed || wasDrag() || depth < 0.1) return;
+    if (wasDrag() || depth < 0.1) return;
     const rect = ref.current?.getBoundingClientRect();
     const origin = rect
       ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
@@ -40,7 +38,7 @@ export default function BubbleItem({
 
   // Size and opacity based on depth
   const size = BASE_SIZE * projScale;
-  const opacity = dimmed ? 0.05 : Math.max(0, Math.min(1, (depth + 0.3) * 0.9));
+  const opacity = Math.max(0, Math.min(1, (depth + 0.3) * 0.9));
   const showLabel = depth > 0.3 && size > 40;
   const fontSize = Math.max(10, 14 * projScale);
 
@@ -57,13 +55,13 @@ export default function BubbleItem({
         transform: "translate(-50%, -50%)",
         opacity,
         zIndex: Math.round((depth + 1) * 50),
-        pointerEvents: dimmed || depth < 0.1 ? "none" : "auto",
-        cursor: dimmed || depth < 0.1 ? "default" : "pointer",
+        pointerEvents: depth < 0.1 ? "none" : "auto",
+        cursor: depth < 0.1 ? "default" : "pointer",
       }}
       onClick={handleClick}
       aria-label={`Explore ${word.romanization} - ${word.language}`}
-      aria-hidden={dimmed || depth < 0}
-      tabIndex={dimmed || depth < 0.1 ? -1 : 0}
+      aria-hidden={depth < 0}
+      tabIndex={depth < 0.1 ? -1 : 0}
     >
       {/* Circle */}
       <div
