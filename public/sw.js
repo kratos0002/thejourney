@@ -1,4 +1,4 @@
-const CACHE_NAME = "journey-v1";
+const CACHE_NAME = "journey-v2";
 
 // Cache static assets on install
 self.addEventListener("install", (event) => {
