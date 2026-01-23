@@ -92,9 +92,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <path
               d={pathD}
               fill="none"
-              stroke="rgba(212, 165, 116, 0.15)"
-              strokeWidth="2"
-              strokeDasharray="6,8"
+              stroke="rgba(212, 165, 116, 0.2)"
+              strokeWidth="2.5"
+              strokeDasharray="8,10"
             />
           )}
           {/* Journey dots */}
@@ -103,8 +103,8 @@ export default async function Image({ params }: { params: Promise<{ slug: string
               key={i}
               cx={p.x}
               cy={p.y}
-              r={i === 0 ? 6 : i === points.length - 1 ? 6 : 4}
-              fill={i === 0 ? "rgba(212, 165, 116, 0.6)" : i === points.length - 1 ? "rgba(212, 165, 116, 0.5)" : "rgba(212, 165, 116, 0.3)"}
+              r={i === 0 ? 8 : i === points.length - 1 ? 8 : 5}
+              fill={i === 0 ? "rgba(212, 165, 116, 0.7)" : i === points.length - 1 ? "rgba(212, 165, 116, 0.6)" : "rgba(212, 165, 116, 0.35)"}
             />
           ))}
           {/* Glow on first and last dot */}
@@ -112,20 +112,20 @@ export default async function Image({ params }: { params: Promise<{ slug: string
             <circle
               cx={points[0].x}
               cy={points[0].y}
-              r="14"
+              r="18"
               fill="none"
-              stroke="rgba(212, 165, 116, 0.12)"
-              strokeWidth="2"
+              stroke="rgba(212, 165, 116, 0.15)"
+              strokeWidth="2.5"
             />
           )}
           {points.length > 1 && (
             <circle
               cx={points[points.length - 1].x}
               cy={points[points.length - 1].y}
-              r="14"
+              r="18"
               fill="none"
-              stroke="rgba(212, 165, 116, 0.12)"
-              strokeWidth="2"
+              stroke="rgba(212, 165, 116, 0.15)"
+              strokeWidth="2.5"
             />
           )}
         </svg>
@@ -134,15 +134,15 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         <div
           style={{
             position: "absolute",
-            top: "45px",
+            top: "40px",
             display: "flex",
             alignItems: "baseline",
-            gap: "16px",
+            gap: "20px",
           }}
         >
           <div
             style={{
-              fontSize: "44px",
+              fontSize: "64px",
               color: "rgba(240, 237, 230, 0.9)",
               fontFamily: "serif",
               display: "flex",
@@ -152,7 +152,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
           <div
             style={{
-              fontSize: "22px",
+              fontSize: "32px",
               color: "#d4a574",
               fontFamily: "serif",
               fontStyle: "italic",
@@ -167,10 +167,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         <div
           style={{
             position: "absolute",
-            top: "105px",
-            fontSize: "12px",
-            color: "rgba(168, 164, 160, 0.45)",
-            letterSpacing: "4px",
+            top: "120px",
+            fontSize: "15px",
+            color: "rgba(168, 164, 160, 0.5)",
+            letterSpacing: "5px",
             textTransform: "uppercase",
             display: "flex",
           }}
@@ -181,13 +181,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         {/* Hook — hero text */}
         <div
           style={{
-            fontSize: "30px",
-            color: "rgba(240, 237, 230, 0.85)",
+            fontSize: "38px",
+            color: "rgba(240, 237, 230, 0.9)",
             fontFamily: "serif",
             fontStyle: "italic",
             textAlign: "center",
-            maxWidth: "850px",
-            lineHeight: 1.5,
+            maxWidth: "950px",
+            lineHeight: 1.45,
             display: "flex",
             position: "relative",
           }}
@@ -199,9 +199,9 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         <div
           style={{
             position: "absolute",
-            bottom: "70px",
-            fontSize: "16px",
-            color: "rgba(212, 165, 116, 0.55)",
+            bottom: "65px",
+            fontSize: "20px",
+            color: "rgba(212, 165, 116, 0.6)",
             display: "flex",
             letterSpacing: "1px",
           }}
@@ -213,10 +213,10 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         <div
           style={{
             position: "absolute",
-            bottom: "35px",
+            bottom: "30px",
             display: "flex",
-            fontSize: "13px",
-            color: "rgba(107, 104, 102, 0.45)",
+            fontSize: "15px",
+            color: "rgba(107, 104, 102, 0.5)",
             letterSpacing: "3px",
             textTransform: "uppercase",
           }}
