@@ -21,36 +21,18 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
-  // Analytics derived from explored words
   const analytics = useMemo(() => {
     const explored = allWords.filter(w => exploredSlugs.has(w.slug));
     const languages = new Set(explored.map(w => w.language));
-    const regions = new Set<string>();
-    let totalStops = 0;
-
-    explored.forEach(w => {
-      w.journey.forEach(j => {
-        regions.add(j.location);
-        totalStops++;
-      });
-    });
-
     return {
-      wordsExplored: exploredCount,
-      wordsTotal: allWords.length,
+      words: exploredCount,
       languages: languages.size,
-      regions: regions.size,
-      journeyStops: totalStops,
     };
   }, [exploredSlugs, exploredCount]);
 
-  // Install prompt detection
   useEffect(() => {
-    setIsStandalone(window.matchMedia("(display-mode: standalone)").matches);
-
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -78,11 +60,8 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
     setAuthLoading(true);
     const { error } = await signInWithEmail(email);
     setAuthLoading(false);
-    if (error) {
-      setAuthError(error);
-    } else {
-      setAuthStep("otp");
-    }
+    if (error) setAuthError(error);
+    else setAuthStep("otp");
   };
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
@@ -91,11 +70,8 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
     setAuthLoading(true);
     const { error } = await verifyOtp(email, otp);
     setAuthLoading(false);
-    if (error) {
-      setAuthError(error);
-    } else {
-      setAuthStep("idle");
-    }
+    if (error) setAuthError(error);
+    else { setAuthStep("idle"); onClose(); }
   };
 
   const handleSignOut = async () => {
@@ -108,185 +84,129 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
-          <motion.div
-            className="fixed inset-0 z-[85] bg-abyss/60 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
+          {/* Invisible backdrop to close */}
+          <div className="fixed inset-0 z-[29]" onClick={onClose} />
 
-          {/* Panel */}
+          {/* Compact dropdown card */}
           <motion.div
-            className="fixed bottom-0 left-0 right-0 z-[86] max-h-[85vh] overflow-y-auto"
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            className="absolute top-16 right-5 z-30 w-64"
+            initial={{ opacity: 0, y: -8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            <div className="bg-deep-water/98 backdrop-blur-xl border-t border-moonlight/8 rounded-t-3xl px-6 pb-8 pt-4">
-              {/* Drag handle */}
-              <div className="w-10 h-1 rounded-full bg-fog/20 mx-auto mb-6" />
-
-              {/* Header */}
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="font-display text-xl text-moonlight/90 font-light">
-                  Your Journey
-                </h2>
-                {user && (
-                  <span className="text-[10px] text-fog/40 font-body tracking-wider">
-                    {user.email}
-                  </span>
-                )}
-              </div>
-
-              {/* Analytics Grid */}
-              <div className="grid grid-cols-3 gap-3 mb-8">
-                <div className="bg-abyss/60 rounded-xl p-4 text-center border border-moonlight/5">
-                  <p className="font-display text-2xl text-moonlight/90 font-light">
-                    {analytics.wordsExplored}
-                  </p>
-                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase mt-1">
-                    Words
-                  </p>
+            <div className="bg-ink border border-moonlight/12 rounded-2xl p-4 shadow-2xl shadow-black/40">
+              {/* Stats row */}
+              <div className="flex items-center gap-4 mb-4">
+                <div className="text-center flex-1">
+                  <p className="font-display text-xl text-moonlight/90">{analytics.words}</p>
+                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase">words</p>
                 </div>
-                <div className="bg-abyss/60 rounded-xl p-4 text-center border border-moonlight/5">
-                  <p className="font-display text-2xl text-amber-glow/80 font-light">
-                    {analytics.languages}
-                  </p>
-                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase mt-1">
-                    Languages
-                  </p>
-                </div>
-                <div className="bg-abyss/60 rounded-xl p-4 text-center border border-moonlight/5">
-                  <p className="font-display text-2xl text-moonlight/70 font-light">
-                    {analytics.journeyStops}
-                  </p>
-                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase mt-1">
-                    Stops
-                  </p>
+                <div className="w-px h-8 bg-moonlight/8" />
+                <div className="text-center flex-1">
+                  <p className="font-display text-xl text-amber-glow/80">{analytics.languages}</p>
+                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase">languages</p>
                 </div>
               </div>
 
-              {/* Progress bar */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-fog/40 font-body tracking-wider uppercase">
-                    Progress
-                  </span>
-                  <span className="text-[10px] text-fog/30 font-body">
-                    {analytics.wordsExplored}/{analytics.wordsTotal}
-                  </span>
-                </div>
-                <div className="h-1 bg-abyss/80 rounded-full overflow-hidden">
+              {/* Progress */}
+              <div className="mb-4">
+                <div className="h-1 bg-abyss rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-amber-glow/60 to-amber-glow/30 rounded-full"
+                    className="h-full bg-amber-glow/50 rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${(analytics.wordsExplored / analytics.wordsTotal) * 100}%` }}
-                    transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                    animate={{ width: `${(analytics.words / allWords.length) * 100}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
                   />
                 </div>
+                <p className="text-[9px] text-fog/25 font-body mt-1.5 text-right">
+                  {analytics.words}/{allWords.length}
+                </p>
               </div>
 
-              {/* Auth Section */}
+              {/* Auth */}
               {!user && authStep === "idle" && (
-                <div className="mb-6">
-                  <button
-                    onClick={() => setAuthStep("email")}
-                    className="w-full py-3 px-4 bg-abyss/60 border border-moonlight/10 hover:border-amber-glow/20 rounded-xl text-sm text-moonlight/70 hover:text-moonlight font-body transition-all duration-300 cursor-pointer"
-                  >
-                    Sign in to sync across devices
-                  </button>
-                </div>
+                <button
+                  onClick={() => setAuthStep("email")}
+                  className="w-full py-2 text-xs text-moonlight/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-moonlight/15 rounded-lg transition-colors cursor-pointer"
+                >
+                  Sign in to sync
+                </button>
               )}
 
               {!user && authStep === "email" && (
-                <form onSubmit={handleEmailSubmit} className="mb-6 space-y-3">
+                <form onSubmit={handleEmailSubmit} className="space-y-2">
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full bg-abyss/60 border border-fog/15 rounded-xl px-4 py-3 text-moonlight/80 font-body text-sm placeholder:text-fog/25 focus:outline-none focus:border-amber-glow/30 transition-colors"
+                    className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-body text-xs placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/30 transition-colors"
                     required
                     autoFocus
                   />
                   <button
                     type="submit"
                     disabled={authLoading}
-                    className="w-full py-3 bg-amber-glow/10 border border-amber-glow/25 rounded-xl text-sm text-amber-glow font-body hover:bg-amber-glow/15 disabled:opacity-40 transition-all cursor-pointer"
+                    className="w-full py-2 text-xs text-amber-glow font-body bg-amber-glow/8 border border-amber-glow/20 rounded-lg hover:bg-amber-glow/12 disabled:opacity-40 transition-colors cursor-pointer"
                   >
-                    {authLoading ? "Sending code..." : "Continue"}
+                    {authLoading ? "Sending..." : "Continue"}
                   </button>
-                  {authError && <p className="text-red-400/70 text-xs font-body">{authError}</p>}
+                  {authError && <p className="text-red-400/70 text-[10px] font-body">{authError}</p>}
                 </form>
               )}
 
               {!user && authStep === "otp" && (
-                <form onSubmit={handleOtpSubmit} className="mb-6 space-y-3">
-                  <p className="text-xs text-fog/50 font-body mb-2">Code sent to {email}</p>
+                <form onSubmit={handleOtpSubmit} className="space-y-2">
+                  <p className="text-[10px] text-fog/40 font-body">Code sent to {email}</p>
                   <input
                     type="text"
                     inputMode="numeric"
-                    pattern="[0-9]*"
                     maxLength={6}
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                     placeholder="000000"
-                    className="w-full bg-abyss/60 border border-fog/15 rounded-xl px-4 py-3 text-moonlight/80 font-mono text-xl text-center tracking-[0.4em] placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/30 transition-colors"
+                    className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-mono text-sm text-center tracking-[0.3em] placeholder:text-fog/15 focus:outline-none focus:border-amber-glow/30 transition-colors"
                     required
                     autoFocus
                   />
                   <button
                     type="submit"
                     disabled={authLoading || otp.length < 6}
-                    className="w-full py-3 bg-amber-glow/10 border border-amber-glow/25 rounded-xl text-sm text-amber-glow font-body hover:bg-amber-glow/15 disabled:opacity-40 transition-all cursor-pointer"
+                    className="w-full py-2 text-xs text-amber-glow font-body bg-amber-glow/8 border border-amber-glow/20 rounded-lg hover:bg-amber-glow/12 disabled:opacity-40 transition-colors cursor-pointer"
                   >
                     {authLoading ? "Verifying..." : "Verify"}
                   </button>
-                  {authError && <p className="text-red-400/70 text-xs font-body">{authError}</p>}
+                  {authError && <p className="text-red-400/70 text-[10px] font-body">{authError}</p>}
                 </form>
               )}
 
-              {/* Install App */}
-              {!isStandalone && (canInstall || /iphone|ipad|ipod/i.test(typeof navigator !== "undefined" ? navigator.userAgent : "")) && (
-                <div className="mb-6">
-                  {canInstall ? (
-                    <button
-                      onClick={handleInstall}
-                      className="w-full py-3 px-4 bg-abyss/60 border border-moonlight/10 hover:border-amber-glow/20 rounded-xl text-sm text-moonlight/70 hover:text-moonlight font-body flex items-center justify-center gap-3 transition-all duration-300 cursor-pointer"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-glow/60">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                        <polyline points="7,10 12,15 17,10"/>
-                        <line x1="12" y1="15" x2="12" y2="3"/>
-                      </svg>
-                      Install app
-                    </button>
-                  ) : (
-                    <div className="py-3 px-4 bg-abyss/60 border border-moonlight/5 rounded-xl text-center">
-                      <p className="text-xs text-fog/50 font-body">
-                        Tap{" "}
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline text-fog/60 mx-0.5">
-                          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                          <polyline points="16,6 12,2 8,6"/>
-                          <line x1="12" y1="2" x2="12" y2="15"/>
-                        </svg>{" "}
-                        then &ldquo;Add to Home Screen&rdquo;
-                      </p>
-                    </div>
-                  )}
+              {user && (
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-fog/40 font-body truncate max-w-[140px]">
+                    {user.email}
+                  </span>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-[10px] text-fog/30 hover:text-fog/60 font-body transition-colors cursor-pointer"
+                  >
+                    Sign out
+                  </button>
                 </div>
               )}
 
-              {/* Sign out */}
-              {user && (
+              {/* Install */}
+              {canInstall && (
                 <button
-                  onClick={handleSignOut}
-                  className="w-full py-2.5 text-xs text-fog/30 hover:text-fog/50 font-body transition-colors cursor-pointer"
+                  onClick={handleInstall}
+                  className="w-full mt-3 py-2 text-xs text-moonlight/50 hover:text-moonlight font-body border border-moonlight/8 hover:border-moonlight/15 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  Sign out
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-glow/50">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                  </svg>
+                  Install app
                 </button>
               )}
             </div>
