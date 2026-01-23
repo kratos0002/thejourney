@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { fadeIn, fadeInUp } from "@/lib/animations";
 import BubbleNav from "@/components/home/BubbleNav";
+import StartPrompt from "@/components/home/StartPrompt";
 
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
@@ -49,6 +50,9 @@ export default function Home() {
       <div className="absolute inset-0 z-10">
         <BubbleNav />
       </div>
+
+      {/* Start prompt for first-time users */}
+      <StartPrompt />
 
       {/* Header overlay */}
       <motion.header
