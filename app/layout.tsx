@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Source_Serif_4, JetBrains_Mono, Noto_Sans_Arabic, Noto_Sans_JP } from "next/font/google";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import { ExplorationProvider } from "@/components/ExplorationProvider";
 import AmbientParticles from "@/components/AmbientParticles";
+import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -40,10 +41,26 @@ const notoJP = Noto_Sans_JP({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  themeColor: "#0a0a14",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://thejourney-fzcp.vercel.app"),
   title: "The Journey — Fifty Words. Fifty Worlds.",
   description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon-192.png",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-status-bar-style": "black-translucent",
+  },
 };
 
 export default function RootLayout({
@@ -60,6 +77,7 @@ export default function RootLayout({
         <TransitionProvider>
           <ExplorationProvider>
             {children}
+            <InstallPrompt />
           </ExplorationProvider>
         </TransitionProvider>
       </body>

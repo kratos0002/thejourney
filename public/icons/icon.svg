@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="108" fill="#0a0a14"/>
+  <!-- Journey path -->
+  <path d="M 140 340 Q 200 280 256 260 Q 320 240 370 180" fill="none" stroke="rgba(212, 165, 116, 0.3)" stroke-width="3" stroke-dasharray="8,12"/>
+  <!-- Origin dot -->
+  <circle cx="140" cy="340" r="12" fill="rgba(212, 165, 116, 0.7)"/>
+  <circle cx="140" cy="340" r="22" fill="none" stroke="rgba(212, 165, 116, 0.2)" stroke-width="2"/>
+  <!-- Mid dots -->
+  <circle cx="256" cy="260" r="8" fill="rgba(212, 165, 116, 0.4)"/>
+  <circle cx="200" cy="300" r="6" fill="rgba(212, 165, 116, 0.25)"/>
+  <!-- Destination dot -->
+  <circle cx="370" cy="180" r="12" fill="rgba(212, 165, 116, 0.6)"/>
+  <circle cx="370" cy="180" r="22" fill="none" stroke="rgba(212, 165, 116, 0.2)" stroke-width="2"/>
+  <!-- Subtle "J" letterform -->
+  <text x="256" y="400" text-anchor="middle" font-family="Georgia, serif" font-size="120" font-weight="300" fill="rgba(240, 237, 230, 0.12)">J</text>
+</svg>
