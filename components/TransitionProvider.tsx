@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TransitionState {
@@ -30,13 +30,30 @@ export function useTransition() {
 
 export function TransitionProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [state, setState] = useState<TransitionState>({
     isTransitioning: false,
     direction: "in",
   });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const targetPathRef = useRef<string | null>(null);
+
+  // Clear transition when the route actually changes (page rendered)
+  useEffect(() => {
+    if (targetPathRef.current && pathname === targetPathRef.current) {
+      // Route has changed — give a brief moment for paint, then clear overlay
+      const t = setTimeout(() => {
+        setState(prev => ({ ...prev, isTransitioning: false }));
+        targetPathRef.current = null;
+      }, 100);
+      return () => clearTimeout(t);
+    }
+  }, [pathname]);
 
   const navigateToWord = useCallback((slug: string, word: string, origin: { x: number; y: number }) => {
+    const targetPath = `/word/${slug}`;
+    targetPathRef.current = targetPath;
+
     setState({
       isTransitioning: true,
       word,
@@ -46,15 +63,13 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
     });
 
     timeoutRef.current = setTimeout(() => {
-      router.push(`/word/${slug}`);
-      // Keep overlay visible during navigation, clear after mount
-      setTimeout(() => {
-        setState(prev => ({ ...prev, isTransitioning: false }));
-      }, 300);
+      router.push(targetPath);
     }, 700);
   }, [router]);
 
   const navigateHome = useCallback(() => {
+    targetPathRef.current = "/";
+
     setState({
       isTransitioning: true,
       direction: "out",
@@ -62,9 +77,6 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
 
     timeoutRef.current = setTimeout(() => {
       router.push("/");
-      setTimeout(() => {
-        setState(prev => ({ ...prev, isTransitioning: false }));
-      }, 300);
     }, 500);
   }, [router]);
 
