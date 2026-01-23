@@ -7,12 +7,13 @@ import BubbleItem from "./BubbleItem";
 const BUBBLE_SIZE = 82;
 const GAP = 10;
 const CELL = BUBBLE_SIZE + GAP;
+const MIN_ZOOM = 0.35;
+const MAX_ZOOM = 4.0;
 
 // Generate hex grid positions in concentric rings
 function hexPositions(count: number): { x: number; y: number }[] {
   const positions: { x: number; y: number }[] = [];
 
-  // Center bubble
   positions.push({ x: 0, y: 0 });
   if (count === 1) return positions;
 
@@ -41,23 +42,23 @@ function hexPositions(count: number): { x: number; y: number }[] {
   return positions;
 }
 
-// Sphere distortion: scale based on distance from viewport center
+// Sphere distortion: cosine falloff from viewport center
 function sphereScale(
-  bubbleScreenX: number,
-  bubbleScreenY: number,
+  screenX: number,
+  screenY: number,
   viewW: number,
   viewH: number
 ): number {
   const cx = viewW / 2;
   const cy = viewH / 2;
-  const dx = (bubbleScreenX - cx) / cx;
-  const dy = (bubbleScreenY - cy) / cy;
+  const dx = (screenX - cx) / cx;
+  const dy = (screenY - cy) / cy;
   const dist = Math.sqrt(dx * dx + dy * dy);
 
-  // Cosine falloff for sphere-like distortion
-  const normalized = Math.min(dist, 1.4);
-  const s = Math.cos(normalized * (Math.PI / 2.8));
-  return Math.max(0.25, s);
+  // Stronger sphere curvature — items at edges shrink dramatically
+  const normalized = Math.min(dist, 1.5);
+  const s = Math.cos(normalized * (Math.PI / 3));
+  return Math.max(0.1, s);
 }
 
 interface BubbleNavProps {
@@ -80,8 +81,9 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     );
   }, [searchQuery]);
 
-  // Pan state
+  // Pan + zoom state
   const [translate, setTranslate] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1.0);
   const [isDragging, setIsDragging] = useState(false);
   const [viewSize, setViewSize] = useState({ w: 800, h: 600 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -92,7 +94,7 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
   const animRef = useRef<number | null>(null);
 
   // Pinch state
-  const pinchStart = useRef<{ dist: number; tx: number; ty: number } | null>(null);
+  const pinchStart = useRef<{ dist: number; zoom: number } | null>(null);
 
   // Track viewport size
   useEffect(() => {
@@ -107,12 +109,30 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     return () => window.removeEventListener("resize", update);
   }, []);
 
+  // Zoom with scroll wheel — zoom toward center
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = -e.deltaY * 0.002;
+    setZoom((z) => {
+      const newZ = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, z * (1 + delta)));
+      // Adjust translation to zoom toward pointer position
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        const px = e.clientX - rect.left - rect.width / 2;
+        const py = e.clientY - rect.top - rect.height / 2;
+        const factor = newZ / z - 1;
+        setTranslate((prev) => ({
+          x: prev.x - px * factor * 0.3,
+          y: prev.y - py * factor * 0.3,
+        }));
+      }
+      return newZ;
+    });
+  }, []);
+
   // Pan: pointer down
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
-      if ((e.target as HTMLElement).closest("[data-bubble]")) {
-        // Let bubble handle its own events
-      }
       if (animRef.current) {
         cancelAnimationFrame(animRef.current);
         animRef.current = null;
@@ -138,7 +158,6 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
       y: dragStart.current.ty + dy,
     });
 
-    // Track velocity for momentum
     const now = Date.now();
     const dt = now - lastPos.current.t;
     if (dt > 0) {
@@ -156,7 +175,6 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     setIsDragging(false);
     dragStart.current = null;
 
-    // Apply inertia
     let vx = velocityRef.current.x * 14;
     let vy = velocityRef.current.y * 14;
     const friction = 0.92;
@@ -174,33 +192,25 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     animRef.current = requestAnimationFrame(animate);
   }, []);
 
-  // Touch: pinch to pan faster (two-finger drag)
+  // Touch: pinch to zoom
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (e.touches.length === 2) {
-        const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
-        pinchStart.current = {
-          dist: Math.hypot(dx, dy),
-          tx: mx,
-          ty: my,
-        };
+        pinchStart.current = { dist: Math.hypot(dx, dy), zoom };
       }
     },
-    []
+    [zoom]
   );
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && pinchStart.current) {
-      const mx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const my = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      const dmx = mx - pinchStart.current.tx;
-      const dmy = my - pinchStart.current.ty;
-      setTranslate((prev) => ({ x: prev.x + dmx * 0.5, y: prev.y + dmy * 0.5 }));
-      pinchStart.current.tx = mx;
-      pinchStart.current.ty = my;
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const ratio = dist / pinchStart.current.dist;
+      setZoom(Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, pinchStart.current.zoom * ratio)));
     }
   }, []);
 
@@ -215,7 +225,6 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     };
   }, []);
 
-  // Was this a click (minimal movement) or a drag?
   const wasDrag = useCallback(() => moveDistance.current > 6, []);
 
   return (
@@ -223,6 +232,7 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
       ref={containerRef}
       className="relative w-full h-full overflow-hidden select-none"
       style={{ cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }}
+      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -231,19 +241,39 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Subtle hint */}
+      {/* Hint */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 text-[10px] text-fog/30 font-body pointer-events-none tracking-wider">
-        drag to explore
+        scroll to zoom · drag to explore
       </div>
 
-      {/* Bubbles rendered with sphere distortion */}
+      {/* Vignette overlay for sphere depth */}
+      <div
+        className="absolute inset-0 pointer-events-none z-10"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 30%, rgba(10,10,15,0.7) 70%, rgba(10,10,15,0.95) 100%)",
+        }}
+      />
+
+      {/* Bubbles with sphere distortion */}
       {allWords.map((word, index) => {
         const pos = positions[index];
         const isVisible = filteredWords.includes(word);
 
-        // Bubble's screen position (center of viewport + offset + pan)
-        const screenX = viewSize.w / 2 + pos.x + translate.x;
-        const screenY = viewSize.h / 2 + pos.y + translate.y;
+        // Apply zoom to grid positions, then translate
+        const screenX = viewSize.w / 2 + pos.x * zoom + translate.x;
+        const screenY = viewSize.h / 2 + pos.y * zoom + translate.y;
+
+        // Cull bubbles far off-screen for performance
+        const margin = BUBBLE_SIZE * 2;
+        if (
+          screenX < -margin ||
+          screenX > viewSize.w + margin ||
+          screenY < -margin ||
+          screenY > viewSize.h + margin
+        ) {
+          return null;
+        }
+
         const bubbleScale = sphereScale(screenX, screenY, viewSize.w, viewSize.h);
 
         return (
@@ -252,7 +282,7 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
             word={word}
             screenX={screenX}
             screenY={screenY}
-            bubbleScale={bubbleScale}
+            bubbleScale={bubbleScale * Math.min(zoom, 1.5)}
             dimmed={!isVisible && searchQuery.trim().length > 0}
             wasDrag={wasDrag}
           />
