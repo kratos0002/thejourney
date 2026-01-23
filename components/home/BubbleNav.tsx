@@ -30,6 +30,34 @@ function fibonacciSphere(count: number): { lat: number; lon: number }[] {
 function clamp(v: number, min: number, max: number) { return Math.max(min, Math.min(max, v)); }
 function lerpFn(a: number, b: number, t: number) { return a + (b - a) * t; }
 
+function getLanguageTint(language: string): string {
+  const lang = language.toLowerCase();
+  // Derive tint from origin language
+  if (lang.includes("arabic") || lang.includes("swahili"))
+    return "rgba(212, 165, 116, 0.25)"; // amber — Semitic
+  if (lang.includes("sanskrit") || lang.includes("hindi") || lang.includes("pali"))
+    return "rgba(184, 122, 75, 0.25)"; // copper — Indic
+  if (lang.includes("persian"))
+    return "rgba(180, 130, 100, 0.22)"; // warm sand — Iranian
+  if (lang.includes("japanese") || lang.includes("chinese") || lang.includes("hokkien"))
+    return "rgba(74, 124, 124, 0.3)"; // teal — East Asian
+  if (lang.includes("french") || lang.includes("italian") || lang.includes("spanish") || lang.includes("portuguese") || lang.includes("latin"))
+    return "rgba(100, 130, 180, 0.25)"; // blue — Romance
+  if (lang.includes("german") || lang.includes("dutch") || lang.includes("norse") || lang.includes("yiddish"))
+    return "rgba(160, 160, 180, 0.25)"; // silver — Germanic
+  if (lang.includes("malay") || lang.includes("tahitian") || lang.includes("samoan") || lang.includes("tongan"))
+    return "rgba(80, 170, 170, 0.25)"; // turquoise — Austronesian
+  if (lang.includes("nahuatl") || lang.includes("dharug") || lang.includes("zulu"))
+    return "rgba(120, 170, 100, 0.25)"; // green — Indigenous
+  if (lang.includes("greek"))
+    return "rgba(140, 120, 180, 0.25)"; // violet — Greek
+  if (lang.includes("turkish"))
+    return "rgba(180, 100, 100, 0.22)"; // muted red — Turkic
+  if (lang.includes("czech"))
+    return "rgba(140, 130, 170, 0.22)"; // muted purple — Slavic
+  return "rgba(240, 237, 230, 0.08)"; // default moonlight
+}
+
 export default function BubbleNav() {
   const { navigateToWord } = useTransition();
   const spherePoints = useMemo(() => fibonacciSphere(allWords.length), []);
@@ -264,8 +292,8 @@ export default function BubbleNav() {
           aria-label={`Explore ${word.romanization}`}
         >
           <div
-            className="w-full h-full rounded-full border border-moonlight/10 flex items-center justify-center"
-            style={{ background: "rgba(26, 26, 36, 0.7)" }}
+            className="w-full h-full rounded-full border flex items-center justify-center"
+            style={{ background: "rgba(26, 26, 36, 0.7)", borderColor: getLanguageTint(word.language) }}
           >
             <span className="font-display font-semibold text-moonlight/90 text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1">
               {word.romanization}
