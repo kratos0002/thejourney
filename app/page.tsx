@@ -35,25 +35,30 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="relative min-h-screen flex flex-col items-center overflow-hidden">
+    <main className="relative h-screen w-screen overflow-hidden">
       {/* First-visit intro */}
       {showIntro && <IntroSequence onComplete={handleIntroComplete} />}
 
       {/* Background gradient */}
-      <div className="fixed inset-0 bg-gradient-to-b from-abyss via-deep-water to-abyss" />
+      <div className="absolute inset-0 bg-gradient-to-b from-abyss via-deep-water to-abyss" />
 
       {/* World map silhouette with origin dots */}
       {ready && <WorldBackground />}
 
-      {/* Header */}
+      {/* Full-screen bubble navigation */}
+      <div className="absolute inset-0 z-10">
+        <BubbleNav searchQuery={searchQuery} />
+      </div>
+
+      {/* Header overlay */}
       <motion.header
-        className="relative z-10 pt-12 sm:pt-16 md:pt-20 text-center"
+        className="absolute top-0 left-0 right-0 z-20 pt-6 sm:pt-8 text-center pointer-events-none"
         variants={fadeIn}
         initial="hidden"
         animate="visible"
       >
         <motion.h1
-          className="font-display text-3xl sm:text-4xl md:text-5xl font-light text-moonlight/80 tracking-wide"
+          className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-moonlight/70 tracking-wide"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
@@ -61,7 +66,7 @@ export default function Home() {
           The Journey
         </motion.h1>
         <motion.p
-          className="mt-3 text-sm sm:text-base text-mist/50 font-body tracking-widest"
+          className="mt-1 text-xs sm:text-sm text-mist/40 font-body tracking-widest"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
@@ -71,18 +76,18 @@ export default function Home() {
         </motion.p>
       </motion.header>
 
-      {/* Search */}
+      {/* Search overlay */}
       <motion.div
-        className="relative z-10 mt-8 w-full max-w-sm px-6"
+        className="absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-20 w-full max-w-xs px-6 pointer-events-none"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
       >
-        <div className="relative">
+        <div className="relative pointer-events-auto">
           <svg
             className="absolute left-3 top-1/2 -translate-y-1/2 text-fog/40"
-            width="16"
-            height="16"
+            width="14"
+            height="14"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -95,8 +100,8 @@ export default function Home() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search words, languages..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-ink/60 border border-moonlight/8 text-moonlight/90 placeholder-fog/30 font-body text-sm focus:outline-none focus:border-amber-glow/30 focus:bg-ink/80 transition-all duration-300"
+            placeholder="Search words..."
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-ink/80 border border-moonlight/10 text-moonlight/90 placeholder-fog/30 font-body text-xs focus:outline-none focus:border-amber-glow/30 focus:bg-ink/90 transition-all duration-300 backdrop-blur-sm"
           />
           {searchQuery && (
             <button
@@ -104,18 +109,13 @@ export default function Home() {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-fog/40 hover:text-moonlight transition-colors cursor-pointer"
               aria-label="Clear search"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>
             </button>
           )}
         </div>
       </motion.div>
-
-      {/* Bubble Navigation */}
-      <div className="relative z-10 flex-1 w-full max-w-5xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
-        <BubbleNav searchQuery={searchQuery} />
-      </div>
     </main>
   );
 }
