@@ -6,6 +6,32 @@ export const alt = "The Journey - Word Etymology";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+function projectCoords(journey: { coordinates: [number, number] }[]) {
+  if (journey.length === 0) return [];
+
+  const lons = journey.map(j => j.coordinates[0]);
+  const lats = journey.map(j => j.coordinates[1]);
+
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  // Add padding and scale to image region (bottom portion, behind the text)
+  const padX = 150;
+  const padY = 180;
+  const areaW = 1200 - padX * 2;
+  const areaH = 630 - padY * 2;
+
+  const lonRange = Math.max(maxLon - minLon, 20);
+  const latRange = Math.max(maxLat - minLat, 10);
+
+  return journey.map(j => ({
+    x: padX + ((j.coordinates[0] - minLon) / lonRange) * areaW,
+    y: padY + ((maxLat - j.coordinates[1]) / latRange) * areaH, // invert Y
+  }));
+}
+
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const word = getWordBySlug(slug);
@@ -33,6 +59,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
     );
   }
 
+  const points = projectCoords(word.journey);
+
+  // Build SVG path for the journey line
+  const pathD = points.length > 1
+    ? points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ")
+    : "";
+
   return new ImageResponse(
     (
       <div
@@ -44,16 +77,64 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           alignItems: "center",
           justifyContent: "center",
           backgroundColor: "#0a0a14",
-          backgroundImage: "radial-gradient(ellipse at 50% 40%, #0f1a2e 0%, #0a0a14 70%)",
-          padding: "60px 80px",
+          backgroundImage: "radial-gradient(ellipse at 50% 50%, #0f1a2e 0%, #0a0a14 70%)",
           position: "relative",
         }}
       >
-        {/* Top: word in original script + romanization */}
+        {/* Journey path visualization — dots and lines */}
+        <svg
+          width="1200"
+          height="630"
+          style={{ position: "absolute", top: 0, left: 0 }}
+        >
+          {/* Connecting line */}
+          {pathD && (
+            <path
+              d={pathD}
+              fill="none"
+              stroke="rgba(212, 165, 116, 0.15)"
+              strokeWidth="2"
+              strokeDasharray="6,8"
+            />
+          )}
+          {/* Journey dots */}
+          {points.map((p, i) => (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r={i === 0 ? 6 : i === points.length - 1 ? 6 : 4}
+              fill={i === 0 ? "rgba(212, 165, 116, 0.6)" : i === points.length - 1 ? "rgba(212, 165, 116, 0.5)" : "rgba(212, 165, 116, 0.3)"}
+            />
+          ))}
+          {/* Glow on first and last dot */}
+          {points.length > 0 && (
+            <circle
+              cx={points[0].x}
+              cy={points[0].y}
+              r="14"
+              fill="none"
+              stroke="rgba(212, 165, 116, 0.12)"
+              strokeWidth="2"
+            />
+          )}
+          {points.length > 1 && (
+            <circle
+              cx={points[points.length - 1].x}
+              cy={points[points.length - 1].y}
+              r="14"
+              fill="none"
+              stroke="rgba(212, 165, 116, 0.12)"
+              strokeWidth="2"
+            />
+          )}
+        </svg>
+
+        {/* Word + romanization at top */}
         <div
           style={{
             position: "absolute",
-            top: "50px",
+            top: "45px",
             display: "flex",
             alignItems: "baseline",
             gap: "16px",
@@ -61,7 +142,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
         >
           <div
             style={{
-              fontSize: "48px",
+              fontSize: "44px",
               color: "rgba(240, 237, 230, 0.9)",
               fontFamily: "serif",
               display: "flex",
@@ -71,7 +152,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
           <div
             style={{
-              fontSize: "24px",
+              fontSize: "22px",
               color: "#d4a574",
               fontFamily: "serif",
               fontStyle: "italic",
@@ -82,13 +163,13 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           </div>
         </div>
 
-        {/* Language tag */}
+        {/* Language */}
         <div
           style={{
             position: "absolute",
-            top: "115px",
-            fontSize: "13px",
-            color: "rgba(168, 164, 160, 0.5)",
+            top: "105px",
+            fontSize: "12px",
+            color: "rgba(168, 164, 160, 0.45)",
             letterSpacing: "4px",
             textTransform: "uppercase",
             display: "flex",
@@ -97,29 +178,30 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           {word.language}
         </div>
 
-        {/* Hero: The hook — the intriguing question */}
+        {/* Hook — hero text */}
         <div
           style={{
-            fontSize: "32px",
+            fontSize: "30px",
             color: "rgba(240, 237, 230, 0.85)",
             fontFamily: "serif",
             fontStyle: "italic",
             textAlign: "center",
-            maxWidth: "900px",
+            maxWidth: "850px",
             lineHeight: 1.5,
             display: "flex",
+            position: "relative",
           }}
         >
           {`\u201C${word.hook}\u201D`}
         </div>
 
-        {/* CTA hint */}
+        {/* CTA */}
         <div
           style={{
             position: "absolute",
-            bottom: "80px",
-            fontSize: "18px",
-            color: "rgba(212, 165, 116, 0.6)",
+            bottom: "70px",
+            fontSize: "16px",
+            color: "rgba(212, 165, 116, 0.55)",
             display: "flex",
             letterSpacing: "1px",
           }}
@@ -127,16 +209,14 @@ export default async function Image({ params }: { params: Promise<{ slug: string
           Trace the journey →
         </div>
 
-        {/* Footer branding */}
+        {/* Branding */}
         <div
           style={{
             position: "absolute",
-            bottom: "40px",
+            bottom: "35px",
             display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            fontSize: "14px",
-            color: "rgba(107, 104, 102, 0.5)",
+            fontSize: "13px",
+            color: "rgba(107, 104, 102, 0.45)",
             letterSpacing: "3px",
             textTransform: "uppercase",
           }}
