@@ -11,9 +11,15 @@ interface WordCardProps {
   index: number;
   position: { x: number; y: number };
   dimmed?: boolean;
+  totalWords?: number;
 }
 
-export default function WordCard({ word, index, position, dimmed }: WordCardProps) {
+export default function WordCard({ word, index, position, dimmed, totalWords = 10 }: WordCardProps) {
+  // Scale text size based on total words to prevent overcrowding
+  const isLarge = totalWords > 20;
+  const sizeClass = isLarge
+    ? "text-xl sm:text-2xl md:text-3xl"
+    : "text-3xl sm:text-4xl md:text-5xl";
   const { navigateToWord } = useTransition();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -54,10 +60,10 @@ export default function WordCard({ word, index, position, dimmed }: WordCardProp
 
       {/* Word in original script */}
       <div
-        className="text-3xl sm:text-4xl md:text-5xl font-display font-semibold text-moonlight/90 group-hover:text-moonlight transition-colors duration-500"
+        className={`${sizeClass} font-display font-semibold text-moonlight/90 group-hover:text-moonlight transition-colors duration-500`}
         style={{
-          animation: dimmed ? "none" : `drift ${8 + index * 2}s ease-in-out infinite`,
-          animationDelay: `${index * 0.5}s`,
+          animation: dimmed ? "none" : `drift ${8 + (index % 5) * 2}s ease-in-out infinite`,
+          animationDelay: `${(index % 10) * 0.3}s`,
         }}
       >
         {word.word}

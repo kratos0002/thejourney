@@ -1,17 +1,49 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { fadeIn, fadeInUp } from "@/lib/animations";
 import WordCloud from "@/components/home/WordCloud";
 
+const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
+  ssr: false,
+});
+
+const IntroSequence = dynamic(() => import("@/components/home/IntroSequence"), {
+  ssr: false,
+});
+
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showIntro, setShowIntro] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const hasVisited = localStorage.getItem("journey-visited");
+    if (!hasVisited) {
+      setShowIntro(true);
+    } else {
+      setReady(true);
+    }
+  }, []);
+
+  const handleIntroComplete = useCallback(() => {
+    localStorage.setItem("journey-visited", "true");
+    setShowIntro(false);
+    setReady(true);
+  }, []);
 
   return (
     <main className="relative min-h-screen flex flex-col items-center overflow-hidden">
+      {/* First-visit intro */}
+      {showIntro && <IntroSequence onComplete={handleIntroComplete} />}
+
       {/* Background gradient */}
       <div className="fixed inset-0 bg-gradient-to-b from-abyss via-deep-water to-abyss" />
+
+      {/* World map silhouette with origin dots */}
+      {ready && <WorldBackground />}
 
       {/* Header */}
       <motion.header
@@ -35,7 +67,7 @@ export default function Home() {
           animate="visible"
           transition={{ delay: 0.3 }}
         >
-          Ten words. Ten worlds.
+          Fifty words. Fifty worlds.
         </motion.p>
       </motion.header>
 

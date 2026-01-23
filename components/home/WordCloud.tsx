@@ -2,29 +2,36 @@
 
 import { useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { staggerContainer } from "@/lib/animations";
-import { words } from "@/data/words";
+import { allWords as words } from "@/data/words";
 import WordCard from "./WordCard";
 
-// Organic positions for 10 words - spread across the viewport
-const positions = [
-  { x: 20, y: 25 },
-  { x: 72, y: 18 },
-  { x: 35, y: 50 },
-  { x: 80, y: 45 },
-  { x: 15, y: 72 },
-  { x: 55, y: 30 },
-  { x: 45, y: 75 },
-  { x: 85, y: 72 },
-  { x: 25, y: 42 },
-  { x: 65, y: 62 },
-];
+// Generate organic positions for N words using golden angle spiral
+function generatePositions(count: number): { x: number; y: number }[] {
+  const positions: { x: number; y: number }[] = [];
+  const goldenAngle = 137.508 * (Math.PI / 180);
+  const padding = 8; // % padding from edges
+
+  for (let i = 0; i < count; i++) {
+    const angle = i * goldenAngle;
+    // Normalize radius so all points fit within bounds
+    const radius = Math.sqrt(i / count) * (50 - padding);
+    const x = 50 + radius * Math.cos(angle);
+    const y = 50 + radius * Math.sin(angle);
+    positions.push({
+      x: Math.max(padding, Math.min(100 - padding, x)),
+      y: Math.max(padding, Math.min(100 - padding, y)),
+    });
+  }
+  return positions;
+}
 
 interface WordCloudProps {
   searchQuery: string;
 }
 
 export default function WordCloud({ searchQuery }: WordCloudProps) {
+  const positions = useMemo(() => generatePositions(words.length), []);
+
   const filteredWords = useMemo(() => {
     if (!searchQuery.trim()) return words;
     const q = searchQuery.toLowerCase().trim();
@@ -39,10 +46,10 @@ export default function WordCloud({ searchQuery }: WordCloudProps) {
 
   return (
     <motion.div
-      className="relative w-full h-full min-h-[600px]"
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
+      className="relative w-full h-full min-h-[600px] sm:min-h-[700px]"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8, delay: 0.3 }}
     >
       <AnimatePresence>
         {words.map((word, index) => {
@@ -54,6 +61,7 @@ export default function WordCloud({ searchQuery }: WordCloudProps) {
               index={index}
               position={positions[index]}
               dimmed={!isVisible && searchQuery.trim().length > 0}
+              totalWords={words.length}
             />
           );
         })}

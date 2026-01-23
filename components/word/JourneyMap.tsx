@@ -23,6 +23,7 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentStep, setCurrentStep] = useState(-1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [shareFeedback, setShareFeedback] = useState(false);
   const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAnimated = useRef(false);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -725,7 +726,43 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
                   </svg>
                   {journey[activeNode].period}
                 </span>
+                <button
+                  onClick={() => {
+                    const stop = journey[activeNode];
+                    const text = `${stop.form} (${stop.location}, ${stop.period}) — ${stop.context}`;
+                    const url = window.location.href;
+                    if (navigator.share) {
+                      navigator.share({ title: "The Journey", text, url });
+                    } else {
+                      navigator.clipboard.writeText(`${text}\n${url}`);
+                      setShareFeedback(true);
+                      setTimeout(() => setShareFeedback(false), 2000);
+                    }
+                  }}
+                  className="text-fog/40 hover:text-amber-glow transition-colors duration-200 cursor-pointer"
+                  aria-label="Share this stop"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16,6 12,2 8,6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                  </svg>
+                </button>
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Share feedback toast */}
+        <AnimatePresence>
+          {shareFeedback && (
+            <motion.div
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-amber-glow/20 border border-amber-glow/30 text-amber-glow text-xs font-body"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              Copied to clipboard
             </motion.div>
           )}
         </AnimatePresence>

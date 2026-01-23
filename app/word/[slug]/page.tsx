@@ -3,18 +3,35 @@
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { getWordBySlug, Word } from "@/data/words";
 import { useTransition } from "@/components/TransitionProvider";
 import WordHero from "@/components/word/WordHero";
 import WordHook from "@/components/word/WordHook";
 import WordStory from "@/components/word/WordStory";
-import JourneyMap from "@/components/word/JourneyMap";
-import WordSound from "@/components/word/WordSound";
 import WordRelatives from "@/components/word/WordRelatives";
 import WordMeaning from "@/components/word/WordMeaning";
 import ProgressIndicator from "@/components/word/ProgressIndicator";
 import AmbientBackground from "@/components/word/AmbientBackground";
 import KeyboardNav from "@/components/word/KeyboardNav";
+
+const JourneyMap = dynamic(() => import("@/components/word/JourneyMap"), {
+  ssr: false,
+  loading: () => (
+    <section className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 rounded-full border-2 border-amber-glow/30 border-t-amber-glow animate-spin" />
+    </section>
+  ),
+});
+
+const WordSound = dynamic(() => import("@/components/word/WordSound"), {
+  ssr: false,
+  loading: () => (
+    <section className="min-h-screen flex items-center justify-center">
+      <div className="w-6 h-6 rounded-full border-2 border-moonlight/20 border-t-moonlight/60 animate-spin" />
+    </section>
+  ),
+});
 
 export default function WordPage() {
   const params = useParams();

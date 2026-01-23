@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView } from "framer-motion";
-import { useRef } from "react";
+import { motion, useInView, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface WordMeaningProps {
@@ -12,6 +12,19 @@ export default function WordMeaning({ meaningNow }: WordMeaningProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
+  const [shareFeedback, setShareFeedback] = useState(false);
+
+  const handleShare = () => {
+    const text = paragraphs[0] || meaningNow;
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: "The Journey", text, url });
+    } else {
+      navigator.clipboard.writeText(`${text}\n${url}`);
+      setShareFeedback(true);
+      setTimeout(() => setShareFeedback(false), 2000);
+    }
+  };
 
   const paragraphs = meaningNow.split("\n\n");
 
@@ -48,16 +61,46 @@ export default function WordMeaning({ meaningNow }: WordMeaningProps) {
           ))}
         </div>
 
-        {/* Return button */}
-        <motion.button
-          className="mt-16 px-6 py-3 text-sm text-mist/60 hover:text-moonlight font-body tracking-wider border border-moonlight/10 hover:border-moonlight/20 rounded-full transition-all duration-500 hover:glow-amber cursor-pointer"
-          onClick={() => router.push("/")}
+        {/* Action buttons */}
+        <motion.div
+          className="mt-16 flex items-center justify-center gap-4"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.8 }}
         >
-          Return to all words
-        </motion.button>
+          <button
+            className="px-6 py-3 text-sm text-mist/60 hover:text-moonlight font-body tracking-wider border border-moonlight/10 hover:border-moonlight/20 rounded-full transition-all duration-500 hover:glow-amber cursor-pointer"
+            onClick={() => router.push("/")}
+          >
+            Return to all words
+          </button>
+          <button
+            onClick={handleShare}
+            className="px-4 py-3 text-sm text-fog/50 hover:text-amber-glow font-body border border-moonlight/10 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2"
+            aria-label="Share this word"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16,6 12,2 8,6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+            Share
+          </button>
+        </motion.div>
+
+        {/* Share feedback toast */}
+        <AnimatePresence>
+          {shareFeedback && (
+            <motion.div
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-amber-glow/20 border border-amber-glow/30 text-amber-glow text-xs font-body"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+            >
+              Copied to clipboard
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </section>
   );
