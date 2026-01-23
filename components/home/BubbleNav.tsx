@@ -4,12 +4,14 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { allWords } from "@/data/words";
 import BubbleItem from "./BubbleItem";
 
-const LERP = 0.08;
-const FRICTION = 0.88;
-const MAX_VEL = 0.012;
+const LERP = 0.10;
+const FRICTION = 0.91;
+const MAX_VEL = 0.015;
 const IDLE_SPEED = 0.0008;
-const DRAG_SENSITIVITY = 0.003;
+const DRAG_SENSITIVITY = 0.0035;
 const MAX_ROT_X = Math.PI / 3; // ±60° vertical clamp
+const MIN_RADIUS = 120;
+const MAX_RADIUS = 500;
 
 function fibonacciSphere(count: number): { lat: number; lon: number }[] {
   const points: { lat: number; lon: number }[] = [];
@@ -74,6 +76,7 @@ export default function BubbleNav() {
   const containerRef = useRef<HTMLDivElement>(null);
   const loopRef = useRef<number>(0);
   const lastInteraction = useRef(0);
+  const pinchRef = useRef<{ dist: number; radius: number } | null>(null);
 
   // Animation loop
   useEffect(() => {
@@ -146,7 +149,7 @@ export default function BubbleNav() {
       e.preventDefault();
       lastInteraction.current = Date.now();
       const delta = -e.deltaY * 0.25;
-      target.current.radius = clamp(target.current.radius + delta, 150, 500);
+      target.current.radius = clamp(target.current.radius + delta, MIN_RADIUS, MAX_RADIUS);
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -197,6 +200,28 @@ export default function BubbleNav() {
     lastInteraction.current = Date.now();
   }, []);
 
+  // Pinch zoom (mobile)
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchRef.current = { dist: Math.hypot(dx, dy), radius: target.current.radius };
+      lastInteraction.current = Date.now();
+    }
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (e.touches.length === 2 && pinchRef.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const ratio = Math.hypot(dx, dy) / pinchRef.current.dist;
+      target.current.radius = clamp(pinchRef.current.radius * ratio, MIN_RADIUS, MAX_RADIUS);
+      lastInteraction.current = Date.now();
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => { pinchRef.current = null; }, []);
+
   const wasDrag = useCallback(() => moveDistRef.current > 8, []);
 
   // Projection — gentler perspective for less distortion
@@ -224,6 +249,9 @@ export default function BubbleNav() {
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={onUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
     >
       {items.map((item) => (
         <BubbleItem
