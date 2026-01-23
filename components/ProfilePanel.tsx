@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useExploration } from "@/components/ExplorationProvider";
-import { allWords } from "@/data/words";
+import { Word } from "@/data/word-types";
 
 const INSTALL_DISMISS_KEY = "journey-install-dismissed";
 
@@ -11,7 +11,7 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export default function ProfilePanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function ProfilePanel({ words, open, onClose }: { words: Word[]; open: boolean; onClose: () => void }) {
   const { user, exploredSlugs, exploredCount, signInWithEmail, verifyOtp } = useExploration();
 
   const [authStep, setAuthStep] = useState<"idle" | "email" | "otp">("idle");
@@ -23,7 +23,7 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const analytics = useMemo(() => {
-    const explored = allWords.filter(w => exploredSlugs.has(w.slug));
+    const explored = words.filter(w => exploredSlugs.has(w.slug));
     const languages = new Set(explored.map(w => w.language));
     return {
       words: exploredCount,
@@ -107,11 +107,11 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
                 <div className="h-1 bg-abyss rounded-full overflow-hidden">
                   <div
                     className="h-full bg-amber-glow/50 rounded-full transition-all duration-700 ease-out"
-                    style={{ width: `${(analytics.words / allWords.length) * 100}%` }}
+                    style={{ width: `${(analytics.words / words.length) * 100}%` }}
                   />
                 </div>
                 <p className="text-[9px] text-fog/25 font-body mt-1.5 text-right">
-                  {analytics.words}/{allWords.length}
+                  {analytics.words}/{words.length}
                 </p>
               </div>
 

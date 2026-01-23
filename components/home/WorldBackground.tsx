@@ -4,9 +4,9 @@ import { useEffect, useRef, useCallback } from "react";
 import * as d3 from "d3";
 import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
-import { allWords as words } from "@/data/words";
+import { Word } from "@/data/word-types";
 
-export default function WorldBackground() {
+export default function WorldBackground({ words }: { words: Word[] }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const hasRendered = useRef(false);
 

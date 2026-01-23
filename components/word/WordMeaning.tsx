@@ -1,15 +1,16 @@
 "use client";
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { allWords, Word } from "@/data/words";
+import { Word } from "@/data/word-types";
 
 interface WordMeaningProps {
   word: Word;
+  suggestions: { slug: string; romanization: string }[];
 }
 
-export default function WordMeaning({ word }: WordMeaningProps) {
+export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
@@ -26,13 +27,6 @@ export default function WordMeaning({ word }: WordMeaningProps) {
       setTimeout(() => setShareFeedback(false), 2000);
     }
   };
-
-  // Pick 3 random words to suggest (excluding current word)
-  const suggestions = useMemo(() => {
-    const others = allWords.filter(w => w.slug !== word.slug);
-    const shuffled = [...others].sort(() => Math.random() - 0.5);
-    return shuffled.slice(0, 3);
-  }, [word.slug]);
 
   const paragraphs = word.meaningNow.split("\n\n");
 

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { fadeIn } from "@/lib/animations";
-import { Word } from "@/data/words";
+import { Word } from "@/data/word-types";
 
 interface WordHeroProps {
   word: Word;

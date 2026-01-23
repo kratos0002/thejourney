@@ -1,3 +1,5 @@
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+
 export interface Database {
   public: {
     Tables: {
@@ -19,6 +21,54 @@ export interface Database {
           user_id?: string;
           slug?: string;
           explored_at?: string;
+        };
+        Relationships: [];
+      };
+      words: {
+        Row: {
+          id: string;
+          slug: string;
+          word: string;
+          romanization: string;
+          language: string;
+          hook: string;
+          story: Json;
+          journey: Json;
+          sounds: Json;
+          relatives: Json;
+          meaning_now: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          word: string;
+          romanization: string;
+          language: string;
+          hook: string;
+          story?: Json;
+          journey?: Json;
+          sounds?: Json;
+          relatives?: Json;
+          meaning_now: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          word?: string;
+          romanization?: string;
+          language?: string;
+          hook?: string;
+          story?: Json;
+          journey?: Json;
+          sounds?: Json;
+          relatives?: Json;
+          meaning_now?: string;
+          created_at?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };

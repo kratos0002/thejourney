@@ -6,7 +6,7 @@ import * as d3 from "d3";
 import gsap from "gsap";
 import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
-import { JourneyStop } from "@/data/words";
+import { JourneyStop } from "@/data/word-types";
 
 interface JourneyMapProps {
   journey: JourneyStop[];

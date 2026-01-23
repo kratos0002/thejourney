@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { Sound } from "@/data/words";
+import { Sound } from "@/data/word-types";
 
 interface WordSoundProps {
   sounds: Sound[];

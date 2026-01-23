@@ -1,9 +1,9 @@
 import { Metadata } from "next";
-import { getWordBySlug, allWords as words } from "@/data/words";
+import { getAllWords, getWordBySlug } from "@/lib/words";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const word = getWordBySlug(slug);
+  const word = await getWordBySlug(slug);
 
   if (!word) {
     return { title: "Word Not Found — The Journey" };
@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export async function generateStaticParams() {
+  const words = await getAllWords();
   return words.map(word => ({ slug: word.slug }));
 }
 

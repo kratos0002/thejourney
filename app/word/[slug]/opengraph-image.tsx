@@ -1,5 +1,31 @@
 import { ImageResponse } from "next/og";
-import { getWordBySlug } from "@/data/words";
+import { createClient } from "@supabase/supabase-js";
+import type { Word } from "@/data/word-types";
+
+async function fetchWord(slug: string): Promise<Word | null> {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!
+  );
+  const { data } = await supabase
+    .from("words")
+    .select("*")
+    .eq("slug", slug)
+    .single();
+  if (!data) return null;
+  return {
+    slug: data.slug,
+    word: data.word,
+    romanization: data.romanization,
+    language: data.language,
+    hook: data.hook,
+    story: data.story,
+    journey: data.journey,
+    sounds: data.sounds,
+    relatives: data.relatives,
+    meaningNow: data.meaning_now,
+  };
+}
 
 export const runtime = "edge";
 export const alt = "The Journey - Word Etymology";
@@ -34,7 +60,7 @@ function projectCoords(journey: { coordinates: [number, number] }[]) {
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const word = getWordBySlug(slug);
+  const word = await fetchWord(slug);
 
   if (!word) {
     return new ImageResponse(

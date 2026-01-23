@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useCallback, useMemo, useEffect } from "react";
-import { allWords } from "@/data/words";
+import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 
 const LERP = 0.10;
@@ -58,9 +58,9 @@ function getLanguageTint(language: string): string {
   return "rgba(240, 237, 230, 0.08)"; // default moonlight
 }
 
-export default function BubbleNav() {
+export default function BubbleNav({ words }: { words: Word[] }) {
   const { navigateToWord } = useTransition();
-  const spherePoints = useMemo(() => fibonacciSphere(allWords.length), []);
+  const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -87,7 +87,7 @@ export default function BubbleNav() {
     const cosRY = Math.cos(ry), sinRY = Math.sin(ry);
     const cosRX = Math.cos(rx), sinRX = Math.sin(rx);
 
-    for (let i = 0; i < allWords.length; i++) {
+    for (let i = 0; i < words.length; i++) {
       const el = bubbleRefs.current[i];
       if (!el) continue;
 
@@ -256,7 +256,7 @@ export default function BubbleNav() {
   const handleBubbleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (moveDistRef.current > 8) return;
     const idx = Number(e.currentTarget.dataset.idx);
-    const word = allWords[idx];
+    const word = words[idx];
     if (!word) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
@@ -276,7 +276,7 @@ export default function BubbleNav() {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {allWords.map((word, i) => (
+      {words.map((word, i) => (
         <button
           key={word.slug}
           ref={(el) => { bubbleRefs.current[i] = el; }}

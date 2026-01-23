@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
-import { RelativeWord } from "@/data/words";
+import { RelativeWord } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 
 interface WordRelativesProps {

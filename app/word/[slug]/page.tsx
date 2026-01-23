@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getWordBySlug, allWords } from "@/data/words";
+import { getAllWords, getWordBySlug } from "@/lib/words";
 import WordPageClient from "./WordPageClient";
 
 interface PageProps {
@@ -8,12 +8,13 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  return allWords.map((word) => ({ slug: word.slug }));
+  const words = await getAllWords();
+  return words.map((word) => ({ slug: word.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const word = getWordBySlug(slug);
+  const word = await getWordBySlug(slug);
   if (!word) return {};
 
   return {
@@ -34,11 +35,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function WordPage({ params }: PageProps) {
   const { slug } = await params;
-  const word = getWordBySlug(slug);
+  const word = await getWordBySlug(slug);
 
   if (!word) {
     notFound();
   }
 
-  return <WordPageClient word={word} />;
+  // Pick 3 random suggestions for "explore more"
+  const allWords = await getAllWords();
+  const others = allWords.filter(w => w.slug !== slug);
+  const suggestions = others
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3)
+    .map(w => ({ slug: w.slug, romanization: w.romanization }));
+
+  return <WordPageClient word={word} suggestions={suggestions} />;
 }

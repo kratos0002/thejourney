@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { Word } from "@/data/words";
+import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 import { useExploration } from "@/components/ExplorationProvider";
 import WordHero from "@/components/word/WordHero";
@@ -35,7 +35,7 @@ const WordSound = dynamic(() => import("@/components/word/WordSound"), {
   ),
 });
 
-export default function WordPageClient({ word }: { word: Word }) {
+export default function WordPageClient({ word, suggestions }: { word: Word; suggestions: { slug: string; romanization: string }[] }) {
   const { navigateHome } = useTransition();
   const { markExplored } = useExploration();
 
@@ -83,7 +83,7 @@ export default function WordPageClient({ word }: { word: Word }) {
         <JourneyMap journey={word.journey} />
         <WordSound sounds={word.sounds} />
         <WordRelatives relatives={word.relatives} />
-        <WordMeaning word={word} />
+        <WordMeaning word={word} suggestions={suggestions} />
       </div>
     </main>
   );
