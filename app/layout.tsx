@@ -40,7 +40,7 @@ const notoJP = Noto_Sans_JP({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://thejourney.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://thejourney-fzcp.vercel.app"),
   title: "The Journey — Fifty Words. Fifty Worlds.",
   description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
 };
