@@ -12,7 +12,6 @@ const DRAG_SENSITIVITY = 0.0035;
 const MAX_ROT_X = Math.PI / 3;
 const MIN_RADIUS = 120;
 const MAX_RADIUS = 500;
-const BASE_SIZE = 64;
 
 function fibonacciSphere(count: number): { lat: number; lon: number }[] {
   const points: { lat: number; lon: number }[] = [];
@@ -39,7 +38,6 @@ export default function BubbleNav() {
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const loopRef = useRef<number>(0);
 
-  // All animation state in refs — zero React re-renders during animation
   const anim = useRef({ rx: 0, ry: 0, radius: 280 });
   const target = useRef({ rx: 0, ry: 0, radius: 280 });
   const vel = useRef({ rx: 0, ry: 0 });
@@ -51,7 +49,7 @@ export default function BubbleNav() {
   const pinchRef = useRef<{ dist: number; radius: number } | null>(null);
   const viewSize = useRef({ w: 800, h: 600 });
 
-  // Direct DOM update — no React reconciliation
+  // Only modifies transform and opacity — compositor-only, no layout/paint
   const updateBubbles = useCallback(() => {
     const { rx, ry, radius } = anim.current;
     const perspective = radius * 3.5;
@@ -81,32 +79,21 @@ export default function BubbleNav() {
       const screenY = cy - y2 * radius * projScale;
 
       if (z2 < -0.3) {
-        el.style.display = "none";
+        // Hide: opacity 0 (no display:none which triggers layout)
+        el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(0)`;
+        el.style.opacity = "0";
         continue;
       }
 
-      const size = BASE_SIZE * projScale;
       const opacity = Math.max(0, Math.min(1, (z2 + 0.3) * 0.9));
-      const zIndex = Math.round((z2 + 1) * 50);
 
-      el.style.display = "";
-      el.style.transform = `translate3d(${screenX - size / 2}px, ${screenY - size / 2}px, 0)`;
-      el.style.width = `${size}px`;
-      el.style.height = `${size}px`;
+      // ONLY compositor properties: transform (position + scale) and opacity
+      el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${projScale})`;
       el.style.opacity = `${opacity}`;
-      el.style.zIndex = `${zIndex}`;
-      el.style.pointerEvents = z2 < 0.1 ? "none" : "auto";
-
-      // Update font size on the text span
-      const span = el.querySelector("span") as HTMLSpanElement | null;
-      if (span) {
-        span.style.fontSize = `${Math.max(10, 14 * projScale)}px`;
-        span.style.maxWidth = `${size - 10}px`;
-      }
     }
   }, [spherePoints]);
 
-  // Single animation loop — direct DOM, no setState
+  // Animation loop — no React state, no layout-triggering properties
   useEffect(() => {
     let active = true;
     const tick = () => {
@@ -162,7 +149,6 @@ export default function BubbleNav() {
       target.current.radius = Math.min(r.width, r.height) * 0.34;
     };
     update();
-    // Initial bubble positions
     setTimeout(updateBubbles, 0);
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
@@ -238,7 +224,7 @@ export default function BubbleNav() {
 
   const onTouchEnd = useCallback(() => { pinchRef.current = null; }, []);
 
-  // Click handler for bubbles
+  // Click handler
   const handleBubbleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     if (moveDistRef.current > 8) return;
     const idx = Number(e.currentTarget.dataset.idx);
@@ -267,22 +253,24 @@ export default function BubbleNav() {
           key={word.slug}
           ref={(el) => { bubbleRefs.current[i] = el; }}
           data-idx={i}
-          className="absolute top-0 left-0 flex items-center justify-center group"
-          style={{ willChange: "transform, opacity" }}
+          className="absolute top-0 left-0 origin-center"
+          style={{
+            width: 64,
+            height: 64,
+            transform: "translate3d(-9999px, -9999px, 0) scale(0)",
+            opacity: 0,
+          }}
           onClick={handleBubbleClick}
-          aria-label={`Explore ${word.romanization} - ${word.language}`}
+          aria-label={`Explore ${word.romanization}`}
         >
-          {/* Circle background */}
           <div
-            className="absolute inset-0 rounded-full border border-moonlight/10 group-hover:border-amber-glow/40 transition-colors duration-200"
+            className="w-full h-full rounded-full border border-moonlight/10 flex items-center justify-center"
             style={{ background: "rgba(26, 26, 36, 0.7)" }}
-          />
-          {/* Word text */}
-          <span
-            className="relative z-10 font-display font-semibold text-moonlight/90 group-hover:text-moonlight transition-colors duration-200 leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap"
           >
-            {word.word}
-          </span>
+            <span className="font-display font-semibold text-moonlight/90 text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1">
+              {word.word}
+            </span>
+          </div>
         </button>
       ))}
     </div>
