@@ -268,7 +268,7 @@ export default function BubbleNav() {
             style={{ background: "rgba(26, 26, 36, 0.7)" }}
           >
             <span className="font-display font-semibold text-moonlight/90 text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1">
-              {word.word}
+              {word.romanization}
             </span>
           </div>
         </button>
