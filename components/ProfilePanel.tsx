@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
 import { allWords } from "@/data/words";
 
@@ -80,22 +79,16 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
     onClose();
   };
 
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Invisible backdrop to close */}
-          <div className="fixed inset-0 z-[29]" onClick={onClose} />
+  if (!open) return null;
 
-          {/* Compact dropdown card */}
-          <motion.div
-            className="fixed top-16 right-5 z-30 w-64"
-            initial={{ opacity: 0, y: -8, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          >
-            <div className="bg-ink border border-moonlight/12 rounded-2xl p-4 shadow-2xl shadow-black/40">
+  return (
+    <>
+      {/* Invisible backdrop to close */}
+      <div className="fixed inset-0 z-[29]" onClick={onClose} />
+
+      {/* Compact dropdown card */}
+      <div className="fixed top-16 right-5 z-30 w-64">
+        <div className="bg-ink border border-moonlight/12 rounded-2xl p-4 shadow-2xl shadow-black/40">
               {/* Stats row */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="text-center flex-1">
@@ -112,11 +105,9 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
               {/* Progress */}
               <div className="mb-4">
                 <div className="h-1 bg-abyss rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-amber-glow/50 rounded-full"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${(analytics.words / allWords.length) * 100}%` }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  <div
+                    className="h-full bg-amber-glow/50 rounded-full transition-all duration-700 ease-out"
+                    style={{ width: `${(analytics.words / allWords.length) * 100}%` }}
                   />
                 </div>
                 <p className="text-[9px] text-fog/25 font-body mt-1.5 text-right">
@@ -210,9 +201,7 @@ export default function ProfilePanel({ open, onClose }: { open: boolean; onClose
                 </button>
               )}
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
 }
