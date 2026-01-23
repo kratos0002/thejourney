@@ -4,13 +4,15 @@ import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { allWords } from "@/data/words";
 import BubbleItem from "./BubbleItem";
 
+const MIN_RADIUS = 150;
+const MAX_RADIUS = 600;
+
 // Fibonacci sphere: distribute N points evenly on a sphere surface
 function fibonacciSphere(count: number): { lat: number; lon: number }[] {
   const points: { lat: number; lon: number }[] = [];
-  const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~2.399
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
 
   for (let i = 0; i < count; i++) {
-    // y goes from 1 to -1 (top to bottom)
     const y = 1 - (2 * (i + 0.5)) / count;
     const radiusAtY = Math.sqrt(1 - y * y);
     const theta = goldenAngle * i;
@@ -18,14 +20,58 @@ function fibonacciSphere(count: number): { lat: number; lon: number }[] {
     const x = Math.cos(theta) * radiusAtY;
     const z = Math.sin(theta) * radiusAtY;
 
-    // Convert to lat/lon (degrees)
-    const lat = Math.asin(y) * (180 / Math.PI);
-    const lon = Math.atan2(z, x) * (180 / Math.PI);
+    const lat = Math.asin(y);
+    const lon = Math.atan2(z, x);
 
     points.push({ lat, lon });
   }
 
   return points;
+}
+
+// Project a 3D sphere point to 2D screen coordinates
+function project3D(
+  lat: number,
+  lon: number,
+  rotX: number,
+  rotY: number,
+  radius: number,
+  perspective: number,
+  centerX: number,
+  centerY: number
+): { x: number; y: number; z: number; scale: number } {
+  // Point on unit sphere
+  let x = Math.cos(lat) * Math.cos(lon);
+  let y = Math.sin(lat);
+  let z = Math.cos(lat) * Math.sin(lon);
+
+  // Apply Y rotation (horizontal drag)
+  const cosRY = Math.cos(rotY);
+  const sinRY = Math.sin(rotY);
+  const x1 = x * cosRY + z * sinRY;
+  const z1 = -x * sinRY + z * cosRY;
+
+  // Apply X rotation (vertical drag)
+  const cosRX = Math.cos(rotX);
+  const sinRX = Math.sin(rotX);
+  const y2 = y * cosRX - z1 * sinRX;
+  const z2 = y * sinRX + z1 * cosRX;
+
+  // Scale to sphere radius
+  const sx = x1 * radius;
+  const sy = y2 * radius;
+  const sz = z2 * radius;
+
+  // Perspective projection
+  const depth = perspective + sz;
+  const projScale = perspective / Math.max(depth, 1);
+
+  return {
+    x: centerX + sx * projScale,
+    y: centerY - sy * projScale,
+    z: z2, // -1 (back) to 1 (front)
+    scale: projScale,
+  };
 }
 
 interface BubbleNavProps {
@@ -48,39 +94,41 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     );
   }, [searchQuery]);
 
-  // Sphere rotation state
+  // Sphere state
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
-  const [radius, setRadius] = useState(320);
+  const [radius, setRadius] = useState(280);
   const [isDragging, setIsDragging] = useState(false);
+  const [viewSize, setViewSize] = useState({ w: 800, h: 600 });
   const containerRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef<{ x: number; y: number; rx: number; ry: number } | null>(null);
   const moveDistance = useRef(0);
   const velocityRef = useRef({ x: 0, y: 0 });
   const lastPos = useRef<{ x: number; y: number; t: number }>({ x: 0, y: 0, t: 0 });
   const animRef = useRef<number | null>(null);
-
-  // Pinch state
   const pinchStart = useRef<{ dist: number; radius: number } | null>(null);
 
-  // Compute responsive radius
+  // Track viewport
   useEffect(() => {
     const update = () => {
-      const size = Math.min(window.innerWidth, window.innerHeight);
-      setRadius(size * 0.35);
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setViewSize({ w: rect.width, h: rect.height });
+        setRadius(Math.min(rect.width, rect.height) * 0.32);
+      }
     };
     update();
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  // Zoom: scroll changes sphere radius (closer/further)
+  // Scroll = zoom (change radius)
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = -e.deltaY * 0.5;
-    setRadius((r) => Math.max(150, Math.min(600, r + delta)));
+    const delta = -e.deltaY * 0.4;
+    setRadius((r) => Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, r + delta)));
   }, []);
 
-  // Drag: rotate sphere
+  // Drag = rotate sphere
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
       if (animRef.current) {
@@ -102,10 +150,9 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     const dy = e.clientY - dragStart.current.y;
     moveDistance.current = Math.sqrt(dx * dx + dy * dy);
 
-    // Map drag to sphere rotation (invert Y for natural feel)
     setRotation({
-      x: dragStart.current.rx - dy * 0.3,
-      y: dragStart.current.ry + dx * 0.3,
+      x: dragStart.current.rx + dy * 0.005,
+      y: dragStart.current.ry - dx * 0.005,
     });
 
     const now = Date.now();
@@ -124,13 +171,12 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     setIsDragging(false);
     dragStart.current = null;
 
-    // Momentum rotation
-    let vx = -velocityRef.current.x * 8;
-    let vy = velocityRef.current.y * 8;
+    let vx = velocityRef.current.x * 0.04;
+    let vy = -velocityRef.current.y * 0.04;
     const friction = 0.95;
 
     const animate = () => {
-      if (Math.abs(vx) < 0.02 && Math.abs(vy) < 0.02) {
+      if (Math.abs(vx) < 0.0001 && Math.abs(vy) < 0.0001) {
         animRef.current = null;
         return;
       }
@@ -142,7 +188,7 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
     animRef.current = requestAnimationFrame(animate);
   }, []);
 
-  // Pinch to zoom (change radius)
+  // Pinch to zoom
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (e.touches.length === 2) {
@@ -160,7 +206,7 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
       const dy = e.touches[0].clientY - e.touches[1].clientY;
       const dist = Math.hypot(dx, dy);
       const ratio = dist / pinchStart.current.dist;
-      setRadius(Math.max(150, Math.min(600, pinchStart.current.radius * ratio)));
+      setRadius(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, pinchStart.current.radius * ratio)));
     }
   }, []);
 
@@ -176,13 +222,34 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
 
   const wasDrag = useCallback(() => moveDistance.current > 6, []);
 
-  // Compute each bubble's 3D position after sphere rotation
-  const perspective = radius * 2.5;
+  // Project all points and sort by depth for proper layering
+  const perspective = radius * 2.8;
+  const centerX = viewSize.w / 2;
+  const centerY = viewSize.h / 2;
+
+  const projectedItems = useMemo(() => {
+    return allWords.map((word, index) => {
+      const point = spherePoints[index];
+      const projected = project3D(
+        point.lat,
+        point.lon,
+        rotation.x,
+        rotation.y,
+        radius,
+        perspective,
+        centerX,
+        centerY
+      );
+      return { word, index, ...projected };
+    })
+    .filter((item) => item.z > -0.3) // Cull far backside
+    .sort((a, b) => a.z - b.z); // Paint back-to-front
+  }, [spherePoints, rotation.x, rotation.y, radius, perspective, centerX, centerY]);
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full overflow-hidden select-none flex items-center justify-center"
+      className="relative w-full h-full overflow-hidden select-none"
       style={{ cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }}
       onWheel={handleWheel}
       onPointerDown={handlePointerDown}
@@ -198,45 +265,22 @@ export default function BubbleNav({ searchQuery }: BubbleNavProps) {
         scroll to zoom · drag to rotate
       </div>
 
-      {/* 3D sphere container */}
-      <div
-        style={{
-          perspective: `${perspective}px`,
-          perspectiveOrigin: "50% 50%",
-          width: radius * 2,
-          height: radius * 2,
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            width: "100%",
-            height: "100%",
-            position: "relative",
-            transformStyle: "preserve-3d",
-            transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-            transition: isDragging ? "none" : "transform 0.05s ease-out",
-          }}
-        >
-          {allWords.map((word, index) => {
-            const point = spherePoints[index];
-            const isVisible = filteredWords.includes(word);
-
-            return (
-              <BubbleItem
-                key={word.slug}
-                word={word}
-                lat={point.lat}
-                lon={point.lon}
-                radius={radius}
-                dimmed={!isVisible && searchQuery.trim().length > 0}
-                wasDrag={wasDrag}
-                sphereRotation={rotation}
-              />
-            );
-          })}
-        </div>
-      </div>
+      {/* Projected bubbles (always face camera) */}
+      {projectedItems.map((item) => {
+        const isVisible = filteredWords.includes(item.word);
+        return (
+          <BubbleItem
+            key={item.word.slug}
+            word={item.word}
+            screenX={item.x}
+            screenY={item.y}
+            depth={item.z}
+            projScale={item.scale}
+            dimmed={!isVisible && searchQuery.trim().length > 0}
+            wasDrag={wasDrag}
+          />
+        );
+      })}
 
       {/* No results */}
       {searchQuery.trim() && filteredWords.length === 0 && (

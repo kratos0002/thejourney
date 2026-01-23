@@ -1,60 +1,36 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef } from "react";
 import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 
 interface BubbleItemProps {
   word: Word;
-  lat: number;
-  lon: number;
-  radius: number;
+  screenX: number;
+  screenY: number;
+  depth: number; // -1 (back) to 1 (front)
+  projScale: number; // perspective scale factor
   dimmed?: boolean;
   wasDrag: () => boolean;
-  sphereRotation: { x: number; y: number };
 }
 
-const SIZE = 70;
+const BASE_SIZE = 64;
 
 export default function BubbleItem({
   word,
-  lat,
-  lon,
-  radius,
+  screenX,
+  screenY,
+  depth,
+  projScale,
   dimmed,
   wasDrag,
-  sphereRotation,
 }: BubbleItemProps) {
   const { navigateToWord } = useTransition();
   const ref = useRef<HTMLButtonElement>(null);
 
-  // Compute if this point faces the camera (z > 0 after rotation)
-  const visibility = useMemo(() => {
-    const latRad = (lat * Math.PI) / 180;
-    const lonRad = (lon * Math.PI) / 180;
-    const rx = (sphereRotation.x * Math.PI) / 180;
-    const ry = (sphereRotation.y * Math.PI) / 180;
-
-    // Point on unit sphere
-    let x = Math.cos(latRad) * Math.cos(lonRad);
-    let y = Math.sin(latRad);
-    let z = Math.cos(latRad) * Math.sin(lonRad);
-
-    // Apply Y rotation
-    const x1 = x * Math.cos(ry) + z * Math.sin(ry);
-    const z1 = -x * Math.sin(ry) + z * Math.cos(ry);
-
-    // Apply X rotation
-    const y2 = y * Math.cos(rx) - z1 * Math.sin(rx);
-    const z2 = y * Math.sin(rx) + z1 * Math.cos(rx);
-
-    // z2 > 0 means facing camera, z2 < 0 means on the back
-    return z2;
-  }, [lat, lon, sphereRotation.x, sphereRotation.y]);
-
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (dimmed || wasDrag() || visibility < 0.1) return;
+    if (dimmed || wasDrag() || depth < 0.1) return;
     const rect = ref.current?.getBoundingClientRect();
     const origin = rect
       ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
@@ -62,76 +38,71 @@ export default function BubbleItem({
     navigateToWord(word.slug, word.word, origin);
   };
 
-  // Items on the back of the sphere are hidden
-  const isFacing = visibility > -0.1;
-  const opacity = dimmed ? 0.05 : Math.max(0, Math.min(1, (visibility + 0.1) * 1.2));
-  const scale = Math.max(0.3, 0.5 + visibility * 0.5);
-
-  if (!isFacing && !dimmed) {
-    return null; // Cull backface items
-  }
+  // Size and opacity based on depth
+  const size = BASE_SIZE * projScale;
+  const opacity = dimmed ? 0.05 : Math.max(0, Math.min(1, (depth + 0.3) * 0.9));
+  const showLabel = depth > 0.3 && size > 40;
+  const fontSize = Math.max(10, 14 * projScale);
 
   return (
     <button
       ref={ref}
       data-bubble
-      className="absolute group flex flex-col items-center justify-center"
+      className="absolute group flex items-center justify-center"
       style={{
-        width: SIZE,
-        height: SIZE,
-        left: "50%",
-        top: "50%",
-        marginLeft: -SIZE / 2,
-        marginTop: -SIZE / 2,
-        transformStyle: "preserve-3d",
-        transform: `rotateY(${lon}deg) rotateX(${-lat}deg) translateZ(${radius}px)`,
+        left: screenX,
+        top: screenY,
+        width: size,
+        height: size,
+        transform: "translate(-50%, -50%)",
         opacity,
-        pointerEvents: dimmed || visibility < 0.2 ? "none" : "auto",
-        cursor: dimmed || visibility < 0.2 ? "default" : "pointer",
+        zIndex: Math.round((depth + 1) * 50),
+        pointerEvents: dimmed || depth < 0.1 ? "none" : "auto",
+        cursor: dimmed || depth < 0.1 ? "default" : "pointer",
       }}
       onClick={handleClick}
       aria-label={`Explore ${word.romanization} - ${word.language}`}
-      aria-hidden={dimmed || visibility < 0}
-      tabIndex={dimmed || visibility < 0.2 ? -1 : 0}
+      aria-hidden={dimmed || depth < 0}
+      tabIndex={dimmed || depth < 0.1 ? -1 : 0}
     >
-      {/* Counter-rotate so text faces the camera */}
+      {/* Circle */}
       <div
+        className="absolute inset-0 rounded-full border group-hover:border-amber-glow/50 transition-all duration-200"
         style={{
-          transform: `rotateX(${lat}deg) rotateY(${-lon}deg) scale(${scale})`,
-          transition: "transform 0.1s ease-out, opacity 0.15s ease-out",
+          background: `rgba(26, 26, 36, ${0.6 + depth * 0.2})`,
+          borderColor: `rgba(240, 237, 230, ${0.06 + depth * 0.06})`,
         }}
-        className="flex flex-col items-center justify-center"
+      />
+
+      {/* Hover glow */}
+      <div className="absolute inset-[-4px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-amber-glow/10 blur-md" />
+
+      {/* Word */}
+      <span
+        className="relative z-10 font-display font-semibold text-moonlight/90 group-hover:text-moonlight transition-colors duration-200 leading-tight text-center px-1"
+        style={{
+          fontSize,
+          maxWidth: size - 10,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
       >
-        {/* Circle background */}
-        <div className="absolute inset-0 rounded-full bg-ink/80 border border-moonlight/12 group-hover:border-amber-glow/50 group-hover:bg-ink/95 transition-all duration-200" style={{ width: SIZE, height: SIZE }} />
+        {word.word}
+      </span>
 
-        {/* Hover glow */}
-        <div className="absolute rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-amber-glow/10 blur-lg" style={{ width: SIZE + 10, height: SIZE + 10, left: -5, top: -5 }} />
-
-        {/* Word in original script */}
+      {/* Romanization below */}
+      {showLabel && (
         <span
-          className="relative z-10 font-display font-semibold text-moonlight/90 group-hover:text-moonlight transition-colors duration-200 leading-tight text-center"
+          className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-mist/60 group-hover:text-mist font-body transition-colors duration-200"
           style={{
-            fontSize: 15,
-            maxWidth: SIZE - 12,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
+            bottom: -(8 + projScale * 6),
+            fontSize: Math.max(8, 10 * projScale),
           }}
         >
-          {word.word}
+          {word.romanization}
         </span>
-
-        {/* Romanization */}
-        {visibility > 0.4 && (
-          <span
-            className="relative z-10 text-mist/60 group-hover:text-mist font-body transition-colors duration-200 mt-0.5"
-            style={{ fontSize: 9 }}
-          >
-            {word.romanization}
-          </span>
-        )}
-      </div>
+      )}
     </button>
   );
 }
