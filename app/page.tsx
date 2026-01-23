@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { fadeIn, fadeInUp } from "@/lib/animations";
 import BubbleNav from "@/components/home/BubbleNav";
 import StartPrompt from "@/components/home/StartPrompt";
+import ProfilePanel from "@/components/ProfilePanel";
 
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
@@ -19,6 +20,7 @@ const IntroSequence = dynamic(() => import("@/components/home/IntroSequence"), {
 export default function Home() {
   const [showIntro, setShowIntro] = useState(false);
   const [ready, setReady] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("journey-visited");
@@ -79,6 +81,24 @@ export default function Home() {
           Where every word began
         </motion.p>
       </motion.header>
+
+      {/* Profile button */}
+      <motion.button
+        className="absolute top-6 right-6 z-20 w-9 h-9 rounded-full border border-moonlight/10 bg-abyss/40 backdrop-blur-sm flex items-center justify-center hover:border-moonlight/20 transition-colors duration-300 cursor-pointer"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5, duration: 0.8 }}
+        onClick={() => setProfileOpen(true)}
+        aria-label="Profile"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-fog/50">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
+        </svg>
+      </motion.button>
+
+      {/* Profile panel */}
+      <ProfilePanel open={profileOpen} onClose={() => setProfileOpen(false)} />
     </main>
   );
 }
