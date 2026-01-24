@@ -37,6 +37,7 @@ export interface Database {
           sounds: Json;
           relatives: Json;
           meaning_now: string;
+          source: "manual" | "ai" | null;
           created_at: string;
           updated_at: string;
         };
@@ -52,6 +53,7 @@ export interface Database {
           sounds?: Json;
           relatives?: Json;
           meaning_now: string;
+          source?: "manual" | "ai" | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -67,6 +69,7 @@ export interface Database {
           sounds?: Json;
           relatives?: Json;
           meaning_now?: string;
+          source?: "manual" | "ai" | null;
           created_at?: string;
           updated_at?: string;
         };

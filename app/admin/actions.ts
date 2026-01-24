@@ -21,7 +21,7 @@ export async function getWords() {
   const supabase = createAdminSupabase();
   const { data, error } = await supabase
     .from("words")
-    .select("slug, word, romanization, language, updated_at")
+    .select("slug, word, romanization, language, source, updated_at")
     .order("romanization");
 
   if (error) throw new Error(error.message);
