@@ -41,12 +41,12 @@ export default async function WordPage({ params }: PageProps) {
     notFound();
   }
 
-  // Pick 3 random suggestions for "explore more"
+  // Pick suggestion candidates for "explore more" (filtered client-side)
   const allWords = await getAllWords();
   const others = allWords.filter(w => w.slug !== slug);
   const suggestions = others
     .sort(() => Math.random() - 0.5)
-    .slice(0, 3)
+    .slice(0, 12)
     .map(w => ({ slug: w.slug, romanization: w.romanization }));
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://etymology.life";

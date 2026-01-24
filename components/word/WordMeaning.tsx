@@ -1,10 +1,11 @@
 "use client";
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Word } from "@/data/word-types";
 import { trackEvent } from "@/lib/analytics";
+import { useExploration } from "@/components/ExplorationProvider";
 
 interface WordMeaningProps {
   word: Word;
@@ -16,6 +17,12 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
   const [shareFeedback, setShareFeedback] = useState(false);
+  const { exploredSlugs } = useExploration();
+
+  const unexploredSuggestions = useMemo(
+    () => suggestions.filter((s) => !exploredSlugs.has(s.slug)).slice(0, 3),
+    [suggestions, exploredSlugs]
+  );
 
   const handleShare = () => {
     const shareText = `"${word.hook}"\n\nTrace the journey of '${word.romanization}' →`;
@@ -92,27 +99,29 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
         </motion.div>
 
         {/* Explore more words */}
-        <motion.div
-          className="mt-20 pt-12 border-t border-moonlight/5"
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ delay: 1.2 }}
-        >
-          <p className="text-xs uppercase tracking-[0.2em] text-fog/40 font-body mb-6">
-            Explore more words
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            {suggestions.map((s) => (
-              <button
-                key={s.slug}
-                onClick={() => { trackEvent("suggestion_clicked", { slug: s.slug, from: word.slug }); router.push(`/word/${s.slug}`); }}
-                className="px-4 py-2 text-sm text-mist/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer"
-              >
-                {s.romanization}
-              </button>
-            ))}
-          </div>
-        </motion.div>
+        {unexploredSuggestions.length > 0 && (
+          <motion.div
+            className="mt-20 pt-12 border-t border-moonlight/5"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : {}}
+            transition={{ delay: 1.2 }}
+          >
+            <p className="text-xs uppercase tracking-[0.2em] text-fog/40 font-body mb-6">
+              Explore more words
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {unexploredSuggestions.map((s) => (
+                <button
+                  key={s.slug}
+                  onClick={() => { trackEvent("suggestion_clicked", { slug: s.slug, from: word.slug }); router.push(`/word/${s.slug}`); }}
+                  className="px-4 py-2 text-sm text-mist/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer"
+                >
+                  {s.romanization}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {/* Share feedback toast */}
         <AnimatePresence>
