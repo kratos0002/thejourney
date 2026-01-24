@@ -15,6 +15,7 @@ import ProgressIndicator from "@/components/word/ProgressIndicator";
 import AmbientBackground from "@/components/word/AmbientBackground";
 import KeyboardNav from "@/components/word/KeyboardNav";
 import ExplorationGate from "@/components/word/ExplorationGate";
+import PremiumGate from "@/components/word/PremiumGate";
 import ExplorationProgress from "@/components/word/ExplorationProgress";
 
 const JourneyMap = dynamic(() => import("@/components/word/JourneyMap"), {
@@ -50,6 +51,7 @@ export default function WordPageClient({ word, suggestions }: { word: Word; sugg
   return (
     <main className="relative bg-abyss">
       <ExplorationGate />
+      <PremiumGate />
       <KeyboardNav />
       <AmbientBackground />
 

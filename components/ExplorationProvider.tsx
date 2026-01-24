@@ -3,9 +3,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { trackEvent, identifyUser, resetUser } from "@/lib/analytics";
+import { configureRevenueCat, checkPremiumStatus } from "@/lib/revenuecat";
 import type { User } from "@supabase/supabase-js";
 
 const GATE_THRESHOLD = 5;
+const PREMIUM_THRESHOLD = 20;
 const STORAGE_KEY = "journey-explored";
 
 interface ExplorationContextType {
@@ -14,6 +16,9 @@ interface ExplorationContextType {
   exploredCount: number;
   markExplored: (slug: string) => void;
   shouldShowGate: boolean;
+  isPremium: boolean;
+  shouldShowPremiumGate: boolean;
+  dismissPremiumGate: () => void;
   signInWithEmail: (email: string) => Promise<{ error: string | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
 }
@@ -24,6 +29,9 @@ const ExplorationContext = createContext<ExplorationContextType>({
   exploredCount: 0,
   markExplored: () => {},
   shouldShowGate: false,
+  isPremium: false,
+  shouldShowPremiumGate: false,
+  dismissPremiumGate: () => {},
   signInWithEmail: async () => ({ error: null }),
   verifyOtp: async () => ({ error: null }),
 });
@@ -52,12 +60,16 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<User | null>(null);
   const [exploredSlugs, setExploredSlugs] = useState<Set<string>>(new Set());
   const [shouldShowGate, setShouldShowGate] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
+  const [shouldShowPremiumGate, setShouldShowPremiumGate] = useState(false);
   const initializedRef = useRef(false);
   const userRef = useRef<User | null>(null);
+  const isPremiumRef = useRef(false);
   const syncingRef = useRef(false);
 
-  // Keep userRef in sync
+  // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
+  useEffect(() => { isPremiumRef.current = isPremium; }, [isPremium]);
 
   // Load initial state via onAuthStateChange
   useEffect(() => {
@@ -75,8 +87,18 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
           // Sync on any event that gives us a valid session
           await syncFromDatabase(session.user.id);
           setShouldShowGate(false);
+          // Initialize RevenueCat and check premium status
+          try {
+            configureRevenueCat(session.user.id);
+            const premium = await checkPremiumStatus();
+            setIsPremium(premium);
+            if (premium) setShouldShowPremiumGate(false);
+          } catch (e) {
+            console.warn("[Journey] RevenueCat init failed:", e);
+          }
         } else if (event === "SIGNED_OUT" || !session) {
           setUser(null);
+          setIsPremium(false);
           resetUser();
           setExploredSlugs(new Set(getLocalSlugs()));
         }
@@ -95,6 +117,10 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       if (session?.user) {
         setUser(session.user);
         await syncFromDatabase(session.user.id);
+        // Re-check premium status
+        const premium = await checkPremiumStatus();
+        setIsPremium(premium);
+        if (premium) setShouldShowPremiumGate(false);
       } else {
         setExploredSlugs(new Set(getLocalSlugs()));
       }
@@ -164,11 +190,16 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       setLocalSlugs(next);
       trackEvent("word_explored", { slug, total: next.size });
 
-      // Anonymous: check gate threshold
       const currentUser = userRef.current;
+      // Anonymous: check sign-in gate threshold
       if (!currentUser && next.size >= GATE_THRESHOLD) {
         setShouldShowGate(true);
         trackEvent("gate_shown", { explored_count: next.size });
+      }
+      // Signed in but not premium: check premium gate threshold
+      if (currentUser && !isPremiumRef.current && next.size >= PREMIUM_THRESHOLD) {
+        setShouldShowPremiumGate(true);
+        trackEvent("premium_gate_shown", { explored_count: next.size });
       }
 
       return next;
@@ -184,6 +215,10 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         if (error) console.warn("[Journey] Failed to sync exploration:", error.message);
       });
     }
+  }, []);
+
+  const dismissPremiumGate = useCallback(() => {
+    setShouldShowPremiumGate(false);
   }, []);
 
   const signInWithEmail = useCallback(async (email: string) => {
@@ -208,6 +243,9 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         exploredCount: exploredSlugs.size,
         markExplored,
         shouldShowGate,
+        isPremium,
+        shouldShowPremiumGate,
+        dismissPremiumGate,
         signInWithEmail,
         verifyOtp,
       }}
