@@ -29,6 +29,7 @@ export default function PremiumGate() {
     } else if (result.error === "cancelled") {
       trackEvent("premium_purchase_cancelled");
     } else if (result.error) {
+      console.warn("[Journey] Purchase error:", result.error);
       setError(result.error);
       trackEvent("premium_purchase_error", { error: result.error });
     }

@@ -53,13 +53,16 @@ export async function purchaseJourneyPass(
     }
 
     const offerings = await Purchases.getSharedInstance().getOfferings();
+    console.log("[Journey] Offerings:", JSON.stringify(offerings, null, 2));
     const current = offerings.current;
 
     if (!current || current.availablePackages.length === 0) {
+      console.warn("[Journey] No packages found. Current offering:", current);
       return { success: false, error: "No offerings available" };
     }
 
     const lifetimePackage = current.lifetime ?? current.availablePackages[0];
+    console.log("[Journey] Using package:", lifetimePackage);
 
     const { customerInfo } = await Purchases.getSharedInstance().purchase({
       rcPackage: lifetimePackage,
