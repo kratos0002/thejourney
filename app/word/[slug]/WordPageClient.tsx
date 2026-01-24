@@ -83,7 +83,7 @@ export default function WordPageClient({ word, suggestions }: { word: Word; sugg
         <WordHero word={word} />
         <WordHook hook={word.hook} />
         <WordStory story={word.story} />
-        <JourneyMap journey={word.journey} />
+        <JourneyMap journey={word.journey} word={word} />
         <WordSound sounds={word.sounds} />
         <WordRelatives relatives={word.relatives} />
         <WordMeaning word={word} suggestions={suggestions} />

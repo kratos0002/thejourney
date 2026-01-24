@@ -6,13 +6,21 @@ import * as d3 from "d3";
 import gsap from "gsap";
 import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
-import { JourneyStop } from "@/data/word-types";
+import { JourneyStop, Word } from "@/data/word-types";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import dynamic from "next/dynamic";
+
+const JourneyDownloadModal = dynamic(
+  () => import("./JourneyDownloadModal"),
+  { ssr: false }
+);
 
 interface JourneyMapProps {
   journey: JourneyStop[];
+  word?: Word;
 }
 
-export default function JourneyMap({ journey }: JourneyMapProps) {
+export default function JourneyMap({ journey, word }: JourneyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -24,6 +32,8 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
   const [currentStep, setCurrentStep] = useState(-1);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [shareFeedback, setShareFeedback] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
+  const showDownload = useFeatureFlag("journey_download");
   const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAnimated = useRef(false);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
@@ -566,6 +576,19 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
                 <path d="M3 12a9 9 0 1 1 9 9M3 12V3m0 9h9" />
               </svg>
             </button>
+            {showDownload && word && (
+              <button
+                onClick={() => setDownloadModalOpen(true)}
+                className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-amber-glow hover:border-amber-glow/30 transition-all duration-300 cursor-pointer"
+                aria-label="Download journey animation"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Playback controls - bottom center */}
@@ -767,6 +790,14 @@ export default function JourneyMap({ journey }: JourneyMapProps) {
           )}
         </AnimatePresence>
       </motion.div>
+
+      {downloadModalOpen && word && (
+        <JourneyDownloadModal
+          isOpen={downloadModalOpen}
+          onClose={() => setDownloadModalOpen(false)}
+          word={word}
+        />
+      )}
     </section>
   );
 }

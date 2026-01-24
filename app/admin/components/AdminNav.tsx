@@ -7,6 +7,7 @@ const tabs = [
   { label: "Words", href: "/admin" },
   { label: "Feedback", href: "/admin/feedback" },
   { label: "Notifications", href: "/admin/notifications" },
+  { label: "Flags", href: "/admin/flags" },
 ];
 
 export default function AdminNav({ feedbackCount }: { feedbackCount?: number }) {
@@ -14,7 +15,7 @@ export default function AdminNav({ feedbackCount }: { feedbackCount?: number }) 
 
   const isActive = (href: string) => {
     if (href === "/admin") {
-      return pathname === "/admin" || pathname.startsWith("/admin/new") || (pathname.startsWith("/admin/") && !pathname.startsWith("/admin/feedback") && !pathname.startsWith("/admin/notifications"));
+      return pathname === "/admin" || pathname.startsWith("/admin/new") || (pathname.startsWith("/admin/") && !pathname.startsWith("/admin/feedback") && !pathname.startsWith("/admin/notifications") && !pathname.startsWith("/admin/flags"));
     }
     return pathname.startsWith(href);
   };
