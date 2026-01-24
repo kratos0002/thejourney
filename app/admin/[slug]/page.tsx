@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import WordForm from "../components/WordForm";
+import AISuggestions from "../components/AISuggestions";
 import { getWord, updateWord } from "../actions";
 
 interface PageProps {
@@ -24,7 +25,10 @@ export default async function EditWordPage({ params }: PageProps) {
       <h1 className="text-2xl font-bold text-gray-900 mb-6">
         Edit: {word.romanization}
       </h1>
-      <WordForm word={word} action={handleUpdate} />
+      <AISuggestions word={word} />
+      <div className="mt-8">
+        <WordForm word={word} action={handleUpdate} />
+      </div>
     </div>
   );
 }
