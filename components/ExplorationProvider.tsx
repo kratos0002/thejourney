@@ -84,18 +84,11 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         if (session?.user) {
           setUser(session.user);
           identifyUser(session.user.id, session.user.email ?? undefined);
-          // Sync on any event that gives us a valid session
-          await syncFromDatabase(session.user.id);
           setShouldShowGate(false);
-          // Initialize RevenueCat and check premium status
-          try {
-            configureRevenueCat(session.user.id);
-            const premium = await checkPremiumStatus();
-            setIsPremium(premium);
-            if (premium) setShouldShowPremiumGate(false);
-          } catch (e) {
-            console.warn("[Journey] RevenueCat init failed:", e);
-          }
+          // Sync exploration data from DB
+          await syncFromDatabase(session.user.id);
+          // Initialize RevenueCat in background (non-blocking)
+          initRevenueCat(session.user.id);
         } else if (event === "SIGNED_OUT" || !session) {
           setUser(null);
           setIsPremium(false);
@@ -108,19 +101,26 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     return () => subscription.unsubscribe();
   }, []);
 
+  // Non-blocking RevenueCat initialization
+  const initRevenueCat = (userId: string) => {
+    configureRevenueCat(userId)
+      .then(() => checkPremiumStatus())
+      .then((premium) => {
+        setIsPremium(premium);
+        if (premium) setShouldShowPremiumGate(false);
+      })
+      .catch((e) => console.warn("[Journey] RevenueCat init failed:", e));
+  };
+
   // Re-sync when tab becomes visible (handles cross-tab/device scenarios)
   useEffect(() => {
     const handleVisibility = async () => {
       if (document.visibilityState !== "visible") return;
-      // Re-check session and sync
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
         await syncFromDatabase(session.user.id);
-        // Re-check premium status
-        const premium = await checkPremiumStatus();
-        setIsPremium(premium);
-        if (premium) setShouldShowPremiumGate(false);
+        initRevenueCat(session.user.id);
       } else {
         setExploredSlugs(new Set(getLocalSlugs()));
       }

@@ -1,33 +1,41 @@
-import { Purchases } from "@revenuecat/purchases-js";
-
 const ENTITLEMENT_ID = "journey_pass";
 
+let purchasesModule: typeof import("@revenuecat/purchases-js") | null = null;
 let configured = false;
 
-export function configureRevenueCat(appUserId: string): Purchases {
-  if (configured && Purchases.isConfigured()) {
-    // Switch user if already configured with a different ID
-    const current = Purchases.getSharedInstance();
-    if (current.getAppUserId() !== appUserId) {
-      current.changeUser(appUserId);
-    }
-    return current;
+async function getPurchases() {
+  if (!purchasesModule) {
+    purchasesModule = await import("@revenuecat/purchases-js");
   }
+  return purchasesModule.Purchases;
+}
 
+export async function configureRevenueCat(appUserId: string) {
   const apiKey = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing NEXT_PUBLIC_REVENUECAT_API_KEY");
-  }
+  if (!apiKey) return;
 
-  const purchases = Purchases.configure(apiKey, appUserId);
-  configured = true;
-  return purchases;
+  try {
+    const Purchases = await getPurchases();
+
+    if (configured && Purchases.isConfigured()) {
+      const current = Purchases.getSharedInstance();
+      if (current.getAppUserId() !== appUserId) {
+        current.changeUser(appUserId);
+      }
+      return;
+    }
+
+    Purchases.configure(apiKey, appUserId);
+    configured = true;
+  } catch (e) {
+    console.warn("[Journey] RevenueCat configure failed:", e);
+  }
 }
 
 export async function checkPremiumStatus(): Promise<boolean> {
-  if (!Purchases.isConfigured()) return false;
-
   try {
+    const Purchases = await getPurchases();
+    if (!Purchases.isConfigured()) return false;
     return await Purchases.getSharedInstance().isEntitledTo(ENTITLEMENT_ID);
   } catch (e) {
     console.warn("[Journey] Failed to check entitlement:", e);
@@ -38,11 +46,12 @@ export async function checkPremiumStatus(): Promise<boolean> {
 export async function purchaseJourneyPass(
   htmlTarget?: HTMLElement | null
 ): Promise<{ success: boolean; error?: string }> {
-  if (!Purchases.isConfigured()) {
-    return { success: false, error: "RevenueCat not configured" };
-  }
-
   try {
+    const Purchases = await getPurchases();
+    if (!Purchases.isConfigured()) {
+      return { success: false, error: "RevenueCat not configured" };
+    }
+
     const offerings = await Purchases.getSharedInstance().getOfferings();
     const current = offerings.current;
 
@@ -50,9 +59,7 @@ export async function purchaseJourneyPass(
       return { success: false, error: "No offerings available" };
     }
 
-    // Find the lifetime package
-    const lifetimePackage =
-      current.lifetime ?? current.availablePackages[0];
+    const lifetimePackage = current.lifetime ?? current.availablePackages[0];
 
     const { customerInfo } = await Purchases.getSharedInstance().purchase({
       rcPackage: lifetimePackage,
