@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
 import { purchaseJourneyPass } from "@/lib/revenuecat";
@@ -13,14 +13,13 @@ export default function PremiumGate() {
   if (!process.env.NEXT_PUBLIC_REVENUECAT_API_KEY) return null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const purchaseContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePurchase = useCallback(async () => {
     setError(null);
     setLoading(true);
     trackEvent("premium_purchase_started");
 
-    const result = await purchaseJourneyPass(purchaseContainerRef.current);
+    const result = await purchaseJourneyPass();
     setLoading(false);
 
     if (result.success) {
@@ -67,9 +66,6 @@ export default function PremiumGate() {
             <p className="text-moonlight/70 font-display text-2xl mb-8">
               $9.99 <span className="text-sm text-fog/50 font-body">one-time, forever</span>
             </p>
-
-            {/* Purchase container (RevenueCat renders checkout UI here) */}
-            <div ref={purchaseContainerRef} id="rc-purchase-container" />
 
             <button
               onClick={handlePurchase}

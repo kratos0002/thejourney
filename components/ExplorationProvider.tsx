@@ -61,11 +61,20 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   const [exploredSlugs, setExploredSlugs] = useState<Set<string>>(new Set());
   const [shouldShowGate, setShouldShowGate] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
-  const [shouldShowPremiumGate, setShouldShowPremiumGate] = useState(false);
+  const [premiumChecked, setPremiumChecked] = useState(false);
+  const [premiumGateDismissed, setPremiumGateDismissed] = useState(false);
   const initializedRef = useRef(false);
   const userRef = useRef<User | null>(null);
   const isPremiumRef = useRef(false);
   const syncingRef = useRef(false);
+
+  // Derive shouldShowPremiumGate from actual state
+  const shouldShowPremiumGate =
+    user !== null &&
+    premiumChecked &&
+    !isPremium &&
+    exploredSlugs.size >= PREMIUM_THRESHOLD &&
+    !premiumGateDismissed;
 
   // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
@@ -107,9 +116,12 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       .then(() => checkPremiumStatus())
       .then((premium) => {
         setIsPremium(premium);
-        if (premium) setShouldShowPremiumGate(false);
+        setPremiumChecked(true);
       })
-      .catch((e) => console.warn("[Journey] RevenueCat init failed:", e));
+      .catch((e) => {
+        console.warn("[Journey] RevenueCat init failed:", e);
+        setPremiumChecked(true); // Still mark as checked so gate can show
+      });
   };
 
   // Re-sync when tab becomes visible (handles cross-tab/device scenarios)
@@ -196,10 +208,13 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         setShouldShowGate(true);
         trackEvent("gate_shown", { explored_count: next.size });
       }
-      // Signed in but not premium: check premium gate threshold
-      if (currentUser && !isPremiumRef.current && next.size >= PREMIUM_THRESHOLD) {
-        setShouldShowPremiumGate(true);
+      // Signed in but not premium: track premium gate threshold crossing
+      if (currentUser && !isPremiumRef.current && next.size === PREMIUM_THRESHOLD) {
         trackEvent("premium_gate_shown", { explored_count: next.size });
+      }
+      // Reset dismissed state so gate reappears on new word exploration
+      if (currentUser && !isPremiumRef.current && next.size >= PREMIUM_THRESHOLD) {
+        setPremiumGateDismissed(false);
       }
 
       return next;
@@ -218,7 +233,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   }, []);
 
   const dismissPremiumGate = useCallback(() => {
-    setShouldShowPremiumGate(false);
+    setPremiumGateDismissed(true);
   }, []);
 
   const signInWithEmail = useCallback(async (email: string) => {
