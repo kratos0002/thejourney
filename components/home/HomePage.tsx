@@ -8,6 +8,9 @@ import { Word } from "@/data/word-types";
 import BubbleNav from "@/components/home/BubbleNav";
 import StartPrompt from "@/components/home/StartPrompt";
 import ProfilePanel from "@/components/ProfilePanel";
+import FeedbackModal from "@/components/FeedbackModal";
+import { getNotificationCount } from "@/lib/feedback";
+import { useExploration } from "@/components/ExplorationProvider";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
   ssr: false,
@@ -21,6 +24,9 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [showIntro, setShowIntro] = useState(false);
   const [ready, setReady] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(0);
+  const { user } = useExploration();
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("journey-visited");
@@ -30,6 +36,14 @@ export default function HomePage({ words }: { words: Word[] }) {
       setReady(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      getNotificationCount().then(setNotifCount).catch(() => {});
+    } else {
+      setNotifCount(0);
+    }
+  }, [user]);
 
   const handleIntroComplete = useCallback(() => {
     localStorage.setItem("journey-visited", "true");
@@ -95,10 +109,16 @@ export default function HomePage({ words }: { words: Word[] }) {
           <circle cx="12" cy="8" r="4"/>
           <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
         </svg>
+        {notifCount > 0 && (
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-glow rounded-full border border-abyss" />
+        )}
       </motion.button>
 
       {/* Profile panel */}
-      <ProfilePanel words={words} open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <ProfilePanel words={words} open={profileOpen} onClose={() => setProfileOpen(false)} onFeedbackClick={() => setFeedbackOpen(true)} />
+
+      {/* Feedback modal */}
+      <FeedbackModal words={words} open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </main>
   );
 }

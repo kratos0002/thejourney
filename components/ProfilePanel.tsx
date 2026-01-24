@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useExploration } from "@/components/ExplorationProvider";
 import { Word } from "@/data/word-types";
+import { getUserNotifications, dismissNotification, type UserNotification } from "@/lib/feedback";
 
 const INSTALL_DISMISS_KEY = "journey-install-dismissed";
 
@@ -11,8 +12,9 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
-export default function ProfilePanel({ words, open, onClose }: { words: Word[]; open: boolean; onClose: () => void }) {
+export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: { words: Word[]; open: boolean; onClose: () => void; onFeedbackClick?: () => void }) {
   const { user, exploredSlugs, exploredCount, signInWithEmail, verifyOtp } = useExploration();
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
 
   const [authStep, setAuthStep] = useState<"idle" | "email" | "otp">("idle");
   const [email, setEmail] = useState("");
@@ -39,6 +41,18 @@ export default function ProfilePanel({ words, open, onClose }: { words: Word[]; 
     };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  // Fetch notifications when panel opens and user is signed in
+  useEffect(() => {
+    if (open && user) {
+      getUserNotifications().then(setNotifications).catch(() => {});
+    }
+  }, [open, user]);
+
+  const handleDismissNotification = useCallback(async (id: string) => {
+    await dismissNotification(id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
   const handleInstall = useCallback(async () => {
@@ -115,6 +129,37 @@ export default function ProfilePanel({ words, open, onClose }: { words: Word[]; 
                 </p>
               </div>
 
+              {/* Notifications */}
+              {user && notifications.length > 0 && (
+                <div className="mb-4">
+                  <p className="text-[9px] text-fog/40 font-body tracking-widest uppercase mb-2">What&apos;s New</p>
+                  <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                    {notifications.map(notif => (
+                      <div key={notif.id} className="flex items-start gap-2 bg-abyss/50 rounded-lg px-2.5 py-2">
+                        <span className="text-[10px] mt-0.5">
+                          {notif.notification_type === "feature" ? "✨" :
+                           notif.notification_type === "bug_fix" ? "🐛" :
+                           notif.notification_type === "feedback_response" ? "💬" :
+                           notif.notification_type === "tip" ? "💡" : "🔧"}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] text-moonlight/70 font-body font-medium truncate">{notif.title}</p>
+                          <p className="text-[10px] text-fog/40 font-body truncate">{notif.message}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDismissNotification(notif.id)}
+                          className="text-fog/20 hover:text-fog/50 transition-colors shrink-0 cursor-pointer"
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 6L6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Auth */}
               {!user && authStep === "idle" && (
                 <button
@@ -184,6 +229,19 @@ export default function ProfilePanel({ words, open, onClose }: { words: Word[]; 
                     Sign out
                   </button>
                 </div>
+              )}
+
+              {/* Feedback */}
+              {user && onFeedbackClick && (
+                <button
+                  onClick={() => { onFeedbackClick(); onClose(); }}
+                  className="w-full mt-3 py-2 text-xs text-moonlight/50 hover:text-moonlight font-body border border-moonlight/8 hover:border-moonlight/15 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-glow/50">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                  Send Feedback
+                </button>
               )}
 
               {/* Install */}

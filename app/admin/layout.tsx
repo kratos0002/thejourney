@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { createAdminSupabase } from "@/lib/supabase/admin";
+import AdminNav from "./components/AdminNav";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerSupabase();
@@ -8,6 +10,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (!user || user.email !== process.env.ADMIN_EMAIL) {
     redirect("/");
   }
+
+  let feedbackCount = 0;
+  try {
+    const admin = createAdminSupabase();
+    const { count } = await admin
+      .from("feedback_submissions")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "new");
+    feedbackCount = count || 0;
+  } catch {}
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,6 +42,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </a>
         </div>
       </nav>
+      <AdminNav feedbackCount={feedbackCount} />
       <main className="max-w-5xl mx-auto px-6 py-8">
         {children}
       </main>

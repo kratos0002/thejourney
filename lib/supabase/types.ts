@@ -72,6 +72,105 @@ export interface Database {
         };
         Relationships: [];
       };
+      feedback_submissions: {
+        Row: {
+          id: string;
+          user_id: string;
+          feedback_type: "word_suggestion" | "word_improvement" | "general";
+          feedback_text: string;
+          word_slug: string | null;
+          user_context: Json;
+          status: "new" | "reviewing" | "planned" | "completed" | "closed";
+          admin_response: string | null;
+          internal_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          feedback_type: "word_suggestion" | "word_improvement" | "general";
+          feedback_text: string;
+          word_slug?: string | null;
+          user_context?: Json;
+          status?: string;
+          admin_response?: string | null;
+          internal_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          feedback_type?: string;
+          feedback_text?: string;
+          word_slug?: string | null;
+          user_context?: Json;
+          status?: string;
+          admin_response?: string | null;
+          internal_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          id: string;
+          title: string;
+          message: string;
+          notification_type: "feature" | "update" | "tip" | "bug_fix" | "feedback_response";
+          target_user_id: string | null;
+          feedback_id: string | null;
+          is_active: boolean;
+          created_at: string;
+          expires_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          message: string;
+          notification_type: "feature" | "update" | "tip" | "bug_fix" | "feedback_response";
+          target_user_id?: string | null;
+          feedback_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          expires_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          message?: string;
+          notification_type?: string;
+          target_user_id?: string | null;
+          feedback_id?: string | null;
+          is_active?: boolean;
+          created_at?: string;
+          expires_at?: string | null;
+        };
+        Relationships: [];
+      };
+      user_notification_dismissals: {
+        Row: {
+          id: string;
+          user_id: string;
+          notification_id: string;
+          dismissed_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          notification_id: string;
+          dismissed_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          notification_id?: string;
+          dismissed_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
