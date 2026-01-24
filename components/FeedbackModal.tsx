@@ -189,7 +189,7 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                               setWordSlug("");
                             }}
                             placeholder="Which word? (optional)"
-                            className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-body text-xs placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/30 transition-colors"
+                            className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-body text-xs placeholder:text-fog/45 focus:outline-none focus:border-amber-glow/30 transition-colors"
                           />
                           {wordSearch && filteredWords.length > 0 && !wordSlug && (
                             <div className="absolute top-full left-0 right-0 mt-1 bg-deep-water border border-fog/15 rounded-lg overflow-hidden z-10">
@@ -215,12 +215,12 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                         placeholder={TABS.find(t => t.type === activeType)?.placeholder}
                         rows={5}
                         maxLength={2000}
-                        className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2.5 text-moonlight/80 font-body text-sm placeholder:text-fog/20 focus:outline-none focus:border-amber-glow/30 transition-colors resize-none leading-relaxed"
+                        className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2.5 text-moonlight/80 font-body text-sm placeholder:text-fog/45 focus:outline-none focus:border-amber-glow/30 transition-colors resize-none leading-relaxed"
                       />
 
                       {/* Character count */}
                       <div className="flex items-center justify-between mt-2 mb-4">
-                        <span className={`text-[10px] font-body ${text.length < 10 ? "text-fog/30" : "text-fog/50"}`}>
+                        <span className={`text-[10px] font-body ${text.length < 10 ? "text-fog/45" : "text-fog/55"}`}>
                           {text.length < 10 ? `${10 - text.length} more characters needed` : `${text.length}/2000`}
                         </span>
                       </div>
