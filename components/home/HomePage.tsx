@@ -52,7 +52,7 @@ export default function HomePage({ words }: { words: Word[] }) {
   }, []);
 
   return (
-    <main className="relative h-screen w-screen overflow-hidden">
+    <main className="fixed inset-0 overflow-hidden overscroll-none">
       {/* First-visit intro */}
       {showIntro && <IntroSequence onComplete={handleIntroComplete} />}
 

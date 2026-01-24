@@ -182,6 +182,15 @@ export default function BubbleNav({ words }: { words: Word[] }) {
     return () => window.removeEventListener("resize", update);
   }, [updateBubbles]);
 
+  // Prevent native scrolling during touch on sphere
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const preventScroll = (e: TouchEvent) => { e.preventDefault(); };
+    el.addEventListener("touchmove", preventScroll, { passive: false });
+    return () => el.removeEventListener("touchmove", preventScroll);
+  }, []);
+
   // Wheel zoom
   useEffect(() => {
     const el = containerRef.current;
@@ -197,6 +206,7 @@ export default function BubbleNav({ words }: { words: Word[] }) {
 
   // Pointer handlers
   const onDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
     dragging.current = true;
     moveDistRef.current = 0;
     vel.current = { rx: 0, ry: 0 };
@@ -208,6 +218,7 @@ export default function BubbleNav({ words }: { words: Word[] }) {
 
   const onMove = useCallback((e: React.PointerEvent) => {
     if (!dragging.current) return;
+    e.preventDefault();
     const dx = e.clientX - dragOrigin.current.x;
     const dy = e.clientY - dragOrigin.current.y;
     moveDistRef.current = Math.sqrt(dx * dx + dy * dy);
