@@ -57,29 +57,23 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   // Keep userRef in sync
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // Load initial state
+  // Load initial state — single source of truth via onAuthStateChange
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser(session.user);
-        syncFromDatabase(session.user.id);
-      } else {
-        // Anonymous: load from localStorage only
-        setExploredSlugs(new Set(getLocalSlugs()));
-      }
-    });
+    // Load localStorage immediately (shows data while DB syncs)
+    setExploredSlugs(new Set(getLocalSlugs()));
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === "SIGNED_IN" && session?.user) {
+        if (session?.user) {
           setUser(session.user);
-          await syncFromDatabase(session.user.id);
-          setShouldShowGate(false);
-        } else if (event === "SIGNED_OUT") {
+          if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+            await syncFromDatabase(session.user.id);
+            setShouldShowGate(false);
+          }
+        } else if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
           setUser(null);
           setExploredSlugs(new Set(getLocalSlugs()));
         }
