@@ -1,4 +1,4 @@
-const ENTITLEMENT_ID = "journey_pass";
+const ENTITLEMENT_ID = "Journey Pass";
 
 let purchasesModule: typeof import("@revenuecat/purchases-js") | null = null;
 let configured = false;
