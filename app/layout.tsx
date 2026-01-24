@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Source_Serif_4, JetBrains_Mono, Noto_Sans_Arabic, Noto_Sans_JP } from "next/font/google";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import { ExplorationProvider } from "@/components/ExplorationProvider";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import AmbientParticles from "@/components/AmbientParticles";
 import InstallPrompt from "@/components/InstallPrompt";
