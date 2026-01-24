@@ -93,25 +93,36 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     // Load localStorage immediately (shows data while DB syncs)
     setExploredSlugs(new Set(getLocalSlugs()));
 
+    const handleSession = async (session: { user: User } | null) => {
+      setAuthReady(true);
+      if (session?.user) {
+        setUser(session.user);
+        identifyUser(session.user.id, session.user.email ?? undefined);
+        setShouldShowGate(false);
+        await syncFromDatabase(session.user.id);
+        initRevenueCat(session.user.id);
+      } else {
+        setUser(null);
+        setIsPremium(false);
+        resetUser();
+        setExploredSlugs(new Set(getLocalSlugs()));
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setAuthReady(true);
-        if (session?.user) {
-          setUser(session.user);
-          identifyUser(session.user.id, session.user.email ?? undefined);
-          setShouldShowGate(false);
-          // Sync exploration data from DB
-          await syncFromDatabase(session.user.id);
-          // Initialize RevenueCat in background (non-blocking)
-          initRevenueCat(session.user.id);
-        } else if (event === "SIGNED_OUT" || !session) {
-          setUser(null);
-          setIsPremium(false);
-          resetUser();
-          setExploredSlugs(new Set(getLocalSlugs()));
-        }
+      async (_event, session) => {
+        handleSession(session);
       }
     );
+
+    // Fallback: explicitly check session in case onAuthStateChange doesn't fire
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user && !userRef.current) {
+        handleSession(session);
+      } else if (!session) {
+        setAuthReady(true);
+      }
+    });
 
     return () => subscription.unsubscribe();
   }, []);
