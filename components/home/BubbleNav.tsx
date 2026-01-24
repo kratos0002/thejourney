@@ -3,6 +3,7 @@
 import { useRef, useCallback, useMemo, useEffect } from "react";
 import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
+import { useExploration } from "@/components/ExplorationProvider";
 
 const LERP = 0.10;
 const FRICTION = 0.91;
@@ -60,6 +61,7 @@ function getLanguageTint(language: string): string {
 
 export default function BubbleNav({ words }: { words: Word[] }) {
   const { navigateToWord } = useTransition();
+  const { exploredSlugs } = useExploration();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -287,31 +289,40 @@ export default function BubbleNav({ words }: { words: Word[] }) {
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {words.map((word, i) => (
-        <button
-          key={word.slug}
-          ref={(el) => { bubbleRefs.current[i] = el; }}
-          data-idx={i}
-          className="absolute top-0 left-0 origin-center"
-          style={{
-            width: 64,
-            height: 64,
-            transform: "translate3d(-9999px, -9999px, 0) scale(0)",
-            opacity: 0,
-          }}
-          onClick={handleBubbleClick}
-          aria-label={`Explore ${word.romanization}`}
-        >
-          <div
-            className="w-full h-full rounded-full border flex items-center justify-center"
-            style={{ background: "rgba(26, 26, 36, 0.7)", borderColor: getLanguageTint(word.language) }}
+      {words.map((word, i) => {
+        const explored = exploredSlugs.has(word.slug);
+        return (
+          <button
+            key={word.slug}
+            ref={(el) => { bubbleRefs.current[i] = el; }}
+            data-idx={i}
+            className="absolute top-0 left-0 origin-center"
+            style={{
+              width: 64,
+              height: 64,
+              transform: "translate3d(-9999px, -9999px, 0) scale(0)",
+              opacity: 0,
+            }}
+            onClick={handleBubbleClick}
+            aria-label={`Explore ${word.romanization}`}
           >
-            <span className="font-display font-semibold text-moonlight/90 text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1">
-              {word.romanization}
-            </span>
-          </div>
-        </button>
-      ))}
+            <div
+              className="w-full h-full rounded-full border flex items-center justify-center"
+              style={{
+                background: explored ? "rgba(26, 26, 36, 0.5)" : "rgba(26, 26, 36, 0.7)",
+                borderColor: explored ? "rgba(107, 104, 102, 0.2)" : getLanguageTint(word.language),
+              }}
+            >
+              <span
+                className="font-display font-semibold text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1"
+                style={{ color: explored ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)" }}
+              >
+                {word.romanization}
+              </span>
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
