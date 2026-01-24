@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { trackEvent, identifyUser, resetUser } from "@/lib/analytics";
 import type { User } from "@supabase/supabase-js";
 
 const GATE_THRESHOLD = 5;
@@ -70,11 +71,13 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         if (session?.user) {
           setUser(session.user);
           if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+            identifyUser(session.user.id, session.user.email ?? undefined);
             await syncFromDatabase(session.user.id);
             setShouldShowGate(false);
           }
         } else if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
           setUser(null);
+          resetUser();
           setExploredSlugs(new Set(getLocalSlugs()));
         }
       }
@@ -126,6 +129,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
 
       // Always persist to localStorage as durable backup
       setLocalSlugs(next);
+      trackEvent("word_explored", { slug, total: next.size });
 
       // Anonymous: check gate threshold
       const currentUser = userRef.current;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
 import { submitFeedback } from "@/lib/feedback";
+import { trackEvent } from "@/lib/analytics";
 import type { Word } from "@/data/word-types";
 
 type FeedbackType = "word_suggestion" | "word_improvement" | "general";
@@ -89,6 +90,7 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
 
     setLoading(false);
     setSuccess(true);
+    trackEvent("feedback_submitted", { type: activeType, wordSlug: wordSlug || undefined });
     setTimeout(() => {
       onClose();
       setTimeout(() => {
