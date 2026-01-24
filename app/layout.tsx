@@ -50,8 +50,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://etymology.life"),
-  title: "The Journey — Fifty Words. Fifty Worlds.",
-  description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
+  title: "The Journey — Where Every Word Began",
+  description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
   icons: {
     apple: "/icons/icon-192.png",
   },
@@ -77,9 +77,9 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebSite",
               name: "The Journey",
-              alternateName: "Fifty Words. Fifty Worlds.",
+              alternateName: "Where Every Word Began",
               url: process.env.NEXT_PUBLIC_URL || "https://etymology.life",
-              description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
+              description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
               publisher: {
                 "@type": "Organization",
                 name: "The Journey",

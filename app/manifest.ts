@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "The Journey — Where every word began",
     short_name: "The Journey",
-    description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
+    description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
     start_url: "/",
     display: "standalone",
     background_color: "#0a0a14",
