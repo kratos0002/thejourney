@@ -96,17 +96,19 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     // Push any local slugs to DB
     if (localSlugs.length > 0) {
       const rows = localSlugs.map((slug) => ({ user_id: userId, slug }));
-      await supabase.from("explored_words").upsert(rows, {
+      const { error: upsertErr } = await supabase.from("explored_words").upsert(rows, {
         onConflict: "user_id,slug",
         ignoreDuplicates: true,
       });
+      if (upsertErr) console.warn("[Journey] Sync upsert failed:", upsertErr.message);
     }
 
     // Fetch all from DB
-    const { data } = await supabase
+    const { data, error: selectErr } = await supabase
       .from("explored_words")
       .select("slug")
       .eq("user_id", userId);
+    if (selectErr) console.warn("[Journey] Sync fetch failed:", selectErr.message);
 
     if (data) {
       const dbSlugs = data.map((row) => row.slug);
@@ -131,22 +133,25 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       // Always persist to localStorage as durable backup
       setLocalSlugs(next);
 
+      // Anonymous: check gate threshold
       const currentUser = userRef.current;
-      if (currentUser) {
-        // Also persist to database
-        supabase.from("explored_words").upsert(
-          { user_id: currentUser.id, slug },
-          { onConflict: "user_id,slug", ignoreDuplicates: true }
-        );
-      } else {
-        // Anonymous: check gate threshold
-        if (next.size >= GATE_THRESHOLD) {
-          setShouldShowGate(true);
-        }
+      if (!currentUser && next.size >= GATE_THRESHOLD) {
+        setShouldShowGate(true);
       }
 
       return next;
     });
+
+    // DB write outside the state updater
+    const currentUser = userRef.current;
+    if (currentUser) {
+      supabase.from("explored_words").upsert(
+        { user_id: currentUser.id, slug },
+        { onConflict: "user_id,slug", ignoreDuplicates: true }
+      ).then(({ error }) => {
+        if (error) console.warn("[Journey] Failed to sync exploration:", error.message);
+      });
+    }
   }, []);
 
   const signInWithEmail = useCallback(async (email: string) => {
