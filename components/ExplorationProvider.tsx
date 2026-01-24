@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-const GATE_THRESHOLD = 10;
+const GATE_THRESHOLD = 5;
 const STORAGE_KEY = "journey-explored";
 
 interface ExplorationContextType {

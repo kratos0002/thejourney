@@ -67,7 +67,7 @@ export default function ExplorationGate() {
                   Your journey deepens
                 </p>
                 <h2 className="font-display text-3xl sm:text-4xl text-moonlight/90 font-light mb-6">
-                  You&apos;ve explored 10 words.
+                  You&apos;ve explored 5 words.
                 </h2>
                 <p className="text-mist/60 font-body text-base mb-10 leading-relaxed">
                   Create a free account to continue your journey through the remaining worlds.
