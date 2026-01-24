@@ -72,7 +72,8 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Header overlay */}
       <motion.header
-        className="absolute top-0 left-0 right-0 z-20 pt-6 sm:pt-8 text-center pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-20 text-center pointer-events-none"
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
         variants={fadeIn}
         initial="hidden"
         animate="visible"
@@ -98,7 +99,8 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Profile button */}
       <motion.button
-        className="absolute top-6 right-6 z-20 w-9 h-9 rounded-full border border-moonlight/10 bg-abyss/40 backdrop-blur-sm flex items-center justify-center hover:border-moonlight/20 transition-colors duration-300 cursor-pointer"
+        className="absolute right-6 z-20 w-9 h-9 rounded-full border border-moonlight/10 bg-abyss/40 backdrop-blur-sm flex items-center justify-center hover:border-moonlight/20 transition-colors duration-300 cursor-pointer"
+        style={{ top: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.8 }}

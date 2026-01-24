@@ -110,7 +110,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
       <div className="fixed inset-0 z-[29]" onClick={onClose} />
 
       {/* Compact dropdown card */}
-      <div className="fixed top-16 right-5 z-30 w-64">
+      <div className="fixed right-5 z-30 w-64" style={{ top: "calc(env(safe-area-inset-top, 0px) + 4rem)" }}>
         <div className="bg-ink border border-moonlight/12 rounded-2xl p-4 shadow-2xl shadow-black/40">
               {/* Stats row */}
               <div className="flex items-center gap-4 mb-4">
