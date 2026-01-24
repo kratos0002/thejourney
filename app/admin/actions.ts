@@ -22,7 +22,7 @@ export async function getWords() {
   const { data, error } = await supabase
     .from("words")
     .select("slug, word, romanization, language, source, updated_at")
-    .order("romanization");
+    .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);
   return data ?? [];
