@@ -24,9 +24,13 @@ export default function WordSuggestions({ existingSlugs }: { existingSlugs: stri
     setSuggestions([]);
     setSuccess(null);
     try {
-      const result = await suggestNewWords(existingSlugs);
+      const { result, error: err } = await suggestNewWords(existingSlugs);
+      if (err) {
+        setError(err);
+        return;
+      }
       // Parse the JSON response — strip markdown fences if present
-      const cleaned = result.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      const cleaned = (result || "").replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
       const parsed = JSON.parse(cleaned) as WordSuggestion[];
       setSuggestions(parsed);
     } catch (err) {
@@ -41,9 +45,13 @@ export default function WordSuggestions({ existingSlugs }: { existingSlugs: stri
     setError(null);
     setSuccess(null);
     try {
-      const jsonResult = await generateWordData(suggestion.romanization, suggestion.language, suggestion.hook);
+      const { result: jsonResult, error: genErr } = await generateWordData(suggestion.romanization, suggestion.language, suggestion.hook);
+      if (genErr) {
+        setError(genErr);
+        return;
+      }
       // Strip markdown fences if present
-      const cleaned = jsonResult.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+      const cleaned = (jsonResult || "").replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
       const result = await createWordFromAI(cleaned);
       if (result.error) {
         setError(`Failed to create "${suggestion.romanization}": ${result.error}`);

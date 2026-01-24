@@ -15,7 +15,11 @@ async function requireAdmin() {
   }
 }
 
-async function callPerplexity(messages: { role: string; content: string }[]): Promise<string> {
+async function callPerplexity(messages: { role: string; content: string }[]): Promise<{ result?: string; error?: string }> {
+  if (!process.env.PERPLEXITY_API_KEY) {
+    return { error: "PERPLEXITY_API_KEY is not configured" };
+  }
+
   const response = await fetch("https://api.perplexity.ai/chat/completions", {
     method: "POST",
     headers: {
@@ -33,15 +37,14 @@ async function callPerplexity(messages: { role: string; content: string }[]): Pr
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`Perplexity API error: ${response.status} ${text}`);
+    return { error: `Perplexity API error: ${response.status}` };
   }
 
   const data = await response.json();
-  return data.choices[0].message.content;
+  return { result: data.choices[0].message.content };
 }
 
-export async function suggestImprovements(word: Word): Promise<string> {
+export async function suggestImprovements(word: Word): Promise<{ result?: string; error?: string }> {
   await requireAdmin();
 
   const prompt = `Analyze this etymological entry for accuracy, completeness, and missed opportunities. The entry is for the word "${word.romanization}" (${word.word}) from ${word.language}.
@@ -75,7 +78,7 @@ Be specific and cite sources where possible. If something is correct, say so bri
   return callPerplexity([{ role: "user", content: prompt }]);
 }
 
-export async function suggestNewWords(existingSlugs: string[]): Promise<string> {
+export async function suggestNewWords(existingSlugs: string[]): Promise<{ result?: string; error?: string }> {
   await requireAdmin();
 
   const prompt = `I'm building an immersive etymology app called "The Journey" that traces words across languages, cultures, and centuries. Each word has a rich etymological journey with multiple stops across geography and time.
@@ -104,7 +107,7 @@ Return ONLY the JSON array, no other text.`;
   return callPerplexity([{ role: "user", content: prompt }]);
 }
 
-export async function generateWordData(wordName: string, language: string, hook: string): Promise<string> {
+export async function generateWordData(wordName: string, language: string, hook: string): Promise<{ result?: string; error?: string }> {
   await requireAdmin();
 
   const prompt = `Generate a complete etymological entry for the word "${wordName}" from ${language}. Hook: "${hook}"

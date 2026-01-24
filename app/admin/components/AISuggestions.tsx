@@ -14,8 +14,12 @@ export default function AISuggestions({ word }: { word: Word }) {
     setError(null);
     setSuggestions(null);
     try {
-      const result = await suggestImprovements(word);
-      setSuggestions(result);
+      const { result, error: err } = await suggestImprovements(word);
+      if (err) {
+        setError(err);
+      } else {
+        setSuggestions(result || null);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get suggestions");
     } finally {

@@ -64,34 +64,40 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
     setLoading(true);
     setError(null);
 
-    const result = await submitFeedback({
-      feedbackType: activeType,
-      feedbackText: text,
-      wordSlug: activeType === "word_improvement" ? wordSlug || undefined : undefined,
-      userContext: {
-        exploredCount,
-        currentPage: window.location.pathname,
-        userAgent: navigator.userAgent,
-      },
-    });
+    try {
+      const result = await submitFeedback({
+        feedbackType: activeType,
+        feedbackText: text,
+        wordSlug: activeType === "word_improvement" ? wordSlug || undefined : undefined,
+        userContext: {
+          exploredCount,
+          currentPage: window.location.pathname,
+          userAgent: navigator.userAgent,
+        },
+      });
+
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setLoading(false);
+      return;
+    }
 
     setLoading(false);
-
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setSuccess(true);
+    setSuccess(true);
+    setTimeout(() => {
+      onClose();
       setTimeout(() => {
-        onClose();
-        // Reset state after close animation
-        setTimeout(() => {
-          setSuccess(false);
-          setText("");
-          setWordSlug("");
-          setWordSearch("");
-        }, 300);
-      }, 2000);
-    }
+        setSuccess(false);
+        setText("");
+        setWordSlug("");
+        setWordSearch("");
+      }, 300);
+    }, 2000);
   };
 
   return (
