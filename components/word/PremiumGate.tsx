@@ -1,44 +1,50 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
 import { purchaseJourneyPass } from "@/lib/revenuecat";
 import { trackEvent } from "@/lib/analytics";
 
 export default function PremiumGate() {
-  const { shouldShowPremiumGate, dismissPremiumGate } = useExploration();
+  const { shouldShowPremiumGate, dismissPremiumGate, completePurchase } = useExploration();
 
   // Don't show gate if RevenueCat isn't configured
   if (!process.env.NEXT_PUBLIC_REVENUECAT_API_KEY) return null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCheckout, setShowCheckout] = useState(false);
+  const checkoutRef = useRef<HTMLDivElement>(null);
 
   const handlePurchase = useCallback(async () => {
+    if (!checkoutRef.current) return;
     setError(null);
     setLoading(true);
+    setShowCheckout(true);
     trackEvent("premium_purchase_started");
 
-    const result = await purchaseJourneyPass();
+    const result = await purchaseJourneyPass(checkoutRef.current);
     setLoading(false);
 
     if (result.success) {
       trackEvent("premium_purchase_completed");
-      dismissPremiumGate();
+      completePurchase();
     } else if (result.error === "cancelled") {
+      setShowCheckout(false);
       trackEvent("premium_purchase_cancelled");
     } else if (result.error) {
       console.warn("[Journey] Purchase error:", result.error);
       setError(result.error);
+      setShowCheckout(false);
       trackEvent("premium_purchase_error", { error: result.error });
     }
-  }, [dismissPremiumGate]);
+  }, [completePurchase]);
 
   return (
     <AnimatePresence>
       {shouldShowPremiumGate && (
         <motion.div
-          className="fixed inset-0 z-[90] flex items-center justify-center"
+          className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -49,7 +55,7 @@ export default function PremiumGate() {
 
           {/* Content */}
           <motion.div
-            className="relative z-10 max-w-md mx-auto px-8 text-center"
+            className="relative z-10 max-w-md w-full mx-auto px-8 py-12 text-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
@@ -67,13 +73,21 @@ export default function PremiumGate() {
               $9.99 <span className="text-sm text-fog/50 font-body">one-time, forever</span>
             </p>
 
-            <button
-              onClick={handlePurchase}
-              disabled={loading}
-              className="w-full bg-amber-glow/10 border border-amber-glow/30 rounded-lg px-6 py-3.5 text-amber-glow font-body text-sm tracking-wider hover:bg-amber-glow/20 hover:border-amber-glow/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
-            >
-              {loading ? "Processing..." : "Get Journey Pass"}
-            </button>
+            {/* Stripe checkout renders here */}
+            <div
+              ref={checkoutRef}
+              className={showCheckout ? "w-full min-h-[300px] mb-6 rounded-lg overflow-hidden bg-white" : ""}
+            />
+
+            {!showCheckout && (
+              <button
+                onClick={handlePurchase}
+                disabled={loading}
+                className="w-full bg-amber-glow/10 border border-amber-glow/30 rounded-lg px-6 py-3.5 text-amber-glow font-body text-sm tracking-wider hover:bg-amber-glow/20 hover:border-amber-glow/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+              >
+                Get Journey Pass
+              </button>
+            )}
 
             {error && error !== "cancelled" && (
               <p className="mt-4 text-red-400/80 text-xs font-body">
@@ -82,7 +96,7 @@ export default function PremiumGate() {
             )}
 
             <button
-              onClick={dismissPremiumGate}
+              onClick={() => { setShowCheckout(false); dismissPremiumGate(); }}
               className="mt-6 text-fog/40 hover:text-fog/60 text-xs font-body transition-colors cursor-pointer"
             >
               Maybe later

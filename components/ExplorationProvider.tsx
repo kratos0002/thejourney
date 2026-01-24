@@ -19,6 +19,7 @@ interface ExplorationContextType {
   isPremium: boolean;
   shouldShowPremiumGate: boolean;
   dismissPremiumGate: () => void;
+  completePurchase: () => void;
   signInWithEmail: (email: string) => Promise<{ error: string | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
 }
@@ -32,6 +33,7 @@ const ExplorationContext = createContext<ExplorationContextType>({
   isPremium: false,
   shouldShowPremiumGate: false,
   dismissPremiumGate: () => {},
+  completePurchase: () => {},
   signInWithEmail: async () => ({ error: null }),
   verifyOtp: async () => ({ error: null }),
 });
@@ -236,6 +238,11 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     setPremiumGateDismissed(true);
   }, []);
 
+  const completePurchase = useCallback(() => {
+    setIsPremium(true);
+    setPremiumGateDismissed(true);
+  }, []);
+
   const signInWithEmail = useCallback(async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({ email });
     return { error: error?.message || null };
@@ -261,6 +268,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         isPremium,
         shouldShowPremiumGate,
         dismissPremiumGate,
+        completePurchase,
         signInWithEmail,
         verifyOtp,
       }}

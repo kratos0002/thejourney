@@ -43,7 +43,9 @@ export async function checkPremiumStatus(): Promise<boolean> {
   }
 }
 
-export async function purchaseJourneyPass(): Promise<{ success: boolean; error?: string }> {
+export async function purchaseJourneyPass(
+  htmlTarget: HTMLElement
+): Promise<{ success: boolean; error?: string }> {
   try {
     const Purchases = await getPurchases();
     if (!Purchases.isConfigured()) {
@@ -62,6 +64,7 @@ export async function purchaseJourneyPass(): Promise<{ success: boolean; error?:
 
     const { customerInfo } = await Purchases.getSharedInstance().purchase({
       rcPackage: lifetimePackage,
+      htmlTarget,
     });
 
     const isActive = ENTITLEMENT_ID in customerInfo.entitlements.active;
