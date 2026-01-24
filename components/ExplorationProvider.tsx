@@ -36,6 +36,10 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   const [exploredSlugs, setExploredSlugs] = useState<Set<string>>(new Set());
   const [shouldShowGate, setShouldShowGate] = useState(false);
   const initializedRef = useRef(false);
+  const userRef = useRef<User | null>(null);
+
+  // Keep userRef in sync
+  useEffect(() => { userRef.current = user; }, [user]);
 
   // Load initial state
   useEffect(() => {
@@ -46,7 +50,8 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
-        loadFromDatabase(session.user.id);
+        // Merge any orphaned localStorage data, then load from DB
+        mergeLocalToDatabase(session.user.id).then(() => loadFromDatabase(session.user.id));
       } else {
         loadFromLocalStorage();
       }
@@ -121,10 +126,11 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       const next = new Set(prev);
       next.add(slug);
 
-      if (user) {
+      const currentUser = userRef.current;
+      if (currentUser) {
         // Authenticated: persist to database
         supabase.from("explored_words").upsert(
-          { user_id: user.id, slug },
+          { user_id: currentUser.id, slug },
           { onConflict: "user_id,slug", ignoreDuplicates: true }
         );
       } else {
@@ -139,7 +145,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
 
       return next;
     });
-  }, [user]);
+  }, []);
 
   const signInWithEmail = useCallback(async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({ email });
