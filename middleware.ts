@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request });
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,19 +13,25 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
+          // Update request cookies so Server Components can read the updated session
+          cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
-            response.cookies.set(name, value, options);
+          });
+          // Re-create response with the updated request
+          supabaseResponse = NextResponse.next({ request });
+          // Set response cookies so the browser stores the updated tokens
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
           });
         },
       },
     }
   );
 
-  // Refresh the auth session
+  // This refreshes the auth token if expired and sets updated cookies
   await supabase.auth.getUser();
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
