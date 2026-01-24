@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { exportJourneyAnimation, type ExportFormat } from "@/lib/journey-export";
+import { exportJourneyAnimation } from "@/lib/journey-export";
 import type { Word } from "@/data/word-types";
 
 interface Props {
@@ -12,7 +12,6 @@ interface Props {
 }
 
 export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
-  const [format, setFormat] = useState<ExportFormat>("video");
   const [status, setStatus] = useState<"idle" | "rendering" | "done" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
@@ -24,7 +23,6 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
     setErrorMsg("");
     try {
       const blob = await exportJourneyAnimation({
-        format,
         word: word.word,
         romanization: word.romanization,
         language: word.language,
@@ -39,20 +37,19 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
       setErrorMsg(err instanceof Error ? err.message : "Export failed");
       setStatus("error");
     }
-  }, [format, word]);
+  }, [word]);
 
   const handleDownload = useCallback(() => {
     if (!resultBlob) return;
-    const ext = format === "video" ? "webm" : "gif";
     const url = URL.createObjectURL(resultBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${word.slug}-journey.${ext}`;
+    a.download = `${word.slug}-journey.webm`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [resultBlob, format, word.slug]);
+  }, [resultBlob, word.slug]);
 
   const handleClose = useCallback(() => {
     if (status === "rendering") return;
@@ -64,7 +61,7 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
 
   const fileSizeEstimate = resultBlob
     ? `${(resultBlob.size / (1024 * 1024)).toFixed(1)} MB`
-    : format === "video" ? "~3-5 MB" : "~10-20 MB";
+    : "~3-5 MB";
 
   return (
     <AnimatePresence>
@@ -89,54 +86,20 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
           >
             <h3 className="font-display text-lg text-moonlight/90 mb-1">Download Journey</h3>
             <p className="text-xs text-fog/50 font-body mb-5">
-              Export the etymology map animation
+              Export as a vertical video with map animation and stop-by-stop details
             </p>
 
-            {/* Format selection */}
+            {/* Generate */}
             {status === "idle" && (
               <>
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <button
-                    onClick={() => setFormat("video")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      format === "video"
-                        ? "border-amber-glow/40 bg-amber-glow/5"
-                        : "border-moonlight/10 hover:border-moonlight/20"
-                    }`}
-                  >
-                    <p className={`text-sm font-body font-medium ${format === "video" ? "text-amber-glow" : "text-moonlight/70"}`}>
-                      Video
-                    </p>
-                    <p className="text-[10px] text-fog/40 font-body mt-0.5">
-                      WebM, smooth 30fps
-                    </p>
-                  </button>
-                  <button
-                    onClick={() => setFormat("gif")}
-                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
-                      format === "gif"
-                        ? "border-amber-glow/40 bg-amber-glow/5"
-                        : "border-moonlight/10 hover:border-moonlight/20"
-                    }`}
-                  >
-                    <p className={`text-sm font-body font-medium ${format === "gif" ? "text-amber-glow" : "text-moonlight/70"}`}>
-                      GIF
-                    </p>
-                    <p className="text-[10px] text-fog/40 font-body mt-0.5">
-                      Universal, shareable
-                    </p>
-                  </button>
-                </div>
-
                 <p className="text-[10px] text-fog/30 font-body mb-4">
-                  Estimated size: {fileSizeEstimate}
+                  Format: WebM video, 1080x1920 · Estimated size: {fileSizeEstimate}
                 </p>
-
                 <button
                   onClick={handleExport}
                   className="w-full py-2.5 bg-amber-glow/10 border border-amber-glow/30 rounded-lg text-amber-glow text-sm font-body tracking-wider hover:bg-amber-glow/20 transition-all cursor-pointer"
                 >
-                  Generate
+                  Generate Video
                 </button>
               </>
             )}
@@ -176,13 +139,7 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
                     <polyline points="7,10 12,15 17,10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
-                  Download .{format === "video" ? "webm" : "gif"}
-                </button>
-                <button
-                  onClick={() => { setStatus("idle"); setResultBlob(null); }}
-                  className="mt-3 text-[11px] text-fog/40 hover:text-fog/60 font-body transition-colors cursor-pointer"
-                >
-                  Try different format
+                  Download .webm
                 </button>
               </div>
             )}

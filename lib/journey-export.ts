@@ -3,10 +3,7 @@ import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
 import type { JourneyStop } from "@/data/word-types";
 
-export type ExportFormat = "video" | "gif";
-
 export interface ExportOptions {
-  format: ExportFormat;
   word: string;
   romanization: string;
   language: string;
@@ -16,8 +13,7 @@ export interface ExportOptions {
 }
 
 const WIDTH = 1080;
-const HEIGHT = 1080;
-const MAP_AREA = { x: 60, y: 220, width: 960, height: 530 };
+const HEIGHT = 1920; // Vertical video (9:16)
 const BG_COLOR = "#0a0a14";
 const LAND_COLOR = "#1a1a24";
 const LAND_STROKE = "#2a2a3a";
@@ -25,6 +21,9 @@ const AMBER = "#d4a574";
 const MOONLIGHT = "#f0ede6";
 const MIST = "#a8b0b8";
 const FOG = "#6b7280";
+
+const MAP_AREA = { x: 40, y: 260, width: 1000, height: 600 };
+const CARD_AREA = { x: 60, y: 920, width: 960, height: 260 };
 
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -63,21 +62,18 @@ function drawTitle(
   ctx.save();
   ctx.globalAlpha = opacity;
 
-  // Word title
-  ctx.font = "48px Georgia, 'Times New Roman', serif";
+  ctx.font = "56px Georgia, 'Times New Roman', serif";
   ctx.fillStyle = MOONLIGHT;
   ctx.textAlign = "center";
-  ctx.fillText(word, WIDTH / 2, 80);
+  ctx.fillText(word, WIDTH / 2, 110);
 
-  // Romanization
-  ctx.font = "28px Georgia, 'Times New Roman', serif";
+  ctx.font = "32px Georgia, 'Times New Roman', serif";
   ctx.fillStyle = AMBER;
-  ctx.fillText(romanization, WIDTH / 2, 130);
+  ctx.fillText(romanization, WIDTH / 2, 165);
 
-  // Language
-  ctx.font = "16px system-ui, sans-serif";
+  ctx.font = "18px system-ui, sans-serif";
   ctx.fillStyle = FOG;
-  ctx.fillText(language, WIDTH / 2, 165);
+  ctx.fillText(language, WIDTH / 2, 205);
 
   ctx.restore();
 }
@@ -135,7 +131,6 @@ function drawArc(
   ctx.lineCap = "round";
   ctx.stroke();
 
-  // Glow effect
   ctx.shadowBlur = 8;
   ctx.shadowColor = color;
   ctx.globalAlpha = 0.3;
@@ -151,10 +146,7 @@ function drawNode(
   color: string,
   opacity: number,
   isActive: boolean,
-  label: string,
-  sublabel: string,
-  panOffset: [number, number],
-  labelBelow: boolean
+  panOffset: [number, number]
 ) {
   const projected = projection(coord);
   if (!projected) return;
@@ -165,44 +157,102 @@ function drawNode(
   ctx.save();
   ctx.globalAlpha = opacity;
 
-  // Outer glow
   if (isActive) {
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, 20);
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, 24);
     gradient.addColorStop(0, color + "60");
     gradient.addColorStop(1, color + "00");
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(x, y, 20, 0, Math.PI * 2);
+    ctx.arc(x, y, 24, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Main dot
-  const radius = isActive ? 6 : 4;
+  const radius = isActive ? 7 : 4;
   ctx.fillStyle = color;
   ctx.beginPath();
   ctx.arc(x, y, radius, 0, Math.PI * 2);
   ctx.fill();
 
-  // Inner bright dot
   ctx.fillStyle = MOONLIGHT;
   ctx.beginPath();
   ctx.arc(x, y, 2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Labels
-  if (opacity > 0.3) {
-    ctx.globalAlpha = opacity * 0.9;
-    const labelY = labelBelow ? y + 22 : y - 22;
+  ctx.restore();
+}
 
-    ctx.font = "bold 13px Georgia, 'Times New Roman', serif";
-    ctx.fillStyle = MOONLIGHT;
-    ctx.textAlign = "center";
-    ctx.fillText(label, x, labelY);
+function drawStopCard(
+  ctx: CanvasRenderingContext2D,
+  stop: JourneyStop,
+  stopIndex: number,
+  totalStops: number,
+  opacity: number
+) {
+  ctx.save();
+  ctx.globalAlpha = opacity;
 
-    ctx.font = "10px system-ui, sans-serif";
-    ctx.fillStyle = FOG;
-    ctx.fillText(sublabel, x, labelBelow ? labelY + 14 : labelY - 14);
+  const { x, y, width, height } = CARD_AREA;
+  const color = stop.color || AMBER;
+
+  // Card background
+  const radius = 16;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, radius);
+  ctx.fillStyle = "#12121e";
+  ctx.fill();
+  ctx.strokeStyle = color + "40";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Step indicator line
+  const indicatorY = y + 24;
+  const stepWidth = (width - 80) / totalStops;
+  for (let i = 0; i < totalStops; i++) {
+    const sx = x + 40 + i * stepWidth;
+    ctx.fillStyle = i <= stopIndex ? color : FOG + "40";
+    ctx.beginPath();
+    ctx.roundRect(sx, indicatorY, stepWidth - 4, 3, 2);
+    ctx.fill();
   }
+
+  // Form (the word at this stage)
+  ctx.font = "bold 36px Georgia, 'Times New Roman', serif";
+  ctx.fillStyle = MOONLIGHT;
+  ctx.textAlign = "left";
+  const formText = stop.script ? `${stop.form}  ${stop.script}` : stop.form;
+  ctx.fillText(formText, x + 40, y + 80);
+
+  // Location + period
+  ctx.font = "18px system-ui, sans-serif";
+  ctx.fillStyle = color;
+  ctx.fillText(`${stop.location}  ·  ${stop.period}`, x + 40, y + 120);
+
+  // Context (word wrap)
+  ctx.font = "16px system-ui, sans-serif";
+  ctx.fillStyle = MIST;
+  const maxWidth = width - 80;
+  const words = (stop.context || "").split(" ");
+  const lines: string[] = [];
+  let currentLine = "";
+  for (const word of words) {
+    const test = currentLine ? `${currentLine} ${word}` : word;
+    if (ctx.measureText(test).width > maxWidth) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = test;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  lines.slice(0, 3).forEach((line, i) => {
+    ctx.fillText(line, x + 40, y + 160 + i * 24);
+  });
+
+  // Stop number
+  ctx.font = "12px system-ui, sans-serif";
+  ctx.fillStyle = FOG;
+  ctx.textAlign = "right";
+  ctx.fillText(`${stopIndex + 1} / ${totalStops}`, x + width - 40, y + 40);
 
   ctx.restore();
 }
@@ -210,11 +260,10 @@ function drawNode(
 function drawHook(ctx: CanvasRenderingContext2D, hook: string, opacity: number) {
   ctx.save();
   ctx.globalAlpha = opacity;
-  ctx.font = "italic 18px Georgia, 'Times New Roman', serif";
+  ctx.font = "italic 20px Georgia, 'Times New Roman', serif";
   ctx.fillStyle = MIST;
   ctx.textAlign = "center";
 
-  // Wrap text if too long
   const maxWidth = WIDTH - 120;
   const words = hook.split(" ");
   const lines: string[] = [];
@@ -231,9 +280,9 @@ function drawHook(ctx: CanvasRenderingContext2D, hook: string, opacity: number) 
   }
   if (currentLine) lines.push(currentLine);
 
-  const startY = 810;
+  const startY = 1280;
   lines.slice(0, 3).forEach((line, i) => {
-    ctx.fillText(line, WIDTH / 2, startY + i * 26);
+    ctx.fillText(line, WIDTH / 2, startY + i * 30);
   });
 
   ctx.restore();
@@ -242,17 +291,16 @@ function drawHook(ctx: CanvasRenderingContext2D, hook: string, opacity: number) 
 function drawWatermark(ctx: CanvasRenderingContext2D) {
   ctx.save();
   ctx.globalAlpha = 0.25;
-  ctx.font = "12px system-ui, sans-serif";
+  ctx.font = "14px system-ui, sans-serif";
   ctx.fillStyle = FOG;
   ctx.textAlign = "center";
 
-  const y = HEIGHT - 40;
+  const y = HEIGHT - 60;
   const text = "The Journey";
   const tw = ctx.measureText(text).width;
   const lineW = 40;
   const gap = 12;
 
-  // Left line
   ctx.strokeStyle = FOG;
   ctx.lineWidth = 0.5;
   ctx.beginPath();
@@ -260,7 +308,6 @@ function drawWatermark(ctx: CanvasRenderingContext2D) {
   ctx.lineTo(WIDTH / 2 - tw / 2 - gap, y - 4);
   ctx.stroke();
 
-  // Right line
   ctx.beginPath();
   ctx.moveTo(WIDTH / 2 + tw / 2 + gap, y - 4);
   ctx.lineTo(WIDTH / 2 + tw / 2 + gap + lineW, y - 4);
@@ -285,8 +332,8 @@ function calculatePanOffset(
   const centerX = MAP_AREA.width / 2;
   const centerY = MAP_AREA.height / 2;
 
-  const dx = (centerX - projected[0]) * 0.4 * easeInOut(progress);
-  const dy = (centerY - projected[1]) * 0.4 * easeInOut(progress);
+  const dx = (centerX - projected[0]) * 0.35 * easeInOut(progress);
+  const dy = (centerY - projected[1]) * 0.35 * easeInOut(progress);
 
   return [dx, dy];
 }
@@ -304,27 +351,23 @@ function drawFrame(
 ) {
   drawBackground(ctx);
 
-  // Title fade-in: 0-0.1
-  const titleOpacity = clamp(t / 0.1, 0, 1);
+  // Title fade-in: 0-0.08
+  const titleOpacity = clamp(t / 0.08, 0, 1);
   drawTitle(ctx, word, romanization, language, titleOpacity);
 
-  // Map animation: 0.1-0.9
-  const mapStart = 0.1;
-  const mapEnd = 0.9;
+  // Map + card animation: 0.08-0.88
+  const mapStart = 0.08;
+  const mapEnd = 0.88;
   const mapT = clamp((t - mapStart) / (mapEnd - mapStart), 0, 1);
 
   const stopCount = journey.length;
   const timePerStop = 1 / stopCount;
 
-  // Determine active stop and per-stop progress
   const activeFloat = mapT * stopCount;
   const activeIndex = Math.min(Math.floor(activeFloat), stopCount - 1);
-  const stopProgress = activeFloat - activeIndex;
 
-  // Pan offset
   const panOffset = calculatePanOffset(journey, activeIndex, projection, mapT > 0 ? 1 : 0);
 
-  // Draw land
   drawLand(ctx, landGeoJSON, projection, panOffset);
 
   // Draw arcs and nodes
@@ -334,7 +377,6 @@ function drawFrame(
 
     if (nodeT <= 0) continue;
 
-    // Draw arc from previous stop
     if (i > 0) {
       const arcProgress = clamp(nodeT / 0.4, 0, 1);
       const color = journey[i].color || AMBER;
@@ -349,7 +391,6 @@ function drawFrame(
       );
     }
 
-    // Draw node
     const nodeOpacity = clamp((nodeT - 0.3) / 0.3, 0, 1);
     const isActive = i === activeIndex;
     const color = journey[i].color || AMBER;
@@ -360,23 +401,25 @@ function drawFrame(
       color,
       easeInOut(nodeOpacity),
       isActive,
-      journey[i].form,
-      `${journey[i].location} · ${journey[i].period}`,
-      panOffset,
-      i % 2 === 1
+      panOffset
     );
   }
 
-  // Hook fade-in: 0.85-1.0
-  const hookOpacity = clamp((t - 0.85) / 0.15, 0, 1);
+  // Stop card — shows current active stop
+  if (mapT > 0) {
+    const cardOpacity = clamp(mapT / 0.05, 0, 1);
+    drawStopCard(ctx, journey[activeIndex], activeIndex, stopCount, cardOpacity);
+  }
+
+  // Hook fade-in: 0.88-1.0
+  const hookOpacity = clamp((t - 0.88) / 0.12, 0, 1);
   drawHook(ctx, hook, easeInOut(hookOpacity));
 
-  // Watermark always visible
   drawWatermark(ctx);
 }
 
 export async function exportJourneyAnimation(options: ExportOptions): Promise<Blob> {
-  const { format, word, romanization, language, hook, journey, onProgress } = options;
+  const { word, romanization, language, hook, journey, onProgress } = options;
 
   const canvas = document.createElement("canvas");
   canvas.width = WIDTH;
@@ -389,22 +432,16 @@ export async function exportJourneyAnimation(options: ExportOptions): Promise<Bl
   onProgress(5);
 
   const totalDurationMs = Math.max(8000, Math.min(12000, journey.length * 1500));
-  const fps = format === "video" ? 30 : 10;
+  const fps = 30;
   const totalFrames = Math.ceil((totalDurationMs / 1000) * fps);
 
-  if (format === "video") {
-    return recordVideo(ctx, canvas, totalFrames, fps, totalDurationMs, landGeoJSON, projection, journey, word, romanization, language, hook, onProgress);
-  } else {
-    return recordGif(ctx, canvas, totalFrames, landGeoJSON, projection, journey, word, romanization, language, hook, onProgress);
-  }
+  return recordVideo(ctx, canvas, totalFrames, landGeoJSON, projection, journey, word, romanization, language, hook, onProgress);
 }
 
 async function recordVideo(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   totalFrames: number,
-  fps: number,
-  durationMs: number,
   landGeoJSON: GeoJSON.FeatureCollection,
   projection: d3.GeoProjection,
   journey: JourneyStop[],
@@ -414,7 +451,10 @@ async function recordVideo(
   hook: string,
   onProgress: (p: number) => void
 ): Promise<Blob> {
-  const stream = canvas.captureStream(fps);
+  // Use captureStream(0) for manual frame control — renders as fast as possible
+  const stream = canvas.captureStream(0);
+  const track = stream.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack;
+
   const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
     ? "video/webm;codecs=vp9"
     : "video/webm";
@@ -436,73 +476,28 @@ async function recordVideo(
     recorder.start();
 
     let frame = 0;
-    const frameDuration = 1000 / fps;
-    let lastTime = performance.now();
 
     function renderFrame() {
       if (frame >= totalFrames) {
-        // Render one extra second of the final frame (hold)
-        setTimeout(() => recorder.stop(), 500);
+        // Hold final frame briefly
+        setTimeout(() => recorder.stop(), 300);
         onProgress(100);
         return;
       }
 
       const t = frame / totalFrames;
       drawFrame(ctx, t, landGeoJSON, projection, journey, word, romanization, language, hook);
+
+      // Request frame capture from the track
+      track.requestFrame();
+
       frame++;
       onProgress(5 + (frame / totalFrames) * 90);
 
-      const now = performance.now();
-      const elapsed = now - lastTime;
-      const delay = Math.max(0, frameDuration - elapsed);
-      lastTime = now + delay;
-      setTimeout(renderFrame, delay);
+      // Render next frame ASAP — captureStream(0) + requestFrame handles timing
+      setTimeout(renderFrame, 0);
     }
 
     renderFrame();
-  });
-}
-
-async function recordGif(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
-  totalFrames: number,
-  landGeoJSON: GeoJSON.FeatureCollection,
-  projection: d3.GeoProjection,
-  journey: JourneyStop[],
-  word: string,
-  romanization: string,
-  language: string,
-  hook: string,
-  onProgress: (p: number) => void
-): Promise<Blob> {
-  // Dynamic import gif.js (UMD module)
-  const GIF = (await import("gif.js")).default;
-
-  const gif = new GIF({
-    workers: 2,
-    quality: 10,
-    width: WIDTH,
-    height: HEIGHT,
-    workerScript: "/gif.worker.js",
-  });
-
-  // Render frames and add to GIF incrementally
-  for (let i = 0; i < totalFrames; i++) {
-    const t = i / totalFrames;
-    drawFrame(ctx, t, landGeoJSON, projection, journey, word, romanization, language, hook);
-    gif.addFrame(ctx, { delay: 100, copy: true });
-    onProgress(5 + (i / totalFrames) * 50);
-  }
-
-  // Encode
-  return new Promise((resolve) => {
-    gif.on("progress", (p: number) => {
-      onProgress(55 + p * 45);
-    });
-    gif.on("finished", (blob: Blob) => {
-      resolve(blob);
-    });
-    gif.render();
   });
 }
