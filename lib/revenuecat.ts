@@ -36,7 +36,10 @@ export async function checkPremiumStatus(): Promise<boolean> {
   try {
     const Purchases = await getPurchases();
     if (!Purchases.isConfigured()) return false;
-    return await Purchases.getSharedInstance().isEntitledTo(ENTITLEMENT_ID);
+    const customerInfo = await Purchases.getSharedInstance().getCustomerInfo();
+    const activeEntitlements = Object.keys(customerInfo.entitlements.active);
+    console.log("[Journey] Active entitlements:", activeEntitlements);
+    return ENTITLEMENT_ID in customerInfo.entitlements.active;
   } catch (e) {
     console.warn("[Journey] Failed to check entitlement:", e);
     return false;
