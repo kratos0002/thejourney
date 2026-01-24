@@ -22,6 +22,8 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [canInstall, setCanInstall] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const analytics = useMemo(() => {
@@ -34,6 +36,13 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   }, [exploredSlugs, exploredCount]);
 
   useEffect(() => {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches;
+    setIsStandalone(standalone);
+    if (standalone) return;
+
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+    setIsIOS(ios);
+
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -257,6 +266,18 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
                   </svg>
                   Install app
                 </button>
+              )}
+              {!canInstall && isIOS && !isStandalone && (
+                <div className="mt-3 py-2 px-3 border border-moonlight/8 rounded-lg">
+                  <p className="text-xs text-moonlight/50 font-body flex items-center justify-center gap-2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-glow/50">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                      <polyline points="16,6 12,2 8,6"/>
+                      <line x1="12" y1="2" x2="12" y2="15"/>
+                    </svg>
+                    Tap share, then &ldquo;Add to Home Screen&rdquo;
+                  </p>
+                </div>
               )}
             </div>
       </div>
