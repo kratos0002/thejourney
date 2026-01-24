@@ -12,6 +12,7 @@ const STORAGE_KEY = "journey-explored";
 
 interface ExplorationContextType {
   user: User | null;
+  authReady: boolean;
   exploredSlugs: Set<string>;
   exploredCount: number;
   markExplored: (slug: string) => void;
@@ -26,6 +27,7 @@ interface ExplorationContextType {
 
 const ExplorationContext = createContext<ExplorationContextType>({
   user: null,
+  authReady: false,
   exploredSlugs: new Set(),
   exploredCount: 0,
   markExplored: () => {},
@@ -60,6 +62,7 @@ function setLocalSlugs(slugs: Set<string>) {
 
 export function ExplorationProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [exploredSlugs, setExploredSlugs] = useState<Set<string>>(new Set());
   const [shouldShowGate, setShouldShowGate] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
@@ -92,6 +95,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        setAuthReady(true);
         if (session?.user) {
           setUser(session.user);
           identifyUser(session.user.id, session.user.email ?? undefined);
@@ -261,6 +265,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     <ExplorationContext.Provider
       value={{
         user,
+        authReady,
         exploredSlugs,
         exploredCount: exploredSlugs.size,
         markExplored,

@@ -13,7 +13,7 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: { words: Word[]; open: boolean; onClose: () => void; onFeedbackClick?: () => void }) {
-  const { user, exploredSlugs, exploredCount, isPremium, signInWithEmail, verifyOtp } = useExploration();
+  const { user, authReady, exploredSlugs, exploredCount, isPremium, signInWithEmail, verifyOtp } = useExploration();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
 
   const [authStep, setAuthStep] = useState<"idle" | "email" | "otp">("idle");
@@ -180,7 +180,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
               )}
 
               {/* Auth */}
-              {!user && authStep === "idle" && (
+              {authReady && !user && authStep === "idle" && (
                 <button
                   onClick={() => setAuthStep("email")}
                   className="w-full py-2 text-xs text-moonlight/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-moonlight/15 rounded-lg transition-colors cursor-pointer"
