@@ -57,6 +57,10 @@ export const metadata: Metadata = {
   title: "The Journey — Where Every Word Began",
   description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
   icons: {
+    icon: [
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
+    ],
     apple: "/icons/icon-192.png",
   },
   other: {
