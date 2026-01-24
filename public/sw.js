@@ -1,10 +1,10 @@
-const CACHE_NAME = "journey-v2";
+const CACHE_NAME = "journey-v3";
 
 // Cache static assets on install
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(["/", "/icons/icon.svg"]);
+      return cache.addAll(["/icons/icon.svg"]);
     })
   );
   self.skipWaiting();
@@ -24,38 +24,19 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// Network-first for navigation, cache-first for assets
+// Only cache static assets — never intercept navigation requests
+// (navigation interception breaks Set-Cookie headers from auth middleware)
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET requests and external URLs
-  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  // Skip non-GET, external, and navigation requests
+  if (request.method !== "GET") return;
+  if (url.origin !== self.location.origin) return;
+  if (request.mode === "navigate") return;
 
-  // Skip Supabase API calls
-  if (url.hostname.includes("supabase")) return;
-
-  // Navigation requests (HTML pages): network-first with cache fallback
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
-
-  // Static assets (JS, CSS, images): cache-first
-  if (
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.startsWith("/icons/") ||
-    url.pathname.endsWith(".js") ||
-    url.pathname.endsWith(".css")
-  ) {
+  // Only cache immutable static assets
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icons/")) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached;
@@ -66,6 +47,5 @@ self.addEventListener("fetch", (event) => {
         });
       })
     );
-    return;
   }
 });
