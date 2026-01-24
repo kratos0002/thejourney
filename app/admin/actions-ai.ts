@@ -158,6 +158,7 @@ I need the FULL data in this exact JSON format. Be thorough, historically accura
 
 Requirements:
 - Journey should have 5-7 stops minimum, tracing the actual historical path
+- The FINAL journey stop must show the word's modern evolved form (e.g., if the word is "usquebaugh", the final stop must be "whiskey"; if "al-jabr", the final stop must be "algebra"). Always trace to the modern descendant.
 - Coordinates must be accurate for the stated locations
 - IPA must be linguistically correct
 - Include 3-5 sounds showing pronunciation evolution
