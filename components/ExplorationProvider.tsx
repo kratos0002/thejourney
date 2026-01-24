@@ -54,11 +54,12 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   const [shouldShowGate, setShouldShowGate] = useState(false);
   const initializedRef = useRef(false);
   const userRef = useRef<User | null>(null);
+  const syncingRef = useRef(false);
 
   // Keep userRef in sync
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // Load initial state — single source of truth via onAuthStateChange
+  // Load initial state via onAuthStateChange
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
@@ -70,12 +71,11 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
-            identifyUser(session.user.id, session.user.email ?? undefined);
-            await syncFromDatabase(session.user.id);
-            setShouldShowGate(false);
-          }
-        } else if (event === "SIGNED_OUT" || (event === "INITIAL_SESSION" && !session)) {
+          identifyUser(session.user.id, session.user.email ?? undefined);
+          // Sync on any event that gives us a valid session
+          await syncFromDatabase(session.user.id);
+          setShouldShowGate(false);
+        } else if (event === "SIGNED_OUT" || !session) {
           setUser(null);
           resetUser();
           setExploredSlugs(new Set(getLocalSlugs()));
@@ -86,37 +86,70 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     return () => subscription.unsubscribe();
   }, []);
 
+  // Re-sync when tab becomes visible (handles cross-tab/device scenarios)
+  useEffect(() => {
+    const handleVisibility = async () => {
+      if (document.visibilityState !== "visible") return;
+      // Re-check session and sync
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        await syncFromDatabase(session.user.id);
+      } else {
+        setExploredSlugs(new Set(getLocalSlugs()));
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
+  // Listen for cross-tab localStorage changes
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key !== STORAGE_KEY) return;
+      const updated = new Set(getLocalSlugs());
+      setExploredSlugs(updated);
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   // Merge localStorage into DB, then load the union of both
   const syncFromDatabase = async (userId: string) => {
-    const localSlugs = getLocalSlugs();
+    if (syncingRef.current) return;
+    syncingRef.current = true;
 
-    // Push any local slugs to DB
-    if (localSlugs.length > 0) {
-      const rows = localSlugs.map((slug) => ({ user_id: userId, slug }));
-      const { error: upsertErr } = await supabase.from("explored_words").upsert(rows, {
-        onConflict: "user_id,slug",
-        ignoreDuplicates: true,
-      });
-      if (upsertErr) console.warn("[Journey] Sync upsert failed:", upsertErr.message);
-    }
+    try {
+      const localSlugs = getLocalSlugs();
 
-    // Fetch all from DB
-    const { data, error: selectErr } = await supabase
-      .from("explored_words")
-      .select("slug")
-      .eq("user_id", userId);
-    if (selectErr) console.warn("[Journey] Sync fetch failed:", selectErr.message);
+      // Push any local slugs to DB
+      if (localSlugs.length > 0) {
+        const rows = localSlugs.map((slug) => ({ user_id: userId, slug }));
+        const { error: upsertErr } = await supabase.from("explored_words").upsert(rows, {
+          onConflict: "user_id,slug",
+          ignoreDuplicates: true,
+        });
+        if (upsertErr) console.warn("[Journey] Sync upsert failed:", upsertErr.message);
+      }
 
-    if (data) {
-      const dbSlugs = data.map((row) => row.slug);
-      // Union of DB + local (in case DB write partially failed)
-      const merged = new Set([...dbSlugs, ...localSlugs]);
-      setExploredSlugs(merged);
-      // Update localStorage to match the full set
-      setLocalSlugs(merged);
-    } else {
-      // DB fetch failed — fall back to localStorage
-      setExploredSlugs(new Set(localSlugs));
+      // Fetch all from DB
+      const { data, error: selectErr } = await supabase
+        .from("explored_words")
+        .select("slug")
+        .eq("user_id", userId);
+      if (selectErr) console.warn("[Journey] Sync fetch failed:", selectErr.message);
+
+      if (data) {
+        const dbSlugs = data.map((row) => row.slug);
+        const merged = new Set([...dbSlugs, ...localSlugs]);
+        setExploredSlugs(merged);
+        setLocalSlugs(merged);
+      } else {
+        setExploredSlugs(new Set(localSlugs));
+      }
+    } finally {
+      syncingRef.current = false;
     }
   };
 
