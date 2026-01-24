@@ -44,7 +44,7 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
     const url = URL.createObjectURL(resultBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${word.slug}-journey.webm`;
+    a.download = `${word.slug}-journey.mp4`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -93,7 +93,7 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
             {status === "idle" && (
               <>
                 <p className="text-[10px] text-fog/30 font-body mb-4">
-                  Format: WebM video, 1080x1920 · Estimated size: {fileSizeEstimate}
+                  Format: MP4 video, 1080x1920 · Estimated size: {fileSizeEstimate}
                 </p>
                 <button
                   onClick={handleExport}
@@ -139,7 +139,7 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
                     <polyline points="7,10 12,15 17,10" />
                     <line x1="12" y1="15" x2="12" y2="3" />
                   </svg>
-                  Download .webm
+                  Download .mp4
                 </button>
               </div>
             )}

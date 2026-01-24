@@ -421,9 +421,7 @@ function drawFrame(
 export async function exportJourneyAnimation(options: ExportOptions): Promise<Blob> {
   const { word, romanization, language, hook, journey, onProgress } = options;
 
-  const canvas = document.createElement("canvas");
-  canvas.width = WIDTH;
-  canvas.height = HEIGHT;
+  const canvas = new OffscreenCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext("2d")!;
 
   const landGeoJSON = await loadWorldData();
@@ -435,69 +433,63 @@ export async function exportJourneyAnimation(options: ExportOptions): Promise<Bl
   const fps = 30;
   const totalFrames = Math.ceil((totalDurationMs / 1000) * fps);
 
-  return recordVideo(ctx, canvas, totalFrames, landGeoJSON, projection, journey, word, romanization, language, hook, onProgress);
-}
+  // Dynamic import mp4-muxer to keep it out of the main bundle
+  const { Muxer, ArrayBufferTarget } = await import("mp4-muxer");
 
-async function recordVideo(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
-  totalFrames: number,
-  landGeoJSON: GeoJSON.FeatureCollection,
-  projection: d3.GeoProjection,
-  journey: JourneyStop[],
-  word: string,
-  romanization: string,
-  language: string,
-  hook: string,
-  onProgress: (p: number) => void
-): Promise<Blob> {
-  // Use captureStream(0) for manual frame control — renders as fast as possible
-  const stream = canvas.captureStream(0);
-  const track = stream.getVideoTracks()[0] as CanvasCaptureMediaStreamTrack;
-
-  const mimeType = MediaRecorder.isTypeSupported("video/webm;codecs=vp9")
-    ? "video/webm;codecs=vp9"
-    : "video/webm";
-  const recorder = new MediaRecorder(stream, {
-    mimeType,
-    videoBitsPerSecond: 5_000_000,
+  const target = new ArrayBufferTarget();
+  const muxer = new Muxer({
+    target,
+    video: {
+      codec: "avc",
+      width: WIDTH,
+      height: HEIGHT,
+    },
+    fastStart: "in-memory",
   });
 
-  const chunks: Blob[] = [];
-  recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunks.push(e.data);
-  };
+  const encoder = new VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta ?? undefined),
+    error: (e) => console.error("[Journey] VideoEncoder error:", e),
+  });
 
-  return new Promise((resolve) => {
-    recorder.onstop = () => {
-      resolve(new Blob(chunks, { type: "video/webm" }));
-    };
+  encoder.configure({
+    codec: "avc1.42001f",
+    width: WIDTH,
+    height: HEIGHT,
+    bitrate: 5_000_000,
+    bitrateMode: "variable",
+    framerate: fps,
+  });
 
-    recorder.start();
+  onProgress(10);
 
-    let frame = 0;
+  // Render and encode all frames
+  for (let i = 0; i < totalFrames; i++) {
+    const t = i / totalFrames;
+    drawFrame(ctx as unknown as CanvasRenderingContext2D, t, landGeoJSON, projection, journey, word, romanization, language, hook);
 
-    function renderFrame() {
-      if (frame >= totalFrames) {
-        // Hold final frame briefly
-        setTimeout(() => recorder.stop(), 300);
-        onProgress(100);
-        return;
-      }
+    const frame = new VideoFrame(canvas, {
+      timestamp: (i * 1_000_000) / fps, // microseconds
+      duration: 1_000_000 / fps,
+    });
 
-      const t = frame / totalFrames;
-      drawFrame(ctx, t, landGeoJSON, projection, journey, word, romanization, language, hook);
+    const keyFrame = i % (fps * 2) === 0; // Keyframe every 2 seconds
+    encoder.encode(frame, { keyFrame });
+    frame.close();
 
-      // Request frame capture from the track
-      track.requestFrame();
-
-      frame++;
-      onProgress(5 + (frame / totalFrames) * 90);
-
-      // Render next frame ASAP — captureStream(0) + requestFrame handles timing
-      setTimeout(renderFrame, 0);
+    // Yield to UI every 10 frames to keep progress bar updating
+    if (i % 10 === 0) {
+      onProgress(10 + (i / totalFrames) * 85);
+      await new Promise(r => setTimeout(r, 0));
     }
+  }
 
-    renderFrame();
-  });
+  // Flush encoder and finalize MP4
+  await encoder.flush();
+  encoder.close();
+  muxer.finalize();
+
+  onProgress(100);
+
+  return new Blob([target.buffer], { type: "video/mp4" });
 }
