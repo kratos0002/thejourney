@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
+import { trackEvent } from "@/lib/analytics";
 
 const DISMISS_KEY = "journey-install-dismissed";
 const SHOW_AFTER_WORDS = 2;
@@ -41,7 +42,7 @@ export default function InstallPrompt() {
   useEffect(() => {
     if (exploredCount >= SHOW_AFTER_WORDS && !localStorage.getItem(DISMISS_KEY)) {
       if (window.matchMedia("(display-mode: standalone)").matches) return;
-      const timer = setTimeout(() => setShow(true), 1500);
+      const timer = setTimeout(() => { setShow(true); trackEvent("install_prompt_shown"); }, 1500);
       return () => clearTimeout(timer);
     }
   }, [exploredCount]);
@@ -50,6 +51,7 @@ export default function InstallPrompt() {
     if (deferredPrompt.current) {
       await deferredPrompt.current.prompt();
       const { outcome } = await deferredPrompt.current.userChoice;
+      trackEvent("install_prompt_response", { outcome });
       if (outcome === "accepted") {
         setShow(false);
         localStorage.setItem(DISMISS_KEY, "true");
@@ -61,6 +63,7 @@ export default function InstallPrompt() {
   const handleDismiss = useCallback(() => {
     setShow(false);
     localStorage.setItem(DISMISS_KEY, "true");
+    trackEvent("install_prompt_dismissed");
   }, []);
 
   // Register service worker

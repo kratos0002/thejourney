@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Sound } from "@/data/word-types";
+import { trackEvent } from "@/lib/analytics";
 
 interface WordSoundProps {
   sounds: Sound[];
@@ -22,6 +23,7 @@ export default function WordSound({ sounds }: WordSoundProps) {
 
   const handlePlay = useCallback((index: number, sound: Sound) => {
     setActiveIndex(index);
+    trackEvent("sound_played", { label: sound.label, lang: sound.lang });
 
     if (speechSupported && sound.text) {
       // Cancel any ongoing speech

@@ -10,6 +10,7 @@ import StartPrompt from "@/components/home/StartPrompt";
 import ProfilePanel from "@/components/ProfilePanel";
 import FeedbackModal from "@/components/FeedbackModal";
 import { getNotificationCount } from "@/lib/feedback";
+import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
@@ -104,7 +105,7 @@ export default function HomePage({ words }: { words: Word[] }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.8 }}
-        onClick={() => setProfileOpen(true)}
+        onClick={() => { setProfileOpen(true); trackEvent("profile_opened"); }}
         aria-label="Profile"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-fog/50">

@@ -4,6 +4,7 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Word } from "@/data/word-types";
+import { trackEvent } from "@/lib/analytics";
 
 interface WordMeaningProps {
   word: Word;
@@ -104,7 +105,7 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
             {suggestions.map((s) => (
               <button
                 key={s.slug}
-                onClick={() => router.push(`/word/${s.slug}`)}
+                onClick={() => { trackEvent("suggestion_clicked", { slug: s.slug, from: word.slug }); router.push(`/word/${s.slug}`); }}
                 className="px-4 py-2 text-sm text-mist/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer"
               >
                 {s.romanization}

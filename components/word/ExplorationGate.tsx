@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useExploration } from "@/components/ExplorationProvider";
+import { trackEvent } from "@/lib/analytics";
 
 export default function ExplorationGate() {
   const { shouldShowGate, signInWithEmail, verifyOtp } = useExploration();
@@ -23,6 +24,7 @@ export default function ExplorationGate() {
     if (err) {
       setError(err);
     } else {
+      trackEvent("sign_in_started", { source: "gate" });
       setStep("otp");
     }
   };

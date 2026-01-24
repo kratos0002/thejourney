@@ -135,6 +135,7 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       const currentUser = userRef.current;
       if (!currentUser && next.size >= GATE_THRESHOLD) {
         setShouldShowGate(true);
+        trackEvent("gate_shown", { explored_count: next.size });
       }
 
       return next;
