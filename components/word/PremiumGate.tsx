@@ -8,6 +8,9 @@ import { trackEvent } from "@/lib/analytics";
 
 export default function PremiumGate() {
   const { shouldShowPremiumGate, dismissPremiumGate } = useExploration();
+
+  // Don't show gate if RevenueCat isn't configured
+  if (!process.env.NEXT_PUBLIC_REVENUECAT_API_KEY) return null;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const purchaseContainerRef = useRef<HTMLDivElement>(null);
@@ -76,7 +79,9 @@ export default function PremiumGate() {
             </button>
 
             {error && error !== "cancelled" && (
-              <p className="mt-4 text-red-400/80 text-xs font-body">{error}</p>
+              <p className="mt-4 text-red-400/80 text-xs font-body">
+                Something went wrong. Please try again later.
+              </p>
             )}
 
             <button
