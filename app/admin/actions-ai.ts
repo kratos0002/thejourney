@@ -297,7 +297,7 @@ function validateRelatives(relatives: unknown): import("@/data/word-types").Rela
       word: cleanText(r.word),
       language: cleanText(r.language),
       connection: cleanText(r.connection) || "",
-      available: r.available === true,
+      available: false, // AI-generated relatives never link to existing words
     }));
 }
 
