@@ -53,7 +53,6 @@ export const metadata: Metadata = {
   title: "The Journey — Fifty Words. Fifty Worlds.",
   description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
   icons: {
-    icon: "/icons/icon.svg",
     apple: "/icons/icon-192.png",
   },
   other: {
@@ -70,6 +69,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              name: "The Journey",
+              alternateName: "Fifty Words. Fifty Worlds.",
+              url: process.env.NEXT_PUBLIC_URL || "https://etymology.life",
+              description: "An immersive exploration of 50 words and their etymological journeys across languages, cultures, and centuries.",
+              publisher: {
+                "@type": "Organization",
+                name: "The Journey",
+              },
+            }),
+          }}
+        />
+      </head>
       <body
         className={`${cormorant.variable} ${sourceSerif.variable} ${jetbrainsMono.variable} ${notoArabic.variable} ${notoJP.variable} grain`}
       >

@@ -49,5 +49,37 @@ export default async function WordPage({ params }: PageProps) {
     .slice(0, 3)
     .map(w => ({ slug: w.slug, romanization: w.romanization }));
 
-  return <WordPageClient word={word} suggestions={suggestions} />;
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://etymology.life";
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: `${word.romanization} — Etymology & Origin`,
+    description: word.hook,
+    url: `${baseUrl}/word/${word.slug}`,
+    inLanguage: "en",
+    about: {
+      "@type": "DefinedTerm",
+      name: word.romanization,
+      description: word.meaningNow,
+      inDefinedTermSet: {
+        "@type": "DefinedTermSet",
+        name: "The Journey — Etymology Collection",
+      },
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "The Journey",
+      url: baseUrl,
+    },
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <WordPageClient word={word} suggestions={suggestions} />
+    </>
+  );
 }
