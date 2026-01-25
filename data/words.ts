@@ -3,6 +3,11 @@ import type { Word } from "./word-types";
 import { newWords } from "./words-new";
 import { newWordsBatch2 } from "./words-batch2";
 import { newWordsBatch3 } from "./words-batch3";
+import { newWordsBatch5 } from "./words-batch5";
+import { newWordsBatch6 } from "./words-batch6";
+import { newWordsBatch7 } from "./words-batch7";
+import { newWordsBatch8 } from "./words-batch8";
+import { newWordsBatch9 } from "./words-batch9";
 
 export const words: Word[] = [
   {
@@ -318,7 +323,7 @@ export const words: Word[] = [
 ];
 
 // Combine all word entries (10 original + 40 new = 50 total)
-export const allWords: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3];
+export const allWords: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9];
 
 export function getWordBySlug(slug: string): Word | undefined {
   return allWords.find((word) => word.slug === slug);
