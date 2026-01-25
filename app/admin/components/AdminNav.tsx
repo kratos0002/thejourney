@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const tabs = [
   { label: "Words", href: "/admin" },
+  { label: "Users", href: "/admin/users" },
   { label: "Coverage", href: "/admin/coverage" },
   { label: "Feedback", href: "/admin/feedback" },
   { label: "Notifications", href: "/admin/notifications" },
@@ -16,7 +17,10 @@ export default function AdminNav({ feedbackCount }: { feedbackCount?: number }) 
 
   const isActive = (href: string) => {
     if (href === "/admin") {
-      return pathname === "/admin" || pathname.startsWith("/admin/new") || (pathname.startsWith("/admin/") && !pathname.startsWith("/admin/feedback") && !pathname.startsWith("/admin/notifications") && !pathname.startsWith("/admin/flags") && !pathname.startsWith("/admin/coverage"));
+      // Words tab is active for /admin, /admin/new, and /admin/[slug] (edit pages)
+      const otherTabs = ["/admin/users", "/admin/feedback", "/admin/notifications", "/admin/flags", "/admin/coverage"];
+      const isOtherTab = otherTabs.some((t) => pathname.startsWith(t));
+      return pathname === "/admin" || pathname.startsWith("/admin/new") || (pathname.startsWith("/admin/") && !isOtherTab);
     }
     return pathname.startsWith(href);
   };
