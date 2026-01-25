@@ -144,3 +144,41 @@ export async function deleteWord(slug: string) {
   revalidateTag("words", { expire: 0 });
   redirect("/admin");
 }
+
+export async function syncAllWordsToDatabase() {
+  await requireAdmin();
+  const supabase = createAdminSupabase();
+
+  // Dynamic import to avoid bundling issues
+  const { allWords } = await import("@/data/words");
+
+  const results = { inserted: 0, updated: 0, errors: [] as string[] };
+
+  for (const word of allWords) {
+    const row = {
+      slug: word.slug,
+      word: word.word,
+      romanization: word.romanization,
+      language: word.language,
+      hook: word.hook,
+      story: word.story as unknown as Database["public"]["Tables"]["words"]["Insert"]["story"],
+      journey: word.journey as unknown as Database["public"]["Tables"]["words"]["Insert"]["journey"],
+      sounds: word.sounds as unknown as Database["public"]["Tables"]["words"]["Insert"]["sounds"],
+      relatives: word.relatives as unknown as Database["public"]["Tables"]["words"]["Insert"]["relatives"],
+      meaning_now: word.meaningNow,
+    };
+
+    const { error } = await supabase
+      .from("words")
+      .upsert(row, { onConflict: "slug" });
+
+    if (error) {
+      results.errors.push(`${word.slug}: ${error.message}`);
+    } else {
+      results.inserted++;
+    }
+  }
+
+  revalidateTag("words", { expire: 0 });
+  return results;
+}

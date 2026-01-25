@@ -1,6 +1,7 @@
 import { getWords } from "./actions";
 import WordList from "./components/WordList";
 import WordSuggestions from "./components/WordSuggestions";
+import SyncWordsButton from "./components/SyncWordsButton";
 
 export default async function AdminPage() {
   const words = await getWords();
@@ -12,6 +13,7 @@ export default async function AdminPage() {
         <h1 className="text-2xl font-bold text-gray-900">Words</h1>
         <span className="text-sm text-gray-500">{words.length} total</span>
       </div>
+      {words.length < 100 && <SyncWordsButton />}
       <WordSuggestions existingSlugs={existingSlugs} />
       <WordList words={words} />
     </div>
