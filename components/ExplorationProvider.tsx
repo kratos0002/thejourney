@@ -7,7 +7,6 @@ import { configureRevenueCat, checkPremiumStatus } from "@/lib/revenuecat";
 import type { User } from "@supabase/supabase-js";
 
 const GATE_THRESHOLD = 5;
-const PREMIUM_THRESHOLD = 20;
 const STORAGE_KEY = "journey-explored";
 
 interface ExplorationContextType {
@@ -73,13 +72,8 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
   const isPremiumRef = useRef(false);
   const syncingRef = useRef(false);
 
-  // Derive shouldShowPremiumGate from actual state
-  const shouldShowPremiumGate =
-    user !== null &&
-    premiumChecked &&
-    !isPremium &&
-    exploredSlugs.size >= PREMIUM_THRESHOLD &&
-    !premiumGateDismissed;
+  // Premium gate disabled for public launch - users can explore freely after signup
+  const shouldShowPremiumGate = false;
 
   // Keep refs in sync
   useEffect(() => { userRef.current = user; }, [user]);
@@ -224,14 +218,6 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       if (!currentUser && next.size >= GATE_THRESHOLD) {
         setShouldShowGate(true);
         trackEvent("gate_shown", { explored_count: next.size });
-      }
-      // Signed in but not premium: track premium gate threshold crossing
-      if (currentUser && !isPremiumRef.current && next.size === PREMIUM_THRESHOLD) {
-        trackEvent("premium_gate_shown", { explored_count: next.size });
-      }
-      // Reset dismissed state so gate reappears on new word exploration
-      if (currentUser && !isPremiumRef.current && next.size >= PREMIUM_THRESHOLD) {
-        setPremiumGateDismissed(false);
       }
 
       return next;
