@@ -76,11 +76,14 @@ interface Step {
 
 function getSteps(platform: Platform, browser: string): Step[] {
   if (platform === "ios") {
+    const isChrome = browser === "Chrome";
     return [
       {
         icon: <ShareIcon className="w-8 h-8" />,
         title: "Tap Share",
-        description: "Tap the share button at the bottom of Safari",
+        description: isChrome
+          ? "Tap the menu (⋯) then tap \"Share...\""
+          : "Tap the share button (□↑) at the bottom of Safari",
       },
       {
         icon: <PlusIcon className="w-8 h-8" />,
