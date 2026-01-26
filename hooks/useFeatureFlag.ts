@@ -30,7 +30,9 @@ export function useFeatureFlag(flagKey: string): boolean {
 
       // If flag is admin_only, check if current user is admin
       if (data.admin_only) {
-        const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+        const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+        const isAdmin = user?.email === adminEmail;
+        console.log(`[FeatureFlag] ${flagKey}: admin_only=true, user=${user?.email}, adminEmail=${adminEmail}, isAdmin=${isAdmin}`);
         setEnabled(isAdmin);
         return;
       }
