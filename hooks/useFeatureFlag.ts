@@ -31,14 +31,18 @@ export function useFeatureFlag(flagKey: string): boolean {
       // If flag is admin_only, check via server
       if (data.admin_only) {
         try {
-          const res = await fetch("/api/admin-check");
+          const res = await fetch("/api/admin-check", { cache: "no-store" });
           const { isAdmin } = await res.json();
+          console.log(`[FeatureFlag] ${flagKey}: admin_only check, isAdmin=${isAdmin}`);
           setEnabled(isAdmin);
-        } catch {
+        } catch (e) {
+          console.error(`[FeatureFlag] ${flagKey}: admin check failed`, e);
           setEnabled(false);
         }
         return;
       }
+
+      console.log(`[FeatureFlag] ${flagKey}: admin_only=${data.admin_only}, enabling for everyone`);
 
       // Flag is enabled for everyone
       setEnabled(true);
