@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useExploration } from "@/components/ExplorationProvider";
 import { Word } from "@/data/word-types";
 import { getUserNotifications, dismissNotification, type UserNotification } from "@/lib/feedback";
+import InstallInstructionsModal from "@/components/InstallInstructionsModal";
 
 const INSTALL_DISMISS_KEY = "journey-install-dismissed";
 
@@ -24,6 +25,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   const [canInstall, setCanInstall] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const analytics = useMemo(() => {
@@ -73,6 +75,9 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
         localStorage.setItem(INSTALL_DISMISS_KEY, "true");
       }
       setDeferredPrompt(null);
+    } else {
+      // No native prompt available - show instructions modal
+      setShowInstallInstructions(true);
     }
   }, [deferredPrompt]);
 
@@ -264,7 +269,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
               )}
 
               {/* Install */}
-              {canInstall && (
+              {!isStandalone && (canInstall || isIOS) && (
                 <button
                   onClick={handleInstall}
                   className="w-full mt-3 py-2 text-xs text-moonlight/50 hover:text-moonlight font-body border border-moonlight/8 hover:border-moonlight/15 rounded-lg flex items-center justify-center gap-2 transition-colors cursor-pointer"
@@ -277,20 +282,14 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
                   Install app
                 </button>
               )}
-              {!canInstall && isIOS && !isStandalone && (
-                <div className="mt-3 py-2 px-3 border border-moonlight/8 rounded-lg">
-                  <p className="text-xs text-moonlight/50 font-body flex items-center justify-center gap-2">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-amber-glow/50">
-                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                      <polyline points="16,6 12,2 8,6"/>
-                      <line x1="12" y1="2" x2="12" y2="15"/>
-                    </svg>
-                    Tap share, then &ldquo;Add to Home Screen&rdquo;
-                  </p>
-                </div>
-              )}
             </div>
       </div>
+
+      {/* Install Instructions Modal */}
+      <InstallInstructionsModal
+        open={showInstallInstructions}
+        onClose={() => setShowInstallInstructions(false)}
+      />
     </>
   );
 }
