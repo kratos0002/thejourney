@@ -85,7 +85,12 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
     initializedRef.current = true;
 
     // Load localStorage immediately (shows data while DB syncs)
-    setExploredSlugs(new Set(getLocalSlugs()));
+    const localSlugs = new Set(getLocalSlugs());
+    setExploredSlugs(localSlugs);
+    // Pre-set gate if threshold already met (will be cleared if user is signed in)
+    if (localSlugs.size >= GATE_THRESHOLD) {
+      setShouldShowGate(true);
+    }
 
     const handleSession = async (session: { user: User } | null) => {
       setAuthReady(true);
@@ -99,7 +104,12 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
         setUser(null);
         setIsPremium(false);
         resetUser();
-        setExploredSlugs(new Set(getLocalSlugs()));
+        const slugs = new Set(getLocalSlugs());
+        setExploredSlugs(slugs);
+        // Show gate immediately if anonymous user has already hit threshold
+        if (slugs.size >= GATE_THRESHOLD) {
+          setShouldShowGate(true);
+        }
       }
     };
 
@@ -142,10 +152,15 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
+        setShouldShowGate(false);
         await syncFromDatabase(session.user.id);
         initRevenueCat(session.user.id);
       } else {
-        setExploredSlugs(new Set(getLocalSlugs()));
+        const slugs = new Set(getLocalSlugs());
+        setExploredSlugs(slugs);
+        if (slugs.size >= GATE_THRESHOLD) {
+          setShouldShowGate(true);
+        }
       }
     };
 
@@ -159,6 +174,10 @@ export function ExplorationProvider({ children }: { children: React.ReactNode })
       if (e.key !== STORAGE_KEY) return;
       const updated = new Set(getLocalSlugs());
       setExploredSlugs(updated);
+      // Show gate if anonymous and threshold reached in another tab
+      if (!userRef.current && updated.size >= GATE_THRESHOLD) {
+        setShouldShowGate(true);
+      }
     };
     window.addEventListener("storage", handleStorage);
     return () => window.removeEventListener("storage", handleStorage);
