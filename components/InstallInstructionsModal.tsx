@@ -195,7 +195,7 @@ export default function InstallInstructionsModal({
             </div>
 
             {/* Steps */}
-            <div className="px-6 py-5 space-y-5">
+            <div className="px-6 pt-5 pb-6 space-y-5">
               {steps.map((step, i) => (
                 <div key={i} className="flex items-start gap-4">
                   {/* Step number & icon */}
@@ -217,19 +217,6 @@ export default function InstallInstructionsModal({
               ))}
             </div>
 
-            {/* Footer hint */}
-            <div className="px-6 pb-6">
-              <div className="bg-abyss/50 rounded-lg px-4 py-3">
-                <p className="text-xs text-fog/40 font-body text-center">
-                  {platform === "ios"
-                    ? "Use Safari for the best experience"
-                    : platform === "android"
-                    ? "Use Chrome for the best experience"
-                    : "Works best in Chrome, Edge, or Safari"
-                  }
-                </p>
-              </div>
-            </div>
           </motion.div>
         </motion.div>
       )}
