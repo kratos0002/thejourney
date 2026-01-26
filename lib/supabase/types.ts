@@ -179,6 +179,7 @@ export interface Database {
           id: string;
           flag_key: string;
           is_enabled: boolean;
+          admin_only: boolean;
           description: string | null;
           updated_at: string;
         };
@@ -186,6 +187,7 @@ export interface Database {
           id?: string;
           flag_key: string;
           is_enabled?: boolean;
+          admin_only?: boolean;
           description?: string | null;
           updated_at?: string;
         };
@@ -193,6 +195,7 @@ export interface Database {
           id?: string;
           flag_key?: string;
           is_enabled?: boolean;
+          admin_only?: boolean;
           description?: string | null;
           updated_at?: string;
         };

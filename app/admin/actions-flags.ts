@@ -15,6 +15,7 @@ export interface FeatureFlag {
   id: string;
   flag_key: string;
   is_enabled: boolean;
+  admin_only: boolean;
   description: string | null;
   updated_at: string;
 }
@@ -58,8 +59,25 @@ export async function createFeatureFlag(input: {
   const { error } = await supabase.from("feature_flags").insert({
     flag_key: input.flagKey,
     is_enabled: false,
+    admin_only: true,
     description: input.description || null,
   });
+
+  if (error) return { error: error.message };
+  return {};
+}
+
+export async function toggleAdminOnly(
+  id: string,
+  adminOnly: boolean
+): Promise<{ error?: string }> {
+  await requireAdmin();
+  const supabase = createAdminSupabase();
+
+  const { error } = await supabase
+    .from("feature_flags")
+    .update({ admin_only: adminOnly, updated_at: new Date().toISOString() })
+    .eq("id", id);
 
   if (error) return { error: error.message };
   return {};

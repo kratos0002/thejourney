@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { toggleFeatureFlag, createFeatureFlag, deleteFeatureFlag, type FeatureFlag } from "../actions-flags";
+import { toggleFeatureFlag, toggleAdminOnly, createFeatureFlag, deleteFeatureFlag, type FeatureFlag } from "../actions-flags";
 
 export default function FeatureFlagsTab({ initialFlags }: { initialFlags: FeatureFlag[] }) {
   const [flags, setFlags] = useState(initialFlags);
@@ -21,6 +21,17 @@ export default function FeatureFlagsTab({ initialFlags }: { initialFlags: Featur
     });
   };
 
+  const handleToggleAdminOnly = (flag: FeatureFlag) => {
+    const newValue = !flag.admin_only;
+    setFlags(prev => prev.map(f => f.id === flag.id ? { ...f, admin_only: newValue } : f));
+    startTransition(async () => {
+      const { error } = await toggleAdminOnly(flag.id, newValue);
+      if (error) {
+        setFlags(prev => prev.map(f => f.id === flag.id ? { ...f, admin_only: !newValue } : f));
+      }
+    });
+  };
+
   const handleCreate = () => {
     if (!newKey.trim()) return;
     startTransition(async () => {
@@ -30,6 +41,7 @@ export default function FeatureFlagsTab({ initialFlags }: { initialFlags: Featur
           id: crypto.randomUUID(),
           flag_key: newKey.trim(),
           is_enabled: false,
+          admin_only: true,
           description: newDesc.trim() || null,
           updated_at: new Date().toISOString(),
         }]);
@@ -55,38 +67,59 @@ export default function FeatureFlagsTab({ initialFlags }: { initialFlags: Featur
       )}
 
       {flags.map(flag => (
-        <div key={flag.id} className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <code className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-800">
-                {flag.flag_key}
-              </code>
-              <span className={`text-xs px-2 py-0.5 rounded-full ${flag.is_enabled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                {flag.is_enabled ? "Enabled" : "Disabled"}
-              </span>
+        <div key={flag.id} className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-3">
+                <code className="text-sm font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-800">
+                  {flag.flag_key}
+                </code>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${flag.is_enabled ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}>
+                  {flag.is_enabled ? "Enabled" : "Disabled"}
+                </span>
+              </div>
+              {flag.description && (
+                <p className="text-sm text-gray-500 mt-1">{flag.description}</p>
+              )}
             </div>
-            {flag.description && (
-              <p className="text-sm text-gray-500 mt-1">{flag.description}</p>
-            )}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleToggle(flag)}
+                disabled={isPending}
+                className={`relative w-11 h-6 rounded-full transition-colors ${flag.is_enabled ? "bg-blue-600" : "bg-gray-300"} ${isPending ? "opacity-50" : "cursor-pointer"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${flag.is_enabled ? "translate-x-5" : ""}`} />
+              </button>
+              <button
+                onClick={() => handleDelete(flag)}
+                className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                title="Delete flag"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => handleToggle(flag)}
-              disabled={isPending}
-              className={`relative w-11 h-6 rounded-full transition-colors ${flag.is_enabled ? "bg-blue-600" : "bg-gray-300"} ${isPending ? "opacity-50" : "cursor-pointer"}`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${flag.is_enabled ? "translate-x-5" : ""}`} />
-            </button>
-            <button
-              onClick={() => handleDelete(flag)}
-              className="text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-              title="Delete flag"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-              </svg>
-            </button>
-          </div>
+          {/* Audience toggle - only show when enabled */}
+          {flag.is_enabled && (
+            <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+              <span className="text-xs text-gray-500">
+                Audience: <span className="font-medium text-gray-700">{flag.admin_only ? "Admin only" : "Everyone"}</span>
+              </span>
+              <button
+                onClick={() => handleToggleAdminOnly(flag)}
+                disabled={isPending}
+                className={`text-xs px-2 py-1 rounded transition-colors cursor-pointer ${
+                  flag.admin_only
+                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                } ${isPending ? "opacity-50" : ""}`}
+              >
+                {flag.admin_only ? "Enable for everyone" : "Restrict to admin"}
+              </button>
+            </div>
+          )}
         </div>
       ))}
 
