@@ -25,8 +25,14 @@ const FOG = "#6b7280";
 const MAP_AREA = { x: 40, y: 260, width: 1000, height: 600 };
 const CARD_AREA = { x: 60, y: 920, width: 960, height: 260 };
 
+// GSAP power2.inOut equivalent
 function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+// GSAP power2.out equivalent
+function easeOut(t: number): number {
+  return 1 - Math.pow(1 - t, 2);
 }
 
 function clamp(val: number, min: number, max: number): number {
@@ -338,9 +344,33 @@ function calculatePanOffset(
   return [dx, dy];
 }
 
+// Timing constants matching JourneyMap.tsx GSAP animation
+const TIMING = {
+  TITLE_FADE_IN: 0.8,        // Title fade duration (seconds)
+  MAP_START: 1.0,            // When map animation starts
+  FIRST_NODE_DELAY: 0.5,     // First node appears at this time after map start
+  STOP_SPACING: 0.6,         // Time between each stop
+  ARC_DURATION: 1.0,         // Duration for arc to draw
+  NODE_FADE_DURATION: 0.4,   // Node fade in duration
+  LABEL_DELAY: 0.15,         // Label appears after node
+  HOOK_FADE_IN: 0.8,         // Hook fade duration
+  END_PAUSE: 1.5,            // Pause at end before video ends
+};
+
+function calculateAnimationDuration(stopCount: number): number {
+  // Total = title + first node delay + (N-1) * stop spacing + last arc settle + hook + pause
+  return TIMING.MAP_START +
+         TIMING.FIRST_NODE_DELAY +
+         (stopCount - 1) * TIMING.STOP_SPACING +
+         TIMING.ARC_DURATION +
+         TIMING.HOOK_FADE_IN +
+         TIMING.END_PAUSE;
+}
+
 function drawFrame(
   ctx: CanvasRenderingContext2D,
-  t: number,
+  timeSeconds: number,
+  totalDuration: number,
   landGeoJSON: GeoJSON.FeatureCollection,
   projection: d3.GeoProjection,
   journey: JourneyStop[],
@@ -351,69 +381,88 @@ function drawFrame(
 ) {
   drawBackground(ctx);
 
-  // Title fade-in: 0-0.08
-  const titleOpacity = clamp(t / 0.08, 0, 1);
-  drawTitle(ctx, word, romanization, language, titleOpacity);
-
-  // Map + card animation: 0.08-0.88
-  const mapStart = 0.08;
-  const mapEnd = 0.88;
-  const mapT = clamp((t - mapStart) / (mapEnd - mapStart), 0, 1);
-
   const stopCount = journey.length;
-  const timePerStop = 1 / stopCount;
 
-  const activeFloat = mapT * stopCount;
-  const activeIndex = Math.min(Math.floor(activeFloat), stopCount - 1);
+  // Title fade-in: 0 to TITLE_FADE_IN seconds
+  const titleOpacity = clamp(timeSeconds / TIMING.TITLE_FADE_IN, 0, 1);
+  drawTitle(ctx, word, romanization, language, easeOut(titleOpacity));
 
-  const panOffset = calculatePanOffset(journey, activeIndex, projection, mapT > 0 ? 1 : 0);
+  // Map animation starts at MAP_START
+  const mapTime = timeSeconds - TIMING.MAP_START;
 
-  drawLand(ctx, landGeoJSON, projection, panOffset);
-
-  // Draw arcs and nodes
+  // Calculate which stop is active based on timeline
+  let activeIndex = -1;
   for (let i = 0; i < stopCount; i++) {
-    const stopStart = i * timePerStop;
-    const nodeT = clamp((mapT - stopStart) / timePerStop, 0, 1);
+    const nodeAppearTime = TIMING.FIRST_NODE_DELAY + i * TIMING.STOP_SPACING;
+    if (mapTime >= nodeAppearTime) {
+      activeIndex = i;
+    }
+  }
 
-    if (nodeT <= 0) continue;
+  // Calculate pan offset based on active node
+  const panOffset = calculatePanOffset(journey, activeIndex, projection, activeIndex >= 0 ? 1 : 0);
 
+  // Draw land
+  if (mapTime >= 0) {
+    drawLand(ctx, landGeoJSON, projection, panOffset);
+  }
+
+  // Draw arcs and nodes with precise timing matching JourneyMap
+  for (let i = 0; i < stopCount; i++) {
+    const nodeAppearTime = TIMING.FIRST_NODE_DELAY + i * TIMING.STOP_SPACING;
+    const nodeTime = mapTime - nodeAppearTime;
+
+    if (nodeTime < 0) continue;
+
+    // Arc from previous node (draws with GSAP-like timing)
     if (i > 0) {
-      const arcProgress = clamp(nodeT / 0.4, 0, 1);
-      const color = journey[i].color || AMBER;
-      drawArc(
-        ctx,
-        journey[i - 1].coordinates as [number, number],
-        journey[i].coordinates as [number, number],
-        projection,
-        easeInOut(arcProgress),
-        color,
-        panOffset
-      );
+      const arcStartTime = TIMING.FIRST_NODE_DELAY + (i - 1) * TIMING.STOP_SPACING + 0.1;
+      const arcTime = mapTime - arcStartTime;
+      const arcProgress = clamp(arcTime / TIMING.ARC_DURATION, 0, 1);
+
+      if (arcProgress > 0) {
+        const color = journey[i - 1].color || AMBER;
+        drawArc(
+          ctx,
+          journey[i - 1].coordinates as [number, number],
+          journey[i].coordinates as [number, number],
+          projection,
+          easeInOut(arcProgress),
+          color,
+          panOffset
+        );
+      }
     }
 
-    const nodeOpacity = clamp((nodeT - 0.3) / 0.3, 0, 1);
+    // Node appearance with GSAP power2.out timing
+    const nodeOpacity = clamp(nodeTime / TIMING.NODE_FADE_DURATION, 0, 1);
     const isActive = i === activeIndex;
     const color = journey[i].color || AMBER;
+
     drawNode(
       ctx,
       journey[i].coordinates as [number, number],
       projection,
       color,
-      easeInOut(nodeOpacity),
+      easeOut(nodeOpacity),
       isActive,
       panOffset
     );
   }
 
-  // Stop card — shows current active stop
-  if (mapT > 0) {
-    const cardOpacity = clamp(mapT / 0.05, 0, 1);
-    drawStopCard(ctx, journey[activeIndex], activeIndex, stopCount, cardOpacity);
+  // Stop card — shows current active stop with smooth transitions
+  if (activeIndex >= 0) {
+    const cardAppearTime = TIMING.FIRST_NODE_DELAY + activeIndex * TIMING.STOP_SPACING;
+    const cardTime = mapTime - cardAppearTime;
+    const cardOpacity = clamp(cardTime / 0.3, 0, 1);
+    drawStopCard(ctx, journey[activeIndex], activeIndex, stopCount, easeOut(cardOpacity));
   }
 
-  // Hook fade-in: 0.88-1.0
-  const hookOpacity = clamp((t - 0.88) / 0.12, 0, 1);
-  drawHook(ctx, hook, easeInOut(hookOpacity));
+  // Hook fade-in at the end
+  const hookStartTime = totalDuration - TIMING.HOOK_FADE_IN - TIMING.END_PAUSE;
+  const hookTime = timeSeconds - hookStartTime;
+  const hookOpacity = clamp(hookTime / TIMING.HOOK_FADE_IN, 0, 1);
+  drawHook(ctx, hook, easeOut(hookOpacity));
 
   drawWatermark(ctx);
 }
@@ -429,9 +478,12 @@ export async function exportJourneyAnimation(options: ExportOptions): Promise<Bl
 
   onProgress(5);
 
-  const totalDurationMs = Math.max(8000, Math.min(12000, journey.length * 1500));
-  const fps = 30;
-  const totalFrames = Math.ceil((totalDurationMs / 1000) * fps);
+  // Calculate duration matching online animation timing
+  const totalDurationSeconds = calculateAnimationDuration(journey.length);
+
+  // Use 60fps for smooth playback matching display refresh rate
+  const fps = 60;
+  const totalFrames = Math.ceil(totalDurationSeconds * fps);
 
   // Dynamic import mp4-muxer to keep it out of the main bundle
   const { Muxer, ArrayBufferTarget } = await import("mp4-muxer");
@@ -452,11 +504,12 @@ export async function exportJourneyAnimation(options: ExportOptions): Promise<Bl
     error: (e) => console.error("[Journey] VideoEncoder error:", e),
   });
 
+  // Use higher profile for better quality at 60fps
   encoder.configure({
-    codec: "avc1.42001f",
+    codec: "avc1.640028", // High profile, level 4.0 for better quality
     width: WIDTH,
     height: HEIGHT,
-    bitrate: 5_000_000,
+    bitrate: 8_000_000, // Higher bitrate for 60fps smooth playback
     bitrateMode: "variable",
     framerate: fps,
   });
@@ -465,20 +518,31 @@ export async function exportJourneyAnimation(options: ExportOptions): Promise<Bl
 
   // Render and encode all frames
   for (let i = 0; i < totalFrames; i++) {
-    const t = i / totalFrames;
-    drawFrame(ctx as unknown as CanvasRenderingContext2D, t, landGeoJSON, projection, journey, word, romanization, language, hook);
+    const timeSeconds = i / fps;
+    drawFrame(
+      ctx as unknown as CanvasRenderingContext2D,
+      timeSeconds,
+      totalDurationSeconds,
+      landGeoJSON,
+      projection,
+      journey,
+      word,
+      romanization,
+      language,
+      hook
+    );
 
     const frame = new VideoFrame(canvas, {
       timestamp: (i * 1_000_000) / fps, // microseconds
       duration: 1_000_000 / fps,
     });
 
-    const keyFrame = i % (fps * 2) === 0; // Keyframe every 2 seconds
+    const keyFrame = i % fps === 0; // Keyframe every second for smoother seeking
     encoder.encode(frame, { keyFrame });
     frame.close();
 
-    // Yield to UI every 10 frames to keep progress bar updating
-    if (i % 10 === 0) {
+    // Yield to UI every 15 frames to keep progress bar updating
+    if (i % 15 === 0) {
       onProgress(10 + (i / totalFrames) * 85);
       await new Promise(r => setTimeout(r, 0));
     }
