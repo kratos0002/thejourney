@@ -9,9 +9,11 @@ import BubbleNav from "@/components/home/BubbleNav";
 import StartPrompt from "@/components/home/StartPrompt";
 import ProfilePanel from "@/components/ProfilePanel";
 import FeedbackModal from "@/components/FeedbackModal";
+import DiscoveryDrawer from "@/components/home/DiscoveryDrawer";
 import { getNotificationCount } from "@/lib/feedback";
 import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
   ssr: false,
@@ -27,7 +29,15 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [notifCount, setNotifCount] = useState(0);
+  const [filteredSlugs, setFilteredSlugs] = useState<Set<string>>(new Set());
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const { user } = useExploration();
+  const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
+
+  const handleFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
+    setFilteredSlugs(matching);
+    setHasActiveFilters(hasFilters);
+  }, []);
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("journey-visited");
@@ -65,7 +75,11 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Full-screen bubble navigation */}
       <div className="absolute inset-0 z-10">
-        <BubbleNav words={words} />
+        <BubbleNav
+          words={words}
+          filteredSlugs={hasActiveFilters ? filteredSlugs : undefined}
+          hasActiveFilters={hasActiveFilters}
+        />
       </div>
 
       {/* Start prompt for first-time users */}
@@ -122,6 +136,11 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Feedback modal */}
       <FeedbackModal words={words} open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+
+      {/* Discovery Drawer (behind feature flag) */}
+      {discoveryDrawerEnabled && (
+        <DiscoveryDrawer words={words} onFiltersChange={handleFiltersChange} />
+      )}
     </main>
   );
 }

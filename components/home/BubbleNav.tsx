@@ -59,10 +59,20 @@ function getLanguageTint(language: string): string {
   return "rgba(240, 237, 230, 0.08)"; // default moonlight
 }
 
-export default function BubbleNav({ words }: { words: Word[] }) {
+interface BubbleNavProps {
+  words: Word[];
+  filteredSlugs?: Set<string>;
+  hasActiveFilters?: boolean;
+}
+
+export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
+
+  // Store filter state in refs for use in animation loop
+  const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
+  const hasActiveFiltersRef = useRef(hasActiveFilters);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -89,9 +99,15 @@ export default function BubbleNav({ words }: { words: Word[] }) {
     const cosRY = Math.cos(ry), sinRY = Math.sin(ry);
     const cosRX = Math.cos(rx), sinRX = Math.sin(rx);
 
+    const isFiltering = hasActiveFiltersRef.current;
+    const filtered = filteredSlugsRef.current;
+
     for (let i = 0; i < words.length; i++) {
       const el = bubbleRefs.current[i];
       if (!el) continue;
+
+      const word = words[i];
+      const isMatch = !isFiltering || filtered.has(word.slug);
 
       const p = spherePoints[i];
       const x = Math.cos(p.lat) * Math.cos(p.lon);
@@ -115,13 +131,28 @@ export default function BubbleNav({ words }: { words: Word[] }) {
         continue;
       }
 
-      const opacity = Math.max(0, Math.min(1, (z2 + 0.3) * 0.9));
+      let opacity = Math.max(0, Math.min(1, (z2 + 0.3) * 0.9));
+      let scale = projScale;
+
+      // Apply filter dimming for non-matching words
+      if (isFiltering && !isMatch) {
+        opacity *= 0.15;
+        scale *= 0.85;
+      }
 
       // ONLY compositor properties: transform (position + scale) and opacity
-      el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${projScale})`;
+      el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${scale})`;
       el.style.opacity = `${opacity}`;
     }
-  }, [spherePoints]);
+  }, [spherePoints, words]);
+
+  // Keep filter refs in sync with props and trigger update
+  useEffect(() => {
+    filteredSlugsRef.current = filteredSlugs || new Set();
+    hasActiveFiltersRef.current = hasActiveFilters;
+    // Force a bubble update when filters change
+    updateBubbles();
+  }, [filteredSlugs, hasActiveFilters, updateBubbles]);
 
   // Animation loop — no React state, no layout-triggering properties
   useEffect(() => {
