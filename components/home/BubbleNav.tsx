@@ -322,6 +322,9 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     >
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
+        // Adaptive font size based on word length
+        const len = word.slug.length;
+        const fontSize = len <= 5 ? 14 : len <= 7 ? 12 : len <= 9 ? 10 : 9;
         return (
           <button
             key={word.slug}
@@ -345,8 +348,11 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               }}
             >
               <span
-                className="font-display font-semibold text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1"
-                style={{ color: explored ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)" }}
+                className="font-display font-semibold leading-tight text-center px-1"
+                style={{
+                  color: explored ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)",
+                  fontSize: `${fontSize}px`,
+                }}
               >
                 {word.slug}
               </span>
