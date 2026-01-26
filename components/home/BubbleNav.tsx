@@ -304,7 +304,7 @@ export default function BubbleNav({ words }: { words: Word[] }) {
               opacity: 0,
             }}
             onClick={handleBubbleClick}
-            aria-label={`Explore ${word.romanization}`}
+            aria-label={`Explore ${word.slug}`}
           >
             <div
               className="w-full h-full rounded-full border flex items-center justify-center"
@@ -317,7 +317,7 @@ export default function BubbleNav({ words }: { words: Word[] }) {
                 className="font-display font-semibold text-sm leading-tight text-center overflow-hidden text-ellipsis whitespace-nowrap px-1"
                 style={{ color: explored ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)" }}
               >
-                {word.romanization}
+                {word.slug}
               </span>
             </div>
           </button>
