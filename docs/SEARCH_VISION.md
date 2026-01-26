@@ -47,21 +47,121 @@ Standard search is transactional: type → results list → pick one. It breaks 
 
 ## Implementation Phases
 
-### Phase 1: Filtering (Current)
-Start with filter chips that let users narrow the globe by dimensions:
+### Phase 1: Filtering — "The Discovery Drawer"
 
-**Filter Dimensions:**
-- **Language Family**: Semitic, Indo-Aryan, Romance, Germanic, East Asian, Austronesian, Indigenous, Slavic, Turkic, etc.
-- **Region of Origin**: Middle East, South Asia, East Asia, Europe, Americas, Africa
-- **Theme**: Trade, Religion, Food & Drink, Science, War, Nature, Body & Mind
-- **Journey Length**: Short (2-3 stops), Medium (4-5 stops), Epic (6+ stops)
+A drawer-based filtering experience that feels like choosing paths to walk, not querying a database.
 
-**UX:**
-- Subtle filter icon near the header or floating at bottom
-- Tap to reveal horizontal scrollable chips
-- Active filters cause non-matching bubbles to fade (not disappear)
-- Multiple filters combine (AND logic)
-- Clear all button to reset
+---
+
+#### Closed State
+- Very subtle glow or line at the bottom of the home screen
+- Faint text: *"Explore paths..."* in fog color
+- Or minimal handle indicator — almost invisible until discovered
+- Does not distract from the globe experience
+
+#### Opening the Drawer
+- **Trigger**: Swipe up from bottom OR tap the subtle indicator
+- **Animation**: Semi-transparent drawer rises smoothly (~35% of screen height)
+- **Backdrop**: Blur effect, respects the abyss aesthetic
+- **Globe**: Remains visible and interactive above the drawer
+
+#### Drawer Layout
+```
+───────────────────────────────────────────────────────
+  By origin
+  [Arabic] [Sanskrit] [Latin] [Japanese] [Persian] [Malay] →
+
+  By path
+  [Silk Road] [Colonial Exchange] [Sacred Texts] [Trade Ports] →
+
+  By theme
+  [Trade] [Food & Drink] [Religion] [Science] [War] [Nature] →
+───────────────────────────────────────────────────────
+```
+
+- **Rows**: Each dimension is a horizontal scrollable row
+- **Chips**: Tap to toggle, glows amber when active
+- **Multi-select**: Multiple chips can be active within a row
+- **Cross-row**: Selections across rows combine with AND logic
+- **Real-time**: Globe updates immediately as filters change
+
+#### Globe Behavior While Filtering
+| State | Opacity | Scale | Animation |
+|-------|---------|-------|-----------|
+| Matching | 100% | 1.0 | Subtle pulse |
+| Non-matching | 15% | 0.9 | None |
+
+- Words fade but don't disappear — feels like adjusting focus
+- Soft count appears near title: *"15 journeys"*
+- Globe can subtly rotate to center on filtered cluster
+
+#### Active Filter Indicator (Drawer Closed)
+- When filters active and drawer closed, show subtle indicator
+- Options: soft amber dot, or text *"3 paths active"*
+- Tap indicator to reopen drawer
+- "Clear all" action to reset filters
+
+#### Empty Filter State
+- If filter combination yields zero results:
+- Message: *"No journeys walk all these paths..."*
+- Suggest removing a filter
+- Show closest partial matches
+
+---
+
+#### Filter Dimensions Detail
+
+**By Origin (Language Family)**
+| Chip | Languages Included |
+|------|-------------------|
+| Arabic | Arabic, Swahili (Arabic-origin words) |
+| Sanskrit | Sanskrit, Hindi, Pali |
+| Latin | Latin, French, Italian, Spanish, Portuguese |
+| Greek | Ancient Greek, Modern Greek |
+| Germanic | German, Dutch, Norse, Yiddish |
+| Japanese | Japanese |
+| Chinese | Mandarin, Hokkien, Cantonese |
+| Persian | Farsi |
+| Malay | Malay, Indonesian, Tagalog |
+| Slavic | Russian, Czech, Polish |
+| Celtic | Irish, Welsh, Scottish Gaelic |
+| Indigenous | Nahuatl, Quechua, Aboriginal languages |
+
+**By Path (Journey Type)**
+| Chip | Description |
+|------|-------------|
+| Silk Road | Words that traveled overland Asia ↔ Europe |
+| Colonial Exchange | Words brought through colonization |
+| Sacred Texts | Words spread through religious transmission |
+| Trade Ports | Words that traveled by sea trade |
+| Scholarly | Words transmitted through academia |
+| Migration | Words carried by diaspora communities |
+
+**By Theme**
+| Chip | Examples |
+|------|----------|
+| Trade | bazaar, cargo, tariff |
+| Food & Drink | coffee, tea, sugar, ketchup |
+| Religion | karma, nirvana, amen |
+| Science | algorithm, algebra, chemistry |
+| War | assassin, admiral |
+| Nature | tsunami, monsoon |
+| Body & Mind | yoga, zen |
+
+---
+
+#### Future Evolution: Orbital Rings
+
+A more ambitious, magical filtering experience for later:
+
+- **Pinch in** on the globe
+- Globe shrinks, orbital rings appear around it
+- Each ring = a dimension (Origin, Path, Theme)
+- Rings have tappable nodes for filtering
+- Feels like adjusting a cosmic instrument
+- **Pinch out** to return to full view
+
+This requires significant gesture work but creates a unique, ownable interaction.
 
 ### Phase 2: Text Search
 - Tap globe or press key to invoke search
@@ -145,27 +245,54 @@ Start with filter chips that let users narrow the globe by dimensions:
 
 ## Technical Considerations
 
+### Feature Flag
+- Flag key: `discovery_drawer`
+- Build entire feature behind this flag
+- Allows testing without affecting production users
+- Enable for admin/beta users first
+
 ### Data Requirements
 Each word needs metadata for filtering:
 ```typescript
-interface WordMetadata {
-  languageFamily: string[];      // Can belong to multiple
-  originRegion: string;
-  themes: string[];
+interface WordFilterMeta {
+  languageFamily: string;        // Primary family
+  originRegion: string;          // Geographic origin
+  themes: string[];              // Can have multiple
+  journeyPath?: string;          // Silk Road, Colonial, etc.
   journeyLength: number;         // Derived from journey.length
 }
 ```
 
-This can be:
-1. Added to word data files
-2. Derived at runtime from existing data (language → family mapping)
-3. Stored in Supabase as additional columns
+**Implementation approach:**
+1. Create a mapping file `lib/word-filters.ts` that derives metadata from existing word data
+2. Map `word.language` → `languageFamily` using lookup table
+3. Map `word.journey[0].location` → `originRegion`
+4. Themes: manually curate or derive from story content keywords
+5. No database changes needed initially
+
+### Component Structure
+```
+components/
+  home/
+    DiscoveryDrawer.tsx      # Main drawer component
+    FilterChip.tsx           # Individual chip component
+    FilterRow.tsx            # Horizontal scrollable row
+    useWordFilters.ts        # Hook for filter logic
+lib/
+  word-filters.ts            # Metadata derivation & filter logic
+```
 
 ### Performance
-- Filter logic runs client-side (100 words is small)
+- Filter logic runs client-side (100 words is trivial)
 - No API calls needed for filtering
-- Debounce text search if added
 - Use CSS transitions for bubble opacity/scale (GPU accelerated)
+- Drawer uses `framer-motion` for smooth open/close
+
+### Accessibility
+- Drawer should trap focus when open
+- Chips should be keyboard navigable
+- Screen reader: announce filter changes and result count
+- Escape key closes drawer
 
 ---
 
