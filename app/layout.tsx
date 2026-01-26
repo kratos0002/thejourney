@@ -7,7 +7,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PostHogProvider, PostHogPageView } from "@/components/PostHogProvider";
 import AmbientParticles from "@/components/AmbientParticles";
-import InstallPrompt from "@/components/InstallPrompt";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -107,7 +106,6 @@ export default function RootLayout({
           <TransitionProvider>
             <ExplorationProvider>
               {children}
-              <InstallPrompt />
             </ExplorationProvider>
           </TransitionProvider>
           <Analytics />
