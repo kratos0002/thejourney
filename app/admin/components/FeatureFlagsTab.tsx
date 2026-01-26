@@ -27,6 +27,8 @@ export default function FeatureFlagsTab({ initialFlags }: { initialFlags: Featur
     startTransition(async () => {
       const { error } = await toggleAdminOnly(flag.id, newValue);
       if (error) {
+        console.error("Failed to toggle admin_only:", error);
+        alert(`Failed to update: ${error}`);
         setFlags(prev => prev.map(f => f.id === flag.id ? { ...f, admin_only: !newValue } : f));
       }
     });

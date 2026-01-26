@@ -71,16 +71,24 @@ export async function toggleAdminOnly(
   id: string,
   adminOnly: boolean
 ): Promise<{ error?: string }> {
-  await requireAdmin();
-  const supabase = createAdminSupabase();
+  try {
+    await requireAdmin();
+    const supabase = createAdminSupabase();
 
-  const { error } = await supabase
-    .from("feature_flags")
-    .update({ admin_only: adminOnly, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    const { error } = await supabase
+      .from("feature_flags")
+      .update({ admin_only: adminOnly, updated_at: new Date().toISOString() })
+      .eq("id", id);
 
-  if (error) return { error: error.message };
-  return {};
+    if (error) {
+      console.error("toggleAdminOnly error:", error);
+      return { error: error.message };
+    }
+    return {};
+  } catch (e) {
+    console.error("toggleAdminOnly exception:", e);
+    return { error: e instanceof Error ? e.message : "Unknown error" };
+  }
 }
 
 export async function deleteFeatureFlag(id: string): Promise<{ error?: string }> {
