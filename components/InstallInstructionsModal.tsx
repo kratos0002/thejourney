@@ -82,7 +82,7 @@ function getSteps(platform: Platform, browser: string): Step[] {
         icon: <ShareIcon className="w-8 h-8" />,
         title: "Tap Share",
         description: isChrome
-          ? "Tap the menu (⋯) then tap \"Share...\""
+          ? "Tap the menu (⋯) at the top right, then tap \"Share...\""
           : "Tap the share button (□↑) at the bottom of Safari",
       },
       {
