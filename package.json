@@ -6,11 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "remotion:studio": "remotion studio remotion/index.ts",
+    "remotion:render": "remotion render remotion/index.ts JourneyReel out/reel.mp4"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
     "@next/font": "^14.2.15",
+    "@remotion/cli": "^4.0.410",
+    "@remotion/player": "^4.0.410",
     "@revenuecat/purchases-js": "^1.24.3",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.1",
@@ -25,6 +29,7 @@
     "posthog-js": "^1.335.2",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "remotion": "^4.0.410",
     "topojson-client": "^3.1.0",
     "world-atlas": "^2.0.2"
   },

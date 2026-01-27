@@ -201,6 +201,30 @@ export interface Database {
         };
         Relationships: [];
       };
+      user_preferences: {
+        Row: {
+          id: string;
+          user_id: string;
+          theme: "night-sky" | "parchment" | "system";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          theme?: "night-sky" | "parchment" | "system";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          theme?: "night-sky" | "parchment" | "system";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

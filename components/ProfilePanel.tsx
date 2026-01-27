@@ -4,7 +4,9 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useExploration } from "@/components/ExplorationProvider";
 import { Word } from "@/data/word-types";
 import { getUserNotifications, dismissNotification, type UserNotification } from "@/lib/feedback";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import InstallInstructionsModal from "@/components/InstallInstructionsModal";
+import ThemeSelector from "@/components/ThemeSelector";
 
 const INSTALL_DISMISS_KEY = "journey-install-dismissed";
 
@@ -16,6 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
 export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: { words: Word[]; open: boolean; onClose: () => void; onFeedbackClick?: () => void }) {
   const { user, authReady, exploredSlugs, exploredCount, isPremium, signInWithEmail, verifyOtp } = useExploration();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const showThemeSelector = useFeatureFlag("theme_selection");
 
   const [authStep, setAuthStep] = useState<"idle" | "email" | "otp">("idle");
   const [email, setEmail] = useState("");
@@ -281,6 +284,13 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
                   </svg>
                   Install app
                 </button>
+              )}
+
+              {/* Theme Selector - behind feature flag for logged-in users */}
+              {user && showThemeSelector && (
+                <div className="mt-4 pt-4 border-t border-moonlight/8">
+                  <ThemeSelector />
+                </div>
               )}
             </div>
       </div>

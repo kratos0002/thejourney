@@ -1,5 +1,40 @@
 @import "tailwindcss";
 
+/* Theme System - CSS Custom Properties */
+:root {
+  /* Default: Night Sky theme */
+  --theme-bg-primary: #0a0a14;
+  --theme-bg-secondary: #12121e;
+  --theme-bg-tertiary: #1a1a24;
+  --theme-text-primary: #f0ede6;
+  --theme-text-secondary: #a8b0b8;
+  --theme-text-tertiary: #6b6866;
+  --theme-accent: #d4a574;
+  --theme-accent-muted: rgba(212, 165, 116, 0.25);
+  --theme-border: rgba(240, 237, 230, 0.06);
+  --theme-border-strong: rgba(240, 237, 230, 0.12);
+  --theme-surface: rgba(26, 26, 36, 0.7);
+  --theme-surface-hover: rgba(26, 26, 36, 0.85);
+  --theme-glow: rgba(212, 165, 116, 0.15);
+}
+
+[data-theme="parchment"] {
+  /* Parchment (Light) theme */
+  --theme-bg-primary: #f8f5ef;
+  --theme-bg-secondary: #fffefa;
+  --theme-bg-tertiary: #f0ebe0;
+  --theme-text-primary: #2a2520;
+  --theme-text-secondary: #5c554a;
+  --theme-text-tertiary: #8a8378;
+  --theme-accent: #b8860b;
+  --theme-accent-muted: rgba(184, 134, 11, 0.2);
+  --theme-border: rgba(42, 37, 32, 0.08);
+  --theme-border-strong: rgba(42, 37, 32, 0.15);
+  --theme-surface: rgba(255, 254, 250, 0.9);
+  --theme-surface-hover: rgba(255, 254, 250, 1);
+  --theme-glow: rgba(184, 134, 11, 0.1);
+}
+
 @theme inline {
   --color-abyss: #0a0a0f;
   --color-deep-water: #12121a;
@@ -36,13 +71,14 @@ html {
 }
 
 body {
-  background: var(--color-abyss);
-  color: var(--color-moonlight);
+  background: var(--theme-bg-primary);
+  color: var(--theme-text-primary);
   font-family: var(--font-body), Georgia, serif;
   overflow-x: hidden;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Grain texture overlay */
@@ -62,11 +98,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-abyss);
+  background: var(--theme-bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-fog);
+  background: var(--theme-text-tertiary);
   border-radius: 2px;
 }
 
