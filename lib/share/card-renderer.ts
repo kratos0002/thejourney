@@ -144,20 +144,27 @@ export async function renderMomentCard(
   ctx.fillStyle = accent.primary;
   ctx.fillText(word.language, centerX, wordCardY + 170);
 
-  // Divider line
-  const dividerY = size === "story" ? height - 180 : height - 120;
-  ctx.strokeStyle = "rgba(240, 237, 230, 0.15)";
+  // Footer branding
+  const footerY = size === "story" ? height - 140 : height - 100;
+
+  // Divider line with accent glow
+  ctx.strokeStyle = `${accent.primary}30`;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(padding * 2, dividerY);
-  ctx.lineTo(width - padding * 2, dividerY);
+  ctx.moveTo(padding * 2, footerY);
+  ctx.lineTo(width - padding * 2, footerY);
   ctx.stroke();
 
-  // Branding
-  ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  // Product name "The Journey"
+  ctx.font = `500 ${size === "story" ? 22 : 18}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = accent.primary;
   ctx.textAlign = "center";
-  ctx.fillText("thejourney.app", centerX, dividerY + 40);
+  ctx.fillText("The Journey", centerX, footerY + 35);
+
+  // Site URL
+  ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  ctx.fillText("etymology.life", centerX, footerY + 58);
 
   // Convert to blob
   return new Promise((resolve, reject) => {
@@ -366,18 +373,27 @@ export async function renderPathCard(
   ctx.fillStyle = "#f0ede6";
   ctx.fillText(hook, centerX, hookY);
 
-  // Divider and branding
-  const dividerY = size === "story" ? height - 140 : height - 100;
-  ctx.strokeStyle = "rgba(240, 237, 230, 0.15)";
+  // Footer branding
+  const footerY = size === "story" ? height - 140 : height - 100;
+
+  // Divider line with accent glow
+  ctx.strokeStyle = `${accent.primary}30`;
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(padding * 2, dividerY);
-  ctx.lineTo(width - padding * 2, dividerY);
+  ctx.moveTo(padding * 2, footerY);
+  ctx.lineTo(width - padding * 2, footerY);
   ctx.stroke();
 
-  ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
+  // Product name "The Journey"
+  ctx.font = `500 ${size === "story" ? 22 : 18}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = accent.primary;
+  ctx.textAlign = "center";
+  ctx.fillText("The Journey", centerX, footerY + 35);
+
+  // Site URL
+  ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
   ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
-  ctx.fillText("thejourney.app", centerX, dividerY + 40);
+  ctx.fillText("etymology.life", centerX, footerY + 58);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -393,6 +409,7 @@ export async function renderPathCard(
 
 /**
  * Render "The Sound" card - pronunciation evolution
+ * @deprecated Removed from UI, keeping for potential future use
  */
 export async function renderSoundCard(
   word: Word,
@@ -517,7 +534,7 @@ export async function renderSoundCard(
   });
 }
 
-export type CardType = "moment" | "path" | "sound";
+export type CardType = "moment" | "path";
 
 /**
  * Render any card type
@@ -532,8 +549,6 @@ export async function renderCard(
       return renderMomentCard(word, size);
     case "path":
       return renderPathCard(word, size);
-    case "sound":
-      return renderSoundCard(word, size);
   }
 }
 
