@@ -38,7 +38,7 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
   const hasAnimated = useRef(false);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
-  // Auto-center map on active node
+  // Auto-center and zoom map on active node
   const centerOnNode = useCallback((index: number) => {
     if (!svgRef.current || !zoomRef.current || !projectionRef.current) return;
     const projection = projectionRef.current;
@@ -48,9 +48,12 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
     const svg = d3.select(svgRef.current);
     const { width, height } = dimensionsRef.current;
 
-    // Smoothly translate to center on the node
+    // Zoom in to 2.5x scale and center on the node
+    const scale = 2.5;
     const transform = d3.zoomIdentity
-      .translate(width / 2 - pos[0], height / 2 - pos[1]);
+      .translate(width / 2, height / 2)
+      .scale(scale)
+      .translate(-pos[0], -pos[1]);
 
     svg.transition()
       .duration(1200)
@@ -63,39 +66,76 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
 
-    // Reset all nodes
+    // Reset all nodes to default state
     svg.selectAll(".node").each(function () {
       const node = d3.select(this);
-      node.select(".main-dot").attr("r", 5);
-      node.select(".outer-glow").attr("opacity", 0.25);
+      node.select(".main-dot").transition().duration(300).attr("r", 6);
+      node.select(".inner-dot").transition().duration(300).attr("r", 2.5);
+      node.select(".outer-glow").transition().duration(300).attr("r", 18).attr("opacity", 0.3);
       node.select(".pulse-ring").remove();
+      node.select(".pulse-ring-2").remove();
     });
 
     if (index === null) return;
 
-    // Highlight active node
+    // Highlight active node - make it much larger and more prominent
     const activeNodeEl = svg.select(`.node-${index}`);
     if (activeNodeEl.empty()) return;
 
-    activeNodeEl.select(".main-dot").attr("r", 7);
-    activeNodeEl.select(".outer-glow").attr("opacity", 0.5);
+    // Enlarge the main dot significantly
+    activeNodeEl.select(".main-dot")
+      .transition().duration(400)
+      .attr("r", 12);
 
-    // Add pulsing ring
+    // Enlarge inner dot
+    activeNodeEl.select(".inner-dot")
+      .transition().duration(400)
+      .attr("r", 5);
+
+    // Make outer glow much larger and brighter
+    activeNodeEl.select(".outer-glow")
+      .transition().duration(400)
+      .attr("r", 35)
+      .attr("opacity", 0.6);
+
+    // Add primary pulsing ring
     activeNodeEl.append("circle")
-      .attr("r", 12)
+      .attr("r", 15)
       .attr("fill", "none")
       .attr("stroke", journey[index].color || "#d4a574")
-      .attr("stroke-width", 1.5)
-      .attr("opacity", 0.8)
+      .attr("stroke-width", 3)
+      .attr("opacity", 0.9)
       .attr("class", "pulse-ring");
 
-    // Animate the pulse
+    // Add secondary larger pulse ring
+    activeNodeEl.append("circle")
+      .attr("r", 15)
+      .attr("fill", "none")
+      .attr("stroke", journey[index].color || "#d4a574")
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.6)
+      .attr("class", "pulse-ring-2");
+
+    // Animate the primary pulse
     const pulseNode = activeNodeEl.select(".pulse-ring").node();
     if (pulseNode) {
       gsap.to(pulseNode, {
-        attr: { r: 22 },
+        attr: { r: 40 },
+        opacity: 0,
+        duration: 1.2,
+        repeat: -1,
+        ease: "power2.out",
+      });
+    }
+
+    // Animate the secondary pulse (delayed)
+    const pulseNode2 = activeNodeEl.select(".pulse-ring-2").node();
+    if (pulseNode2) {
+      gsap.to(pulseNode2, {
+        attr: { r: 55 },
         opacity: 0,
         duration: 1.5,
+        delay: 0.3,
         repeat: -1,
         ease: "power2.out",
       });
@@ -374,48 +414,48 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
           setCurrentStep(i);
         });
 
-      // Outer glow circle
+      // Outer glow circle - larger for better visibility
       node.append("circle")
-        .attr("r", 16)
+        .attr("r", 18)
         .attr("fill", stop.color || "#d4a574")
         .attr("opacity", 0)
         .attr("filter", "url(#node-glow-filter)")
         .attr("class", "outer-glow");
 
-      // Main node circle
+      // Main node circle - larger
       node.append("circle")
-        .attr("r", 5)
+        .attr("r", 6)
         .attr("fill", stop.color || "#d4a574")
         .attr("opacity", 0)
         .attr("class", "main-dot");
 
-      // Inner bright dot
+      // Inner bright dot - larger
       node.append("circle")
-        .attr("r", 2)
+        .attr("r", 2.5)
         .attr("fill", "#f0ede6")
         .attr("opacity", 0)
         .attr("class", "inner-dot");
 
-      // Label - form (word at this stop)
-      const labelY = i % 2 === 0 ? -20 : 22;
+      // Label - form (word at this stop) - larger and more visible
+      const labelY = i % 2 === 0 ? -24 : 26;
 
       node.append("text")
         .attr("y", labelY)
         .attr("text-anchor", "middle")
         .attr("fill", "#f0ede6")
-        .attr("font-size", "11px")
+        .attr("font-size", "13px")
         .attr("font-family", "var(--font-cormorant), serif")
         .attr("font-weight", "600")
         .attr("opacity", 0)
         .attr("class", "label-form")
         .text(stop.form);
 
-      // Label - location and period
+      // Label - location and period - larger
       node.append("text")
-        .attr("y", labelY + (labelY > 0 ? 14 : -12))
+        .attr("y", labelY + (labelY > 0 ? 16 : -14))
         .attr("text-anchor", "middle")
-        .attr("fill", "#6b6866")
-        .attr("font-size", "9px")
+        .attr("fill", "#8a8a8a")
+        .attr("font-size", "10px")
         .attr("font-family", "var(--font-source-serif), serif")
         .attr("opacity", 0)
         .attr("class", "label-info")
@@ -425,7 +465,7 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       const delay = 0.5 + i * 0.6;
 
       gsap.to(node.select(".outer-glow").node(), {
-        opacity: 0.25,
+        opacity: 0.35,
         duration: 0.5,
         delay,
         ease: "power2.out",
