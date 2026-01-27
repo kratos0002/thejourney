@@ -33,30 +33,30 @@ function lerpFn(a: number, b: number, t: number) { return a + (b - a) * t; }
 
 function getLanguageTint(language: string): string {
   const lang = language.toLowerCase();
-  // Derive tint from origin language
+  // Derive tint from origin language — higher opacity for better visibility
   if (lang.includes("arabic") || lang.includes("swahili"))
-    return "rgba(212, 165, 116, 0.25)"; // amber — Semitic
+    return "rgba(212, 165, 116, 0.55)"; // amber — Semitic
   if (lang.includes("sanskrit") || lang.includes("hindi") || lang.includes("pali"))
-    return "rgba(184, 122, 75, 0.25)"; // copper — Indic
+    return "rgba(184, 122, 75, 0.55)"; // copper — Indic
   if (lang.includes("persian"))
-    return "rgba(180, 130, 100, 0.22)"; // warm sand — Iranian
+    return "rgba(180, 130, 100, 0.5)"; // warm sand — Iranian
   if (lang.includes("japanese") || lang.includes("chinese") || lang.includes("hokkien"))
-    return "rgba(74, 124, 124, 0.3)"; // teal — East Asian
+    return "rgba(74, 144, 144, 0.6)"; // teal — East Asian
   if (lang.includes("french") || lang.includes("italian") || lang.includes("spanish") || lang.includes("portuguese") || lang.includes("latin"))
-    return "rgba(100, 130, 180, 0.25)"; // blue — Romance
+    return "rgba(100, 140, 200, 0.55)"; // blue — Romance
   if (lang.includes("german") || lang.includes("dutch") || lang.includes("norse") || lang.includes("yiddish"))
-    return "rgba(160, 160, 180, 0.25)"; // silver — Germanic
+    return "rgba(160, 160, 190, 0.5)"; // silver — Germanic
   if (lang.includes("malay") || lang.includes("tahitian") || lang.includes("samoan") || lang.includes("tongan"))
-    return "rgba(80, 170, 170, 0.25)"; // turquoise — Austronesian
+    return "rgba(80, 180, 180, 0.55)"; // turquoise — Austronesian
   if (lang.includes("nahuatl") || lang.includes("dharug") || lang.includes("zulu"))
-    return "rgba(120, 170, 100, 0.25)"; // green — Indigenous
+    return "rgba(120, 180, 100, 0.55)"; // green — Indigenous
   if (lang.includes("greek"))
-    return "rgba(140, 120, 180, 0.25)"; // violet — Greek
+    return "rgba(150, 130, 200, 0.55)"; // violet — Greek
   if (lang.includes("turkish"))
-    return "rgba(180, 100, 100, 0.22)"; // muted red — Turkic
+    return "rgba(190, 110, 110, 0.5)"; // muted red — Turkic
   if (lang.includes("czech"))
-    return "rgba(140, 130, 170, 0.22)"; // muted purple — Slavic
-  return "rgba(240, 237, 230, 0.08)"; // default moonlight
+    return "rgba(150, 140, 190, 0.5)"; // muted purple — Slavic
+  return "rgba(240, 237, 230, 0.25)"; // default moonlight
 }
 
 interface BubbleNavProps {
@@ -354,17 +354,22 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             aria-label={`Explore ${word.slug}`}
           >
             <div
-              className="w-full h-full rounded-full border flex items-center justify-center relative"
+              className="w-full h-full rounded-full flex items-center justify-center relative"
               style={{
-                background: isMuted ? "var(--theme-surface)" : "var(--theme-surface-hover)",
-                borderColor: isMuted ? "var(--theme-border)" : getLanguageTint(word.language),
+                background: isMuted
+                  ? "var(--theme-bg-secondary)"
+                  : "var(--theme-bg-tertiary)",
+                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
+                boxShadow: isMuted
+                  ? "0 2px 8px rgba(0, 0, 0, 0.15)"
+                  : `0 2px 12px rgba(0, 0, 0, 0.2), 0 0 20px ${getLanguageTint(word.language)}`,
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "var(--theme-text-tertiary)" : "var(--theme-text-primary)",
-                  opacity: isMuted ? 0.5 : 0.9,
+                  color: isMuted ? "var(--theme-text-secondary)" : "var(--theme-text-primary)",
+                  opacity: isMuted ? 0.7 : 1,
                   fontSize: `${fontSize}rem`,
                 }}
               >
@@ -377,10 +382,10 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                   style={{
                     top: "-0.125rem",
                     right: "-0.125rem",
-                    width: "0.875rem",
-                    height: "0.875rem",
-                    background: shouldHighlight ? "var(--theme-accent)" : "var(--theme-text-tertiary)",
-                    opacity: shouldHighlight ? 0.8 : 0.4,
+                    width: "1rem",
+                    height: "1rem",
+                    background: shouldHighlight ? "var(--theme-accent)" : "var(--theme-text-secondary)",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.3)",
                   }}
                 >
                   <svg style={{ width: "0.5rem", height: "0.5rem" }} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
