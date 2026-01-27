@@ -362,20 +362,22 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               className="w-full h-full rounded-full flex items-center justify-center relative"
               style={{
                 background: isMuted
-                  ? "var(--theme-bg-secondary)"
-                  : "var(--theme-bg-tertiary)",
+                  ? "rgba(30, 30, 35, 0.85)"
+                  : "rgba(20, 20, 25, 0.9)",
                 border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
                 boxShadow: isMuted
-                  ? "0 2px 8px rgba(0, 0, 0, 0.15)"
-                  : `0 2px 12px rgba(0, 0, 0, 0.2), 0 0 20px ${getLanguageTint(word.language)}`,
+                  ? "0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(0, 0, 0, 0.2)"
+                  : `0 2px 12px rgba(0, 0, 0, 0.4), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px rgba(0, 0, 0, 0.3)`,
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "var(--theme-text-secondary)" : "var(--theme-text-primary)",
-                  opacity: isMuted ? 0.7 : 1,
+                  color: isMuted ? "rgba(180, 180, 190, 0.85)" : "#ffffff",
                   fontSize: `${fontSize}rem`,
+                  textShadow: isMuted
+                    ? "0 1px 2px rgba(0, 0, 0, 0.5)"
+                    : "0 1px 3px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.4)",
                 }}
               >
                 {word.slug}
