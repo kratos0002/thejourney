@@ -4,6 +4,7 @@ import { useRef, useCallback, useMemo, useEffect } from "react";
 import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 import { useExploration } from "@/components/ExplorationProvider";
+import { useTheme } from "@/components/ThemeProvider";
 
 const LERP = 0.10;
 const FRICTION = 0.91;
@@ -68,6 +69,7 @@ interface BubbleNavProps {
 export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
+  const { classroomMode } = useTheme();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
 
   // Store filter state in refs for use in animation loop
@@ -201,19 +203,22 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     return () => { active = false; cancelAnimationFrame(loopRef.current); };
   }, [updateBubbles]);
 
-  // Viewport tracking
+  // Viewport tracking - larger radius in classroom mode
   useEffect(() => {
     const update = () => {
       if (!containerRef.current) return;
       const r = containerRef.current.getBoundingClientRect();
       viewSize.current = { w: r.width, h: r.height };
-      target.current.radius = Math.min(r.width, r.height) * 0.34;
+      // Use 48% of screen in classroom mode (desktop), 34% normally
+      const isDesktop = r.width >= 1024;
+      const radiusMultiplier = (classroomMode && isDesktop) ? 0.48 : 0.34;
+      target.current.radius = Math.min(r.width, r.height) * radiusMultiplier;
     };
     update();
     setTimeout(updateBubbles, 0);
     window.addEventListener("resize", update);
     return () => window.removeEventListener("resize", update);
-  }, [updateBubbles]);
+  }, [updateBubbles, classroomMode]);
 
   // Prevent native scrolling during touch on sphere
   useEffect(() => {

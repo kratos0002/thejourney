@@ -85,9 +85,9 @@ export default function HomePage({ words }: { words: Word[] }) {
       {/* Start prompt for first-time users */}
       <StartPrompt />
 
-      {/* Header overlay */}
+      {/* Header overlay - fades in classroom mode */}
       <motion.header
-        className="absolute top-0 left-0 right-0 z-20 text-center pointer-events-none"
+        className="absolute top-0 left-0 right-0 z-20 text-center pointer-events-none classroom-hide transition-all duration-500"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
         variants={fadeIn}
         initial="hidden"

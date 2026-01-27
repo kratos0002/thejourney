@@ -30,6 +30,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   const [canInstall, setCanInstall] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
@@ -45,7 +46,14 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   useEffect(() => {
     const standalone = window.matchMedia("(display-mode: standalone)").matches;
     setIsStandalone(standalone);
-    if (standalone) return;
+
+    // Check if desktop (min-width 1024px)
+    const desktopQuery = window.matchMedia("(min-width: 1024px)");
+    setIsDesktop(desktopQuery.matches);
+    const handleDesktopChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    desktopQuery.addEventListener("change", handleDesktopChange);
+
+    if (standalone) return () => desktopQuery.removeEventListener("change", handleDesktopChange);
 
     const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
     setIsIOS(ios);
@@ -56,7 +64,10 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
       setCanInstall(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      desktopQuery.removeEventListener("change", handleDesktopChange);
+    };
   }, []);
 
   // Fetch notifications when panel opens and user is signed in
@@ -309,8 +320,8 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
                 </div>
               )}
 
-              {/* Classroom Mode Toggle - for logged-in users */}
-              {user && (
+              {/* Classroom Mode Toggle - for logged-in users on desktop only */}
+              {user && isDesktop && (
                 <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--theme-border)" }}>
                   <button
                     onClick={() => setClassroomMode(!classroomMode)}
