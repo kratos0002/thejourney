@@ -49,7 +49,7 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.0, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <h3 className="text-sm uppercase tracking-[0.2em] text-fog/70 font-body mb-12">
+        <h3 className="text-sm uppercase tracking-[0.2em] font-body mb-12" style={{ color: "var(--theme-text-tertiary)" }}>
           Today
         </h3>
 
@@ -57,7 +57,8 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
           {paragraphs.map((paragraph, index) => (
             <motion.p
               key={index}
-              className="font-body text-base sm:text-lg text-moonlight/80 leading-[1.75]"
+              className="font-body text-base sm:text-lg leading-[1.75]"
+              style={{ color: "var(--theme-text-primary)", opacity: 0.8 }}
               initial={{ opacity: 0, y: 15 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{
@@ -79,14 +80,16 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
           transition={{ delay: 0.8 }}
         >
           <button
-            className="px-6 py-3 text-sm text-mist/60 hover:text-moonlight font-body tracking-wider border border-moonlight/10 hover:border-moonlight/20 rounded-full transition-all duration-500 hover:glow-amber cursor-pointer"
+            className="px-6 py-3 text-sm font-body tracking-wider rounded-full transition-all duration-500 cursor-pointer"
+            style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--theme-border)" }}
             onClick={() => router.push("/")}
           >
             Return to all words
           </button>
           <button
             onClick={handleShare}
-            className="px-4 py-3 text-sm text-fog/50 hover:text-amber-glow font-body border border-moonlight/10 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2"
+            className="px-4 py-3 text-sm font-body rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2"
+            style={{ color: "var(--theme-text-tertiary)", border: "1px solid var(--theme-border)" }}
             aria-label="Share this word"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -101,12 +104,13 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
         {/* Explore more words */}
         {unexploredSuggestions.length > 0 && (
           <motion.div
-            className="mt-20 pt-12 border-t border-moonlight/5"
+            className="mt-20 pt-12"
+            style={{ borderTop: "1px solid var(--theme-border)" }}
             initial={{ opacity: 0 }}
             animate={isInView ? { opacity: 1 } : {}}
             transition={{ delay: 1.2 }}
           >
-            <p className="text-xs uppercase tracking-[0.2em] text-fog/40 font-body mb-6">
+            <p className="text-xs uppercase tracking-[0.2em] font-body mb-6" style={{ color: "var(--theme-text-tertiary)" }}>
               Explore more words
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
@@ -114,7 +118,8 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
                 <button
                   key={s.slug}
                   onClick={() => { trackEvent("suggestion_clicked", { slug: s.slug, from: word.slug }); router.push(`/word/${s.slug}`); }}
-                  className="px-4 py-2 text-sm text-mist/60 hover:text-moonlight font-body border border-moonlight/8 hover:border-amber-glow/20 rounded-full transition-all duration-300 cursor-pointer"
+                  className="px-4 py-2 text-sm font-body rounded-full transition-all duration-300 cursor-pointer"
+                  style={{ color: "var(--theme-text-secondary)", border: "1px solid var(--theme-border)" }}
                 >
                   {s.romanization}
                 </button>
@@ -127,7 +132,8 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
         <AnimatePresence>
           {shareFeedback && (
             <motion.div
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg bg-amber-glow/20 border border-amber-glow/30 text-amber-glow text-xs font-body"
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-body"
+              style={{ background: "var(--theme-accent-muted)", border: "1px solid var(--theme-accent)", color: "var(--theme-accent)" }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}

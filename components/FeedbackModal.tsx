@@ -113,7 +113,7 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
           transition={{ duration: 0.3 }}
         >
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-abyss/95 backdrop-blur-md" onClick={onClose} />
+          <div className="absolute inset-0 backdrop-blur-md" style={{ background: "var(--theme-bg-primary)", opacity: 0.95 }} onClick={onClose} />
 
           {/* Modal */}
           <motion.div
@@ -123,16 +123,16 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
             exit={{ opacity: 0, y: 20, scale: 0.97 }}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <div className="bg-ink border border-moonlight/12 rounded-2xl p-6 shadow-2xl shadow-black/40">
+            <div className="rounded-2xl p-6 shadow-2xl" style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border-strong)" }}>
               {success ? (
                 <div className="text-center py-8">
-                  <p className="text-amber-glow/80 text-xs font-body tracking-[0.2em] uppercase mb-3">
+                  <p className="text-xs font-body tracking-[0.2em] uppercase mb-3" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>
                     Thank you
                   </p>
-                  <h2 className="font-display text-2xl text-moonlight/90 font-light">
+                  <h2 className="font-display text-2xl font-light" style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}>
                     Feedback received
                   </h2>
-                  <p className="text-fog/40 text-sm font-body mt-3">
+                  <p className="text-sm font-body mt-3" style={{ color: "var(--theme-text-tertiary)" }}>
                     We&apos;ll review it and get back to you.
                   </p>
                 </div>
@@ -140,12 +140,13 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                 <>
                   {/* Header */}
                   <div className="flex items-center justify-between mb-5">
-                    <h2 className="font-display text-lg text-moonlight/90 font-light">
+                    <h2 className="font-display text-lg font-light" style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}>
                       Send Feedback
                     </h2>
                     <button
                       onClick={onClose}
-                      className="text-fog/30 hover:text-fog/60 transition-colors cursor-pointer"
+                      className="transition-colors cursor-pointer"
+                      style={{ color: "var(--theme-text-tertiary)" }}
                     >
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M18 6L6 18M6 6l12 12" />
@@ -156,7 +157,7 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                   {/* Auth gate */}
                   {!user && (
                     <div className="text-center py-6">
-                      <p className="text-fog/50 text-sm font-body">
+                      <p className="text-sm font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                         Sign in from your profile to send feedback.
                       </p>
                     </div>
@@ -170,11 +171,11 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                           <button
                             key={tab.type}
                             onClick={() => setActiveType(tab.type)}
-                            className={`flex-1 py-2 text-[11px] font-body rounded-lg transition-all cursor-pointer ${
-                              activeType === tab.type
-                                ? "bg-amber-glow/10 text-amber-glow border border-amber-glow/30"
-                                : "text-fog/40 hover:text-fog/60 border border-transparent"
-                            }`}
+                            className="flex-1 py-2 text-[11px] font-body rounded-lg transition-all cursor-pointer"
+                            style={activeType === tab.type
+                              ? { background: "var(--theme-accent-muted)", color: "var(--theme-accent)", border: "1px solid var(--theme-accent)" }
+                              : { color: "var(--theme-text-tertiary)", border: "1px solid transparent" }
+                            }
                           >
                             {tab.label}
                           </button>
@@ -191,18 +192,20 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                               setWordSlug("");
                             }}
                             placeholder="Which word? (optional)"
-                            className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2 text-moonlight/80 font-body text-xs placeholder:text-fog/45 focus:outline-none focus:border-amber-glow/30 transition-colors"
+                            className="w-full rounded-lg px-3 py-2 font-body text-xs focus:outline-none transition-colors"
+                            style={{ background: "var(--theme-bg-primary)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }}
                           />
                           {wordSearch && filteredWords.length > 0 && !wordSlug && (
-                            <div className="absolute top-full left-0 right-0 mt-1 bg-deep-water border border-fog/15 rounded-lg overflow-hidden z-10">
+                            <div className="absolute top-full left-0 right-0 mt-1 rounded-lg overflow-hidden z-10" style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border)" }}>
                               {filteredWords.map(w => (
                                 <button
                                   key={w.slug}
                                   onClick={() => { setWordSlug(w.slug); setWordSearch(""); }}
-                                  className="w-full text-left px-3 py-2 text-xs text-moonlight/70 hover:bg-fog/5 transition-colors cursor-pointer"
+                                  className="w-full text-left px-3 py-2 text-xs transition-colors cursor-pointer"
+                                  style={{ color: "var(--theme-text-primary)" }}
                                 >
                                   <span className="font-medium">{w.romanization}</span>
-                                  <span className="text-fog/30 ml-2">({w.language})</span>
+                                  <span className="ml-2" style={{ color: "var(--theme-text-tertiary)" }}>({w.language})</span>
                                 </button>
                               ))}
                             </div>
@@ -217,12 +220,13 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                         placeholder={TABS.find(t => t.type === activeType)?.placeholder}
                         rows={5}
                         maxLength={2000}
-                        className="w-full bg-abyss border border-fog/12 rounded-lg px-3 py-2.5 text-moonlight/80 font-body text-sm placeholder:text-fog/45 focus:outline-none focus:border-amber-glow/30 transition-colors resize-none leading-relaxed"
+                        className="w-full rounded-lg px-3 py-2.5 font-body text-sm focus:outline-none transition-colors resize-none leading-relaxed"
+                        style={{ background: "var(--theme-bg-primary)", border: "1px solid var(--theme-border)", color: "var(--theme-text-primary)" }}
                       />
 
                       {/* Character count */}
                       <div className="flex items-center justify-between mt-2 mb-4">
-                        <span className={`text-[10px] font-body ${text.length < 10 ? "text-fog/45" : "text-fog/55"}`}>
+                        <span className="text-[10px] font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                           {text.length < 10 ? `${10 - text.length} more characters needed` : `${text.length}/2000`}
                         </span>
                       </div>
@@ -236,7 +240,8 @@ export default function FeedbackModal({ open, onClose, words, initialType, initi
                       <button
                         onClick={handleSubmit}
                         disabled={loading || text.length < 10}
-                        className="w-full bg-amber-glow/10 border border-amber-glow/30 rounded-lg px-4 py-2.5 text-amber-glow font-body text-sm tracking-wider hover:bg-amber-glow/20 hover:border-amber-glow/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+                        className="w-full rounded-lg px-4 py-2.5 font-body text-sm tracking-wider disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-300 cursor-pointer"
+                        style={{ background: "var(--theme-accent-muted)", border: "1px solid var(--theme-accent)", color: "var(--theme-accent)" }}
                       >
                         {loading ? "Sending..." : "Submit"}
                       </button>

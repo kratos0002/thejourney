@@ -23,7 +23,7 @@ export default function WordHook({ hook }: WordHookProps) {
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 1.0, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <p className="font-body text-xl sm:text-2xl md:text-3xl italic text-moonlight/90 leading-relaxed sm:leading-[1.8]">
+        <p className="font-body text-xl sm:text-2xl md:text-3xl italic leading-relaxed sm:leading-[1.8]" style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}>
           &ldquo;{hook}&rdquo;
         </p>
       </motion.blockquote>

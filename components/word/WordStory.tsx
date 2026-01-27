@@ -27,7 +27,8 @@ export default function WordStory({ story }: WordStoryProps) {
         {story.map((paragraph, index) => (
           <motion.p
             key={index}
-            className="font-body text-base sm:text-lg text-moonlight/85 leading-[1.75] mb-8 last:mb-0"
+            className="font-body text-base sm:text-lg leading-[1.75] mb-8 last:mb-0"
+            style={{ color: "var(--theme-text-primary)", opacity: 0.85 }}
             variants={paragraphItem}
           >
             {paragraph}

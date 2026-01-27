@@ -68,7 +68,7 @@ export default function HomePage({ words }: { words: Word[] }) {
       {showIntro && <IntroSequence onComplete={handleIntroComplete} />}
 
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-abyss via-deep-water to-abyss" />
+      <div className="absolute inset-0 transition-colors duration-500" style={{ background: "linear-gradient(to bottom, var(--theme-bg-primary), var(--theme-bg-secondary), var(--theme-bg-primary))" }} />
 
       {/* World map silhouette with origin dots */}
       {ready && <WorldBackground words={words} />}
@@ -94,7 +94,8 @@ export default function HomePage({ words }: { words: Word[] }) {
         animate="visible"
       >
         <motion.h1
-          className="font-display text-2xl sm:text-3xl md:text-4xl font-light text-moonlight/70 tracking-wide"
+          className="font-display text-2xl sm:text-3xl md:text-4xl font-light tracking-wide"
+          style={{ color: "var(--theme-text-primary)", opacity: 0.7 }}
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
@@ -102,7 +103,8 @@ export default function HomePage({ words }: { words: Word[] }) {
           The Journey
         </motion.h1>
         <motion.p
-          className="mt-1 text-xs sm:text-sm text-mist/40 font-body tracking-widest"
+          className="mt-1 text-xs sm:text-sm font-body tracking-widest"
+          style={{ color: "var(--theme-text-secondary)", opacity: 0.4 }}
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
@@ -114,20 +116,24 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Profile button */}
       <motion.button
-        className="absolute right-6 z-20 w-9 h-9 rounded-full border border-moonlight/10 bg-abyss/40 backdrop-blur-sm flex items-center justify-center hover:border-moonlight/20 transition-colors duration-300 cursor-pointer"
-        style={{ top: "calc(env(safe-area-inset-top, 0px) + 1.5rem)" }}
+        className="absolute right-6 z-20 w-9 h-9 rounded-full backdrop-blur-sm flex items-center justify-center transition-colors duration-300 cursor-pointer"
+        style={{
+          top: "calc(env(safe-area-inset-top, 0px) + 1.5rem)",
+          background: "var(--theme-surface)",
+          border: "1px solid var(--theme-border)"
+        }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.5, duration: 0.8 }}
         onClick={() => { setProfileOpen(true); trackEvent("profile_opened"); }}
         aria-label="Profile"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-fog/50">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--theme-text-tertiary)" }}>
           <circle cx="12" cy="8" r="4"/>
           <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>
         </svg>
         {notifCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-amber-glow rounded-full border border-abyss" />
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full" style={{ background: "var(--theme-accent)", border: "1px solid var(--theme-bg-primary)" }} />
         )}
       </motion.button>
 

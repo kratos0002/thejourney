@@ -22,7 +22,7 @@ const JourneyMap = dynamic(() => import("@/components/word/JourneyMap"), {
   ssr: false,
   loading: () => (
     <section className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 rounded-full border-2 border-amber-glow/30 border-t-amber-glow animate-spin" />
+      <div className="w-8 h-8 rounded-full border-2 animate-spin" style={{ borderColor: "var(--theme-accent)", borderTopColor: "var(--theme-accent)", opacity: 0.5 }} />
     </section>
   ),
 });
@@ -31,7 +31,7 @@ const WordSound = dynamic(() => import("@/components/word/WordSound"), {
   ssr: false,
   loading: () => (
     <section className="min-h-screen flex items-center justify-center">
-      <div className="w-6 h-6 rounded-full border-2 border-moonlight/20 border-t-moonlight/60 animate-spin" />
+      <div className="w-6 h-6 rounded-full border-2 animate-spin" style={{ borderColor: "var(--theme-text-primary)", borderTopColor: "var(--theme-text-primary)", opacity: 0.3 }} />
     </section>
   ),
 });
@@ -49,7 +49,7 @@ export default function WordPageClient({ word, suggestions }: { word: Word; sugg
   }, [word.slug, markExplored]);
 
   return (
-    <main className="relative bg-abyss">
+    <main className="relative transition-colors duration-300" style={{ background: "var(--theme-bg-primary)" }}>
       <ExplorationGate />
       <PremiumGate />
       <KeyboardNav />
@@ -64,13 +64,14 @@ export default function WordPageClient({ word, suggestions }: { word: Word; sugg
       >
         <button
           onClick={navigateHome}
-          className="text-fog/50 hover:text-moonlight transition-colors duration-300 font-body text-sm cursor-pointer"
+          className="transition-colors duration-300 font-body text-sm cursor-pointer"
+          style={{ color: "var(--theme-text-tertiary)" }}
           aria-label="Return home"
         >
           &larr; Back
         </button>
         <div className="flex flex-col items-end gap-0.5">
-          <span className="text-fog/40 text-xs font-body tracking-wider">
+          <span className="text-xs font-body tracking-wider" style={{ color: "var(--theme-text-tertiary)" }}>
             {word.romanization}
           </span>
           <ExplorationProgress />

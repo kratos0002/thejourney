@@ -32,7 +32,7 @@ export default function WordRelatives({ relatives }: WordRelativesProps) {
         animate={isInView ? { opacity: 1 } : {}}
         transition={{ duration: 0.8 }}
       >
-        <h3 className="text-center text-sm uppercase tracking-[0.2em] text-fog/70 font-body mb-12">
+        <h3 className="text-center text-sm uppercase tracking-[0.2em] font-body mb-12" style={{ color: "var(--theme-text-tertiary)" }}>
           Related Words
         </h3>
 
@@ -42,14 +42,13 @@ export default function WordRelatives({ relatives }: WordRelativesProps) {
               key={index}
               onClick={(e) => handleClick(relative, e)}
               disabled={!relative.available}
-              className={`
-                relative p-5 sm:p-6 rounded-2xl text-center group
-                transition-all duration-500
-                ${relative.available
-                  ? "bg-ink/60 hover:bg-ink border border-moonlight/5 hover:border-amber-glow/20 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)] cursor-pointer"
-                  : "bg-ink/30 border border-moonlight/3 opacity-60 cursor-default"
-                }
-              `}
+              className="relative p-5 sm:p-6 rounded-2xl text-center group transition-all duration-500"
+              style={{
+                background: relative.available ? "var(--theme-surface)" : "var(--theme-bg-secondary)",
+                border: `1px solid ${relative.available ? "var(--theme-border)" : "var(--theme-border)"}`,
+                opacity: relative.available ? 1 : 0.6,
+                cursor: relative.available ? "pointer" : "default",
+              }}
               initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={isInView ? { opacity: 1, y: 0, scale: 1 } : {}}
               transition={{
@@ -58,22 +57,22 @@ export default function WordRelatives({ relatives }: WordRelativesProps) {
                 ease: [0.25, 0.46, 0.45, 0.94],
               }}
             >
-              <p className="font-display text-xl sm:text-2xl text-moonlight/90 group-hover:text-moonlight transition-colors">
+              <p className="font-display text-xl sm:text-2xl transition-colors" style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}>
                 {relative.word}
               </p>
-              <p className="mt-1 text-xs text-fog/60 font-body">
+              <p className="mt-1 text-xs font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                 {relative.language}
               </p>
-              <p className="mt-2 text-xs text-mist/50 font-body leading-relaxed">
+              <p className="mt-2 text-xs font-body leading-relaxed" style={{ color: "var(--theme-text-secondary)", opacity: 0.5 }}>
                 {relative.connection}
               </p>
               {relative.available && (
-                <span className="absolute top-2 right-2 text-[10px] text-amber-glow/50 font-body">
+                <span className="absolute top-2 right-2 text-[10px] font-body" style={{ color: "var(--theme-accent)", opacity: 0.5 }}>
                   explore &rarr;
                 </span>
               )}
               {!relative.available && (
-                <span className="absolute top-2 right-2 text-[10px] text-fog/40 font-body">
+                <span className="absolute top-2 right-2 text-[10px] font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                   coming soon
                 </span>
               )}

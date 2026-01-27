@@ -70,7 +70,7 @@ export default function WordSound({ sounds }: WordSoundProps) {
         animate={isInView ? { opacity: 1, y: 0 } : {}}
         transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
       >
-        <h3 className="text-center text-sm uppercase tracking-[0.2em] text-fog/70 font-body mb-12">
+        <h3 className="text-center text-sm uppercase tracking-[0.2em] font-body mb-12" style={{ color: "var(--theme-text-tertiary)" }}>
           The Sound
         </h3>
 
@@ -82,20 +82,21 @@ export default function WordSound({ sounds }: WordSoundProps) {
             animate={isInView ? { opacity: 1, x: 0 } : {}}
             transition={{ duration: 0.6, delay: index * 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
           >
-            <p className="text-xs text-fog/60 uppercase tracking-wider mb-2 font-body">
+            <p className="text-xs uppercase tracking-wider mb-2 font-body" style={{ color: "var(--theme-text-tertiary)" }}>
               {sound.label}
             </p>
             <button
               onClick={() => handlePlay(index, sound)}
-              className="w-full flex items-center gap-4 px-5 py-4 rounded-xl bg-ink/50 hover:bg-ink/80 border border-moonlight/5 hover:border-moonlight/10 transition-all duration-500 group cursor-pointer"
+              className="w-full flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-500 group cursor-pointer"
+              style={{ background: "var(--theme-surface)", border: "1px solid var(--theme-border)" }}
               aria-label={`Play ${sound.label} pronunciation`}
             >
               {/* Play icon */}
               <div className="relative w-8 h-8 flex items-center justify-center">
                 {activeIndex === index ? (
                   <div className="relative w-8 h-8 flex items-center justify-center">
-                    <div className="absolute w-6 h-6 rounded-full border-2 border-amber-glow/60 animate-ping" />
-                    <div className="w-3 h-3 rounded-full bg-amber-glow/80" />
+                    <div className="absolute w-6 h-6 rounded-full animate-ping" style={{ border: "2px solid var(--theme-accent)", opacity: 0.6 }} />
+                    <div className="w-3 h-3 rounded-full" style={{ background: "var(--theme-accent)", opacity: 0.8 }} />
                   </div>
                 ) : (
                   <svg
@@ -103,7 +104,8 @@ export default function WordSound({ sounds }: WordSoundProps) {
                     height="16"
                     viewBox="0 0 16 16"
                     fill="none"
-                    className="text-mist/60 group-hover:text-amber-glow transition-colors duration-300"
+                    style={{ color: "var(--theme-text-secondary)" }}
+                    className="group-hover:text-amber-glow transition-colors duration-300"
                   >
                     <path
                       d="M4 3L13 8L4 13V3Z"
@@ -114,13 +116,13 @@ export default function WordSound({ sounds }: WordSoundProps) {
               </div>
 
               {/* IPA */}
-              <span className="font-mono text-base sm:text-lg text-moonlight/80 group-hover:text-moonlight transition-colors duration-300">
+              <span className="font-mono text-base sm:text-lg transition-colors duration-300" style={{ color: "var(--theme-text-primary)", opacity: 0.8 }}>
                 {sound.ipa}
               </span>
 
               {/* Native text (if different from IPA) */}
               {sound.text && (
-                <span className="ml-auto text-sm text-fog/50 font-body">
+                <span className="ml-auto text-sm font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                   {sound.text}
                 </span>
               )}
@@ -131,7 +133,8 @@ export default function WordSound({ sounds }: WordSoundProps) {
                   {[...Array(5)].map((_, i) => (
                     <motion.div
                       key={i}
-                      className="w-0.5 bg-amber-glow/60 rounded-full"
+                      className="w-0.5 rounded-full"
+                      style={{ background: "var(--theme-accent)", opacity: 0.6 }}
                       animate={{
                         height: [6, 16 + Math.random() * 8, 6],
                       }}
@@ -150,7 +153,7 @@ export default function WordSound({ sounds }: WordSoundProps) {
         ))}
 
         {!speechSupported && (
-          <p className="text-center text-xs text-fog/40 font-body mt-4">
+          <p className="text-center text-xs font-body mt-4" style={{ color: "var(--theme-text-tertiary)" }}>
             Audio not supported in this browser
           </p>
         )}

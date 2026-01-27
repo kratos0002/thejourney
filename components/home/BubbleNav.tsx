@@ -343,7 +343,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             key={word.slug}
             ref={(el) => { bubbleRefs.current[i] = el; }}
             data-idx={i}
-            className="absolute top-0 left-0 origin-center"
+            className="absolute top-0 left-0 origin-center bubble-item"
             style={{
               width: 64,
               height: 64,
@@ -356,14 +356,15 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             <div
               className="w-full h-full rounded-full border flex items-center justify-center relative"
               style={{
-                background: isMuted ? "rgba(26, 26, 36, 0.5)" : "rgba(26, 26, 36, 0.7)",
-                borderColor: isMuted ? "rgba(107, 104, 102, 0.2)" : getLanguageTint(word.language),
+                background: isMuted ? "var(--theme-surface)" : "var(--theme-surface-hover)",
+                borderColor: isMuted ? "var(--theme-border)" : getLanguageTint(word.language),
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)",
+                  color: isMuted ? "var(--theme-text-tertiary)" : "var(--theme-text-primary)",
+                  opacity: isMuted ? 0.5 : 0.9,
                   fontSize: `${fontSize}px`,
                 }}
               >
@@ -374,7 +375,8 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                 <span
                   className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
                   style={{
-                    background: shouldHighlight ? "rgba(212, 165, 116, 0.8)" : "rgba(107, 104, 102, 0.4)",
+                    background: shouldHighlight ? "var(--theme-accent)" : "var(--theme-text-tertiary)",
+                    opacity: shouldHighlight ? 0.8 : 0.4,
                   }}
                 >
                   <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
