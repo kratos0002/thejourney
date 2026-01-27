@@ -219,6 +219,325 @@ function roundRect(
 }
 
 /**
+ * Render "The Path" card - geographic journey visualization
+ */
+export async function renderPathCard(
+  word: Word,
+  size: CardSize = "story"
+): Promise<Blob> {
+  const { width, height } = CARD_SIZES[size];
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  const accent = getCulturalAccent(word.language);
+  const padding = 80;
+  const centerX = width / 2;
+
+  // Background gradient
+  const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+  bgGradient.addColorStop(0, "#0a0a14");
+  bgGradient.addColorStop(0.5, "#0f0f1a");
+  bgGradient.addColorStop(1, "#12121e");
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Vignette
+  const vignetteGradient = ctx.createRadialGradient(
+    centerX, height / 2, height * 0.2,
+    centerX, height / 2, height * 0.7
+  );
+  vignetteGradient.addColorStop(0, "transparent");
+  vignetteGradient.addColorStop(1, "rgba(10, 10, 20, 0.6)");
+  ctx.fillStyle = vignetteGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Word at top
+  const wordY = size === "story" ? 180 : 120;
+
+  ctx.shadowColor = accent.primary;
+  ctx.shadowBlur = 30;
+  ctx.font = `600 ${size === "story" ? 64 : 56}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+  ctx.fillText(word.word, centerX, wordY);
+  ctx.shadowBlur = 0;
+
+  // Romanization
+  ctx.font = `400 ${size === "story" ? 24 : 20}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = accent.primary;
+  ctx.fillText(word.romanization, centerX, wordY + 40);
+
+  // Journey visualization
+  const journey = word.journey.slice(0, 4); // Max 4 stops
+  const mapStartY = size === "story" ? height * 0.22 : height * 0.25;
+  const mapHeight = size === "story" ? height * 0.5 : height * 0.45;
+  const mapCenterY = mapStartY + mapHeight / 2;
+
+  // Draw curved path connecting stops
+  if (journey.length > 1) {
+    ctx.beginPath();
+    ctx.strokeStyle = `${accent.primary}60`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([8, 8]);
+
+    const stopSpacing = (width - padding * 4) / (journey.length - 1);
+    const startX = padding * 2;
+
+    for (let i = 0; i < journey.length; i++) {
+      const x = startX + i * stopSpacing;
+      const y = mapCenterY + Math.sin(i * 0.8) * 60; // Wavy path
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        const prevX = startX + (i - 1) * stopSpacing;
+        const prevY = mapCenterY + Math.sin((i - 1) * 0.8) * 60;
+        const cpX = (prevX + x) / 2;
+        const cpY = (prevY + y) / 2 - 30;
+        ctx.quadraticCurveTo(cpX, cpY, x, y);
+      }
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw stops
+    for (let i = 0; i < journey.length; i++) {
+      const stop = journey[i];
+      const x = startX + i * stopSpacing;
+      const y = mapCenterY + Math.sin(i * 0.8) * 60;
+
+      // Glow
+      const glowGrad = ctx.createRadialGradient(x, y, 0, x, y, 40);
+      glowGrad.addColorStop(0, `${accent.primary}40`);
+      glowGrad.addColorStop(1, "transparent");
+      ctx.fillStyle = glowGrad;
+      ctx.fillRect(x - 40, y - 40, 80, 80);
+
+      // Dot
+      ctx.beginPath();
+      ctx.arc(x, y, 12, 0, Math.PI * 2);
+      ctx.fillStyle = i === 0 ? accent.primary : i === journey.length - 1 ? "#ffffff" : `${accent.primary}cc`;
+      ctx.fill();
+
+      // Inner dot
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = "#0a0a14";
+      ctx.fill();
+
+      // Location label
+      ctx.font = `500 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
+      ctx.fillStyle = "#f0ede6";
+      ctx.textAlign = "center";
+      ctx.fillText(stop.location, x, y + 35);
+
+      // Period
+      ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
+      ctx.fillStyle = "#6b6866";
+      ctx.fillText(stop.period, x, y + 55);
+
+      // Form (if different from previous)
+      if (stop.form && stop.form !== "origin plant") {
+        ctx.font = `italic ${size === "story" ? 16 : 14}px "Cormorant Garamond", Georgia, serif`;
+        ctx.fillStyle = accent.primary;
+        ctx.fillText(stop.form, x, y - 25);
+      }
+    }
+  }
+
+  // Time span summary
+  const summaryY = size === "story" ? height * 0.78 : height * 0.75;
+  const firstStop = journey[0];
+  const lastStop = journey[journey.length - 1];
+  const timeSpan = `${firstStop?.period || ""} \u2192 ${lastStop?.period || "today"}`;
+
+  ctx.font = `400 ${size === "story" ? 20 : 18}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "#a8b0b8";
+  ctx.textAlign = "center";
+  ctx.fillText(timeSpan, centerX, summaryY);
+
+  // Hook (abbreviated)
+  const hookY = size === "story" ? height * 0.85 : height * 0.82;
+  const hook = word.hook.length > 60 ? word.hook.substring(0, 57) + "..." : word.hook;
+
+  ctx.font = `italic ${size === "story" ? 22 : 20}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "#f0ede6";
+  ctx.fillText(hook, centerX, hookY);
+
+  // Divider and branding
+  const dividerY = size === "story" ? height - 140 : height - 100;
+  ctx.strokeStyle = "rgba(240, 237, 230, 0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding * 2, dividerY);
+  ctx.lineTo(width - padding * 2, dividerY);
+  ctx.stroke();
+
+  ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  ctx.fillText("thejourney.app", centerX, dividerY + 40);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to generate card image"));
+      },
+      "image/png",
+      1.0
+    );
+  });
+}
+
+/**
+ * Render "The Sound" card - pronunciation evolution
+ */
+export async function renderSoundCard(
+  word: Word,
+  size: CardSize = "story"
+): Promise<Blob> {
+  const { width, height } = CARD_SIZES[size];
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  const accent = getCulturalAccent(word.language);
+  const padding = 80;
+  const centerX = width / 2;
+
+  // Background gradient
+  const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+  bgGradient.addColorStop(0, "#0a0a14");
+  bgGradient.addColorStop(0.5, "#0f0f1a");
+  bgGradient.addColorStop(1, "#12121e");
+  ctx.fillStyle = bgGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Vignette
+  const vignetteGradient = ctx.createRadialGradient(
+    centerX, height / 2, height * 0.2,
+    centerX, height / 2, height * 0.8
+  );
+  vignetteGradient.addColorStop(0, "transparent");
+  vignetteGradient.addColorStop(1, "rgba(10, 10, 20, 0.5)");
+  ctx.fillStyle = vignetteGradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Title
+  const titleY = size === "story" ? 160 : 100;
+  ctx.font = `400 ${size === "story" ? 24 : 20}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "#6b6866";
+  ctx.textAlign = "center";
+  ctx.fillText(`The Sound of ${word.romanization}`, centerX, titleY);
+
+  // Sound cards
+  const sounds = word.sounds.slice(0, 3); // Max 3 sounds
+  const cardWidth = width - padding * 2;
+  const cardHeight = size === "story" ? 180 : 150;
+  const cardGap = size === "story" ? 40 : 30;
+  const totalCardsHeight = sounds.length * cardHeight + (sounds.length - 1) * cardGap;
+  const startY = (height - totalCardsHeight) / 2 - (size === "story" ? 40 : 20);
+
+  for (let i = 0; i < sounds.length; i++) {
+    const sound = sounds[i];
+    const cardY = startY + i * (cardHeight + cardGap);
+    const cardX = (width - cardWidth) / 2;
+
+    // Card background
+    ctx.fillStyle = "rgba(20, 20, 30, 0.5)";
+    ctx.beginPath();
+    roundRect(ctx, cardX, cardY, cardWidth, cardHeight, 16);
+    ctx.fill();
+
+    // Card border with gradient based on position
+    const borderColor = i === 0 ? accent.primary : i === sounds.length - 1 ? "#ffffff" : accent.secondary;
+    ctx.strokeStyle = `${borderColor}40`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Sound text (the word form) - use text if available, otherwise extract from label
+    const soundText = sound.text || sound.label.split(" ").pop() || "";
+    ctx.shadowColor = i === 0 ? accent.primary : "transparent";
+    ctx.shadowBlur = i === 0 ? 20 : 0;
+    ctx.font = `600 ${size === "story" ? 42 : 36}px "Cormorant Garamond", Georgia, serif`;
+    ctx.fillStyle = "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(soundText, centerX, cardY + (size === "story" ? 65 : 55));
+    ctx.shadowBlur = 0;
+
+    // IPA pronunciation
+    ctx.font = `400 ${size === "story" ? 24 : 20}px "JetBrains Mono", monospace`;
+    ctx.fillStyle = accent.primary;
+    ctx.fillText(sound.ipa || "", centerX, cardY + (size === "story" ? 105 : 90));
+
+    // Label
+    ctx.font = `400 ${size === "story" ? 16 : 14}px "Source Serif 4", Georgia, serif`;
+    ctx.fillStyle = "#6b6866";
+    ctx.fillText(sound.label || "", centerX, cardY + (size === "story" ? 140 : 120));
+
+    // Flow arrow between cards
+    if (i < sounds.length - 1) {
+      const arrowY = cardY + cardHeight + cardGap / 2;
+      ctx.fillStyle = `${accent.primary}60`;
+      ctx.beginPath();
+      ctx.moveTo(centerX, arrowY - 8);
+      ctx.lineTo(centerX + 8, arrowY + 4);
+      ctx.lineTo(centerX - 8, arrowY + 4);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+
+  // Divider and branding
+  const dividerY = size === "story" ? height - 140 : height - 100;
+  ctx.strokeStyle = "rgba(240, 237, 230, 0.15)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padding * 2, dividerY);
+  ctx.lineTo(width - padding * 2, dividerY);
+  ctx.stroke();
+
+  ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  ctx.textAlign = "center";
+  ctx.fillText("thejourney.app", centerX, dividerY + 40);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to generate card image"));
+      },
+      "image/png",
+      1.0
+    );
+  });
+}
+
+export type CardType = "moment" | "path" | "sound";
+
+/**
+ * Render any card type
+ */
+export async function renderCard(
+  word: Word,
+  type: CardType,
+  size: CardSize = "story"
+): Promise<Blob> {
+  switch (type) {
+    case "moment":
+      return renderMomentCard(word, size);
+    case "path":
+      return renderPathCard(word, size);
+    case "sound":
+      return renderSoundCard(word, size);
+  }
+}
+
+/**
  * Download a blob as a file
  */
 export function downloadBlob(blob: Blob, filename: string) {

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Word } from "@/data/word-types";
-import { renderMomentCard, shareCard, downloadBlob, type CardSize } from "@/lib/share/card-renderer";
+import { renderCard, shareCard, downloadBlob, type CardSize, type CardType } from "@/lib/share/card-renderer";
 
 interface ShareDrawerProps {
   word: Word;
@@ -11,11 +11,16 @@ interface ShareDrawerProps {
   onClose: () => void;
 }
 
-type CardType = "moment"; // MVP: only moment card, future: "path" | "sound"
 type GenerationState = "idle" | "generating" | "ready" | "error";
 
+const CARD_TYPES: { type: CardType; label: string; icon: string; description: string }[] = [
+  { type: "moment", label: "Quote", icon: "quote", description: "The hook that captures the essence" },
+  { type: "path", label: "Journey", icon: "map", description: "The geographic path through time" },
+  { type: "sound", label: "Sound", icon: "sound", description: "How pronunciation evolved" },
+];
+
 export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
-  const [cardType] = useState<CardType>("moment");
+  const [cardType, setCardType] = useState<CardType>("moment");
   const [cardSize, setCardSize] = useState<CardSize>("story");
   const [state, setState] = useState<GenerationState>("idle");
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
@@ -28,8 +33,13 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
     setError(null);
 
     try {
-      const blob = await renderMomentCard(word, cardSize);
+      const blob = await renderCard(word, cardType, cardSize);
       setCardBlob(blob);
+
+      // Cleanup previous preview URL
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setPreviewUrl(URL.createObjectURL(blob));
       setState("ready");
     } catch (err) {
@@ -37,7 +47,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
       setError("Failed to generate card");
       setState("error");
     }
-  }, [word, cardSize]);
+  }, [word, cardType, cardSize]);
 
   useEffect(() => {
     if (open) {
@@ -51,14 +61,14 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
       setCardBlob(null);
       setState("idle");
     }
-  }, [open, generateCard]);
+  }, [open]);
 
-  // Regenerate when size changes
+  // Regenerate when type or size changes
   useEffect(() => {
-    if (open && state === "ready") {
+    if (open) {
       generateCard();
     }
-  }, [cardSize]);
+  }, [cardType, cardSize]);
 
   const handleShare = async () => {
     if (!cardBlob) return;
@@ -67,13 +77,42 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
 
   const handleDownload = () => {
     if (!cardBlob) return;
-    downloadBlob(cardBlob, `${word.slug}-journey-${cardSize}.png`);
+    downloadBlob(cardBlob, `${word.slug}-${cardType}-${cardSize}.png`);
   };
 
   const handleCopyLink = async () => {
     const url = `https://thejourney.app/word/${word.slug}`;
     await navigator.clipboard.writeText(url);
-    // Could add a toast notification here
+  };
+
+  const getCardIcon = (iconType: string) => {
+    switch (iconType) {
+      case "quote":
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z" />
+            <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z" />
+          </svg>
+        );
+      case "map":
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6z" />
+            <path d="M9 3v15" />
+            <path d="M15 6v15" />
+          </svg>
+        );
+      case "sound":
+        return (
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            <line x1="12" y1="19" x2="12" y2="22" />
+          </svg>
+        );
+      default:
+        return null;
+    }
   };
 
   if (!open) return null;
@@ -118,29 +157,55 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
 
             {/* Content */}
             <div className="p-6 overflow-y-auto" style={{ maxHeight: "calc(90vh - 80px)" }}>
+              {/* Card Type Tabs */}
+              <div className="flex gap-2 mb-4">
+                {CARD_TYPES.map(({ type, label, icon }) => (
+                  <button
+                    key={type}
+                    onClick={() => setCardType(type)}
+                    className="flex-1 py-3 px-3 rounded-xl text-sm font-body transition-all flex flex-col items-center gap-1.5"
+                    style={{
+                      background: cardType === type ? "var(--theme-accent-muted)" : "var(--theme-bg-primary)",
+                      color: cardType === type ? "var(--theme-accent)" : "var(--theme-text-secondary)",
+                      border: cardType === type ? "1px solid var(--theme-accent)" : "1px solid var(--theme-border)",
+                    }}
+                  >
+                    <span style={{ opacity: cardType === type ? 1 : 0.6 }}>
+                      {getCardIcon(icon)}
+                    </span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Card type description */}
+              <p className="text-xs font-body text-center mb-4" style={{ color: "var(--theme-text-tertiary)" }}>
+                {CARD_TYPES.find(c => c.type === cardType)?.description}
+              </p>
+
               {/* Size Toggle */}
-              <div className="flex gap-2 mb-6">
+              <div className="flex gap-2 mb-5">
                 <button
                   onClick={() => setCardSize("story")}
-                  className="flex-1 py-2 px-4 rounded-lg text-sm font-body transition-colors"
+                  className="flex-1 py-2 px-4 rounded-lg text-xs font-body transition-colors"
                   style={{
-                    background: cardSize === "story" ? "var(--theme-accent-muted)" : "var(--theme-bg-primary)",
-                    color: cardSize === "story" ? "var(--theme-accent)" : "var(--theme-text-secondary)",
-                    border: cardSize === "story" ? "1px solid var(--theme-accent)" : "1px solid var(--theme-border)",
+                    background: cardSize === "story" ? "var(--theme-bg-tertiary)" : "transparent",
+                    color: cardSize === "story" ? "var(--theme-text-primary)" : "var(--theme-text-tertiary)",
+                    border: `1px solid ${cardSize === "story" ? "var(--theme-border-strong)" : "var(--theme-border)"}`,
                   }}
                 >
-                  Story (9:16)
+                  Story 9:16
                 </button>
                 <button
                   onClick={() => setCardSize("square")}
-                  className="flex-1 py-2 px-4 rounded-lg text-sm font-body transition-colors"
+                  className="flex-1 py-2 px-4 rounded-lg text-xs font-body transition-colors"
                   style={{
-                    background: cardSize === "square" ? "var(--theme-accent-muted)" : "var(--theme-bg-primary)",
-                    color: cardSize === "square" ? "var(--theme-accent)" : "var(--theme-text-secondary)",
-                    border: cardSize === "square" ? "1px solid var(--theme-accent)" : "1px solid var(--theme-border)",
+                    background: cardSize === "square" ? "var(--theme-bg-tertiary)" : "transparent",
+                    color: cardSize === "square" ? "var(--theme-text-primary)" : "var(--theme-text-tertiary)",
+                    border: `1px solid ${cardSize === "square" ? "var(--theme-border-strong)" : "var(--theme-border)"}`,
                   }}
                 >
-                  Square (1:1)
+                  Square 1:1
                 </button>
               </div>
 
@@ -150,8 +215,8 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                 style={{
                   background: "var(--theme-bg-primary)",
                   aspectRatio: cardSize === "story" ? "9/16" : "1/1",
-                  maxHeight: cardSize === "story" ? "400px" : "300px",
-                  width: cardSize === "story" ? "225px" : "300px",
+                  maxHeight: cardSize === "story" ? "380px" : "280px",
+                  width: cardSize === "story" ? "214px" : "280px",
                 }}
               >
                 {state === "generating" && (
@@ -160,8 +225,8 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                       className="w-8 h-8 border-2 rounded-full animate-spin"
                       style={{ borderColor: "var(--theme-border)", borderTopColor: "var(--theme-accent)" }}
                     />
-                    <span className="text-sm font-body" style={{ color: "var(--theme-text-tertiary)" }}>
-                      Generating...
+                    <span className="text-xs font-body" style={{ color: "var(--theme-text-tertiary)" }}>
+                      Creating card...
                     </span>
                   </div>
                 )}
@@ -176,10 +241,10 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
 
                 {state === "error" && (
                   <div className="flex flex-col items-center gap-3 p-4 text-center">
-                    <span className="text-red-400 text-sm font-body">{error}</span>
+                    <span className="text-red-400 text-xs font-body">{error}</span>
                     <button
                       onClick={generateCard}
-                      className="text-sm font-body px-4 py-2 rounded-lg"
+                      className="text-xs font-body px-4 py-2 rounded-lg"
                       style={{ background: "var(--theme-accent-muted)", color: "var(--theme-accent)" }}
                     >
                       Retry
@@ -190,7 +255,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
 
               {/* Actions */}
               <div className="space-y-3">
-                {/* Primary: Share/Save */}
+                {/* Primary: Share */}
                 <button
                   onClick={handleShare}
                   disabled={state !== "ready"}
@@ -205,7 +270,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                     <polyline points="16 6 12 2 8 6" />
                     <line x1="12" y1="2" x2="12" y2="15" />
                   </svg>
-                  Share Image
+                  Share
                 </button>
 
                 {/* Secondary: Download */}
