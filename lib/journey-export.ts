@@ -344,26 +344,29 @@ function calculatePanOffset(
   return [dx, dy];
 }
 
-// Timing constants matching JourneyMap.tsx GSAP animation
+// Timing constants matching JourneyMap.tsx playback (2 seconds per step)
 const TIMING = {
-  TITLE_FADE_IN: 0.8,        // Title fade duration (seconds)
-  MAP_START: 1.0,            // When map animation starts
+  TITLE_FADE_IN: 1.2,        // Title fade duration (seconds)
+  TITLE_HOLD: 1.0,           // Hold title before map starts
+  MAP_START: 2.2,            // When map animation starts (after title)
   FIRST_NODE_DELAY: 0.5,     // First node appears at this time after map start
-  STOP_SPACING: 0.6,         // Time between each stop
-  ARC_DURATION: 1.0,         // Duration for arc to draw
-  NODE_FADE_DURATION: 0.4,   // Node fade in duration
-  LABEL_DELAY: 0.15,         // Label appears after node
-  HOOK_FADE_IN: 0.8,         // Hook fade duration
-  END_PAUSE: 1.5,            // Pause at end before video ends
+  STOP_SPACING: 2.0,         // Time between each stop (matches stepDuration = 2000ms)
+  ARC_DURATION: 1.5,         // Duration for arc to draw (smooth, not rushed)
+  NODE_FADE_DURATION: 0.6,   // Node fade in duration
+  LABEL_DELAY: 0.2,          // Label appears after node
+  HOOK_FADE_IN: 1.2,         // Hook fade duration
+  HOOK_HOLD: 2.0,            // Hold hook at end
+  END_PAUSE: 1.0,            // Final pause before video ends
 };
 
 function calculateAnimationDuration(stopCount: number): number {
-  // Total = title + first node delay + (N-1) * stop spacing + last arc settle + hook + pause
+  // Total = map start + first node + stops + last arc settle + hook + end pause
   return TIMING.MAP_START +
          TIMING.FIRST_NODE_DELAY +
          (stopCount - 1) * TIMING.STOP_SPACING +
          TIMING.ARC_DURATION +
          TIMING.HOOK_FADE_IN +
+         TIMING.HOOK_HOLD +
          TIMING.END_PAUSE;
 }
 
@@ -459,7 +462,7 @@ function drawFrame(
   }
 
   // Hook fade-in at the end
-  const hookStartTime = totalDuration - TIMING.HOOK_FADE_IN - TIMING.END_PAUSE;
+  const hookStartTime = totalDuration - TIMING.HOOK_FADE_IN - TIMING.HOOK_HOLD - TIMING.END_PAUSE;
   const hookTime = timeSeconds - hookStartTime;
   const hookOpacity = clamp(hookTime / TIMING.HOOK_FADE_IN, 0, 1);
   drawHook(ctx, hook, easeOut(hookOpacity));
