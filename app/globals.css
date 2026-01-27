@@ -16,6 +16,14 @@
   --theme-surface: rgba(26, 26, 36, 0.7);
   --theme-surface-hover: rgba(26, 26, 36, 0.85);
   --theme-glow: rgba(212, 165, 116, 0.15);
+  /* Bubble-specific (high contrast for globe) */
+  --theme-bubble-bg: rgba(20, 20, 25, 0.9);
+  --theme-bubble-bg-muted: rgba(30, 30, 35, 0.85);
+  --theme-bubble-text: #ffffff;
+  --theme-bubble-text-muted: rgba(180, 180, 190, 0.85);
+  --theme-bubble-shadow: rgba(0, 0, 0, 0.4);
+  --theme-bubble-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7), 0 0 8px rgba(0, 0, 0, 0.4);
+  --theme-bubble-text-shadow-muted: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="parchment"] {
@@ -33,6 +41,14 @@
   --theme-surface: rgba(255, 254, 250, 0.9);
   --theme-surface-hover: rgba(255, 254, 250, 1);
   --theme-glow: rgba(184, 134, 11, 0.1);
+  /* Bubble-specific (high contrast for light globe) */
+  --theme-bubble-bg: rgba(255, 252, 245, 0.95);
+  --theme-bubble-bg-muted: rgba(245, 240, 230, 0.9);
+  --theme-bubble-text: #1a1510;
+  --theme-bubble-text-muted: rgba(90, 83, 72, 0.9);
+  --theme-bubble-shadow: rgba(0, 0, 0, 0.15);
+  --theme-bubble-text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+  --theme-bubble-text-shadow-muted: 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
 /* Classroom Mode - Large screen accessibility (desktop only) */
