@@ -9,6 +9,7 @@ import { newWordsBatch7 } from "./words-batch7";
 import { newWordsBatch8 } from "./words-batch8";
 import { newWordsBatch9 } from "./words-batch9";
 import { newWordsBatch10 } from "./words-batch10";
+import { newWordsBatch11 } from "./words-batch11";
 
 export const words: Word[] = [
   {
@@ -324,7 +325,7 @@ export const words: Word[] = [
 ];
 
 // Combine all word entries
-export const allWords: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10];
+export const allWords: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10, ...newWordsBatch11];
 
 export function getWordBySlug(slug: string): Word | undefined {
   return allWords.find((word) => word.slug === slug);
