@@ -322,9 +322,22 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     >
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
+        const isMatch = !hasActiveFilters || (filteredSlugs?.has(word.slug) ?? true);
+
+        // When filters active: matching words are bright, explored gets subtle indicator
+        // When no filters: explored words are muted
+        const shouldHighlight = hasActiveFilters && isMatch;
+
         // Adaptive font size based on word length
         const len = word.slug.length;
         const fontSize = len <= 5 ? 14 : len <= 7 ? 12 : len <= 9 ? 10 : 9;
+
+        // Style logic:
+        // - If filtering and matches: always bright (ignore explored muting)
+        // - If not filtering and explored: muted
+        // - Otherwise: bright
+        const isMuted = !hasActiveFilters && explored;
+
         return (
           <button
             key={word.slug}
@@ -341,21 +354,34 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             aria-label={`Explore ${word.slug}`}
           >
             <div
-              className="w-full h-full rounded-full border flex items-center justify-center"
+              className="w-full h-full rounded-full border flex items-center justify-center relative"
               style={{
-                background: explored ? "rgba(26, 26, 36, 0.5)" : "rgba(26, 26, 36, 0.7)",
-                borderColor: explored ? "rgba(107, 104, 102, 0.2)" : getLanguageTint(word.language),
+                background: isMuted ? "rgba(26, 26, 36, 0.5)" : "rgba(26, 26, 36, 0.7)",
+                borderColor: isMuted ? "rgba(107, 104, 102, 0.2)" : getLanguageTint(word.language),
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: explored ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)",
+                  color: isMuted ? "rgba(107, 104, 102, 0.5)" : "rgba(240, 237, 230, 0.9)",
                   fontSize: `${fontSize}px`,
                 }}
               >
                 {word.slug}
               </span>
+              {/* Small checkmark for explored words when they're visible */}
+              {explored && (shouldHighlight || !hasActiveFilters) && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                  style={{
+                    background: shouldHighlight ? "rgba(212, 165, 116, 0.8)" : "rgba(107, 104, 102, 0.4)",
+                  }}
+                >
+                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                    <polyline points="20,6 9,17 4,12" />
+                  </svg>
+                </span>
+              )}
             </div>
           </button>
         );
