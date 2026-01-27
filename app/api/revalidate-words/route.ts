@@ -10,7 +10,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  revalidateTag("words");
+  // Next.js 16 requires a second argument for cache profile
+  revalidateTag("words", "default");
 
   return NextResponse.json({ revalidated: true, now: Date.now() });
 }
