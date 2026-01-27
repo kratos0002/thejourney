@@ -13,9 +13,9 @@ interface ShareDrawerProps {
 
 type GenerationState = "idle" | "generating" | "ready" | "error";
 
-const CARD_TYPES: { type: CardType; label: string; description: string }[] = [
-  { type: "moment", label: "The Essence", description: "A quote card featuring the hook" },
-  { type: "path", label: "The Journey", description: "The word's path through history" },
+const CARD_TYPES: { type: CardType; label: string }[] = [
+  { type: "moment", label: "The Essence" },
+  { type: "path", label: "The Journey" },
 ];
 
 export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
@@ -162,11 +162,6 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                   </button>
                 ))}
               </div>
-
-              {/* Description */}
-              <p className="text-xs font-body text-center mb-5" style={{ color: "var(--theme-text-tertiary)", opacity: 0.7 }}>
-                {CARD_TYPES.find(c => c.type === cardType)?.description}
-              </p>
 
               {/* Card Preview */}
               <div className="relative mx-auto mb-6" style={{ width: "200px" }}>
