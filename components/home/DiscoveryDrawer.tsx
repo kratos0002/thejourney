@@ -19,14 +19,11 @@ function FilterChip({ label, active, onClick }: FilterChipProps) {
   return (
     <button
       onClick={onClick}
-      className={`
-        shrink-0 px-3 py-1.5 rounded-full text-xs font-body
-        border transition-all duration-300 cursor-pointer
-        ${active
-          ? "bg-amber-glow/20 border-amber-glow/50 text-amber-glow"
-          : "bg-abyss/50 border-fog/15 text-fog/60 hover:border-fog/30 hover:text-fog/80"
-        }
-      `}
+      className="shrink-0 px-3 py-1.5 rounded-full text-xs font-body border transition-all duration-300 cursor-pointer"
+      style={active
+        ? { background: "var(--theme-accent-muted)", borderColor: "var(--theme-accent)", color: "var(--theme-accent)" }
+        : { background: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text-tertiary)" }
+      }
     >
       {label}
     </button>
@@ -45,7 +42,7 @@ function FilterRow({ title, chips, activeChips, onToggle }: FilterRowProps) {
 
   return (
     <div className="space-y-2">
-      <p className="text-[10px] text-fog/40 font-body tracking-widest uppercase px-1">
+      <p className="text-[10px] font-body tracking-widest uppercase px-1" style={{ color: "var(--theme-text-tertiary)" }}>
         {title}
       </p>
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
@@ -127,15 +124,15 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
         transition={{ delay: 1.2, duration: 0.8 }}
       >
         {hasActiveFilters ? (
-          <span className="text-[10px] text-amber-glow/70 font-body tracking-wider">
+          <span className="text-[10px] font-body tracking-wider" style={{ color: "var(--theme-accent)", opacity: 0.7 }}>
             {matchingCount} journeys
           </span>
         ) : (
-          <span className="text-[10px] text-fog/30 font-body tracking-wider">
+          <span className="text-[10px] font-body tracking-wider" style={{ color: "var(--theme-text-tertiary)", opacity: 0.5 }}>
             Explore paths...
           </span>
         )}
-        <div className="w-10 h-1 bg-fog/20 rounded-full mt-2" />
+        <div className="w-10 h-1 rounded-full mt-2" style={{ background: "var(--theme-text-tertiary)", opacity: 0.2 }} />
       </motion.button>
 
       {/* Drawer */}
@@ -144,7 +141,8 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 z-30 bg-abyss/60 backdrop-blur-sm"
+              className="fixed inset-0 z-30 backdrop-blur-sm"
+              style={{ background: "var(--theme-bg-primary)", opacity: 0.6 }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -153,8 +151,12 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
 
             {/* Drawer Panel */}
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-40 bg-ink/95 backdrop-blur-md border-t border-moonlight/10 rounded-t-2xl"
-              style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+              className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md rounded-t-2xl"
+              style={{
+                paddingBottom: "env(safe-area-inset-bottom, 0px)",
+                background: "var(--theme-bg-secondary)",
+                borderTop: "1px solid var(--theme-border)"
+              }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -164,15 +166,16 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
               <div className="flex justify-center pt-3 pb-2">
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="w-10 h-1 bg-fog/30 rounded-full cursor-pointer"
+                  className="w-10 h-1 rounded-full cursor-pointer"
+                  style={{ background: "var(--theme-text-tertiary)", opacity: 0.3 }}
                 />
               </div>
 
               {/* Header */}
               <div className="flex items-center justify-between px-5 pb-3">
                 <div>
-                  <h3 className="font-display text-lg text-moonlight/80">Explore paths</h3>
-                  <p className="text-[10px] text-fog/40 font-body">
+                  <h3 className="font-display text-lg" style={{ color: "var(--theme-text-primary)", opacity: 0.8 }}>Explore paths</h3>
+                  <p className="text-[10px] font-body" style={{ color: "var(--theme-text-tertiary)" }}>
                     {hasActiveFilters
                       ? `${matchingCount} of ${words.length} journeys`
                       : `${words.length} journeys to discover`
@@ -182,7 +185,8 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                 {hasActiveFilters && (
                   <button
                     onClick={clearFilters}
-                    className="text-[10px] text-fog/40 hover:text-fog/70 font-body transition-colors cursor-pointer"
+                    className="text-[10px] font-body transition-colors cursor-pointer"
+                    style={{ color: "var(--theme-text-tertiary)" }}
                   >
                     Clear all
                   </button>
