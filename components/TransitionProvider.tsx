@@ -96,7 +96,8 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
           >
             {/* Background fade */}
             <motion.div
-              className="absolute inset-0 bg-abyss"
+              className="absolute inset-0"
+              style={{ background: "var(--theme-bg-primary)" }}
               initial={{ opacity: 0 }}
               animate={{ opacity: state.direction === "in" ? 1 : 0.8 }}
               exit={{ opacity: 0 }}
@@ -106,7 +107,8 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
             {/* Growing word */}
             {state.word && state.direction === "in" && (
               <motion.div
-                className="relative z-10 font-display text-moonlight/90"
+                className="relative z-10 font-display"
+                style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}
                 initial={{
                   opacity: 0.8,
                   scale: 1,
@@ -138,7 +140,7 @@ export function TransitionProvider({ children }: { children: React.ReactNode }) 
                 animate={{ opacity: 0.6, y: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
               >
-                <span className="font-display text-2xl text-moonlight/60">
+                <span className="font-display text-2xl" style={{ color: "var(--theme-text-primary)", opacity: 0.6 }}>
                   The Journey
                 </span>
               </motion.div>
