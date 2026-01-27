@@ -328,9 +328,9 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
         // When no filters: explored words are muted
         const shouldHighlight = hasActiveFilters && isMatch;
 
-        // Adaptive font size based on word length
+        // Adaptive font size based on word length (in rem for zoom support)
         const len = word.slug.length;
-        const fontSize = len <= 5 ? 14 : len <= 7 ? 12 : len <= 9 ? 10 : 9;
+        const fontSize = len <= 5 ? 0.875 : len <= 7 ? 0.75 : len <= 9 ? 0.625 : 0.5625;
 
         // Style logic:
         // - If filtering and matches: always bright (ignore explored muting)
@@ -345,8 +345,8 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             data-idx={i}
             className="absolute top-0 left-0 origin-center bubble-item"
             style={{
-              width: 64,
-              height: 64,
+              width: "4rem",
+              height: "4rem",
               transform: "translate3d(-9999px, -9999px, 0) scale(0)",
               opacity: 0,
             }}
@@ -365,7 +365,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                 style={{
                   color: isMuted ? "var(--theme-text-tertiary)" : "var(--theme-text-primary)",
                   opacity: isMuted ? 0.5 : 0.9,
-                  fontSize: `${fontSize}px`,
+                  fontSize: `${fontSize}rem`,
                 }}
               >
                 {word.slug}
@@ -373,13 +373,17 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               {/* Small checkmark for explored words when they're visible */}
               {explored && (shouldHighlight || !hasActiveFilters) && (
                 <span
-                  className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center"
+                  className="absolute rounded-full flex items-center justify-center"
                   style={{
+                    top: "-0.125rem",
+                    right: "-0.125rem",
+                    width: "0.875rem",
+                    height: "0.875rem",
                     background: shouldHighlight ? "var(--theme-accent)" : "var(--theme-text-tertiary)",
                     opacity: shouldHighlight ? 0.8 : 0.4,
                   }}
                 >
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
+                  <svg style={{ width: "0.5rem", height: "0.5rem" }} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                     <polyline points="20,6 9,17 4,12" />
                   </svg>
                 </span>

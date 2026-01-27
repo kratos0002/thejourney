@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useExploration } from "@/components/ExplorationProvider";
+import { useTheme } from "@/components/ThemeProvider";
 import { Word } from "@/data/word-types";
 import { getUserNotifications, dismissNotification, type UserNotification } from "@/lib/feedback";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
@@ -17,6 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
 
 export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: { words: Word[]; open: boolean; onClose: () => void; onFeedbackClick?: () => void }) {
   const { user, authReady, exploredSlugs, exploredCount, isPremium, signInWithEmail, verifyOtp } = useExploration();
+  const { classroomMode, setClassroomMode } = useTheme();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const showThemeSelector = useFeatureFlag("theme_selection");
 
@@ -121,14 +123,19 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
       <div className="fixed right-5 z-30 w-64" style={{ top: "calc(env(safe-area-inset-top, 0px) + 4rem)" }}>
         <div className="rounded-2xl p-4 shadow-2xl transition-colors duration-300" style={{ background: "var(--theme-bg-secondary)", border: "1px solid var(--theme-border-strong)" }}>
               {/* Stats row */}
-              <div className="flex items-center gap-4 mb-4">
+              <div className="flex items-center gap-3 mb-4">
                 <div className="text-center flex-1">
                   <p className="font-display text-xl" style={{ color: "var(--theme-text-primary)", opacity: 0.9 }}>{analytics.words}</p>
-                  <p className="text-[9px] font-body tracking-widest uppercase" style={{ color: "var(--theme-text-tertiary)" }}>words</p>
+                  <p className="text-[9px] font-body tracking-widest uppercase" style={{ color: "var(--theme-text-tertiary)" }}>explored</p>
                 </div>
                 <div className="w-px h-8" style={{ background: "var(--theme-border)" }} />
                 <div className="text-center flex-1">
-                  <p className="font-display text-xl" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>{analytics.languages}</p>
+                  <p className="font-display text-xl" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>{words.length}</p>
+                  <p className="text-[9px] font-body tracking-widest uppercase" style={{ color: "var(--theme-text-tertiary)" }}>total</p>
+                </div>
+                <div className="w-px h-8" style={{ background: "var(--theme-border)" }} />
+                <div className="text-center flex-1">
+                  <p className="font-display text-xl" style={{ color: "var(--theme-text-secondary)", opacity: 0.7 }}>{analytics.languages}</p>
                   <p className="text-[9px] font-body tracking-widest uppercase" style={{ color: "var(--theme-text-tertiary)" }}>languages</p>
                 </div>
               </div>
@@ -299,6 +306,60 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
               {user && showThemeSelector && (
                 <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--theme-border)" }}>
                   <ThemeSelector />
+                </div>
+              )}
+
+              {/* Classroom Mode Toggle - for logged-in users */}
+              {user && (
+                <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--theme-border)" }}>
+                  <button
+                    onClick={() => setClassroomMode(!classroomMode)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl transition-colors cursor-pointer"
+                    style={{
+                      background: classroomMode ? "var(--theme-accent-muted)" : "var(--theme-border)",
+                      border: classroomMode ? "1px solid var(--theme-accent)" : "1px solid transparent",
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        style={{ color: classroomMode ? "var(--theme-accent)" : "var(--theme-text-secondary)" }}
+                      >
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8" />
+                        <path d="M12 17v4" />
+                      </svg>
+                      <div className="text-left">
+                        <p
+                          className="text-sm font-medium"
+                          style={{ color: classroomMode ? "var(--theme-text-primary)" : "var(--theme-text-secondary)" }}
+                        >
+                          Classroom Mode
+                        </p>
+                        <p className="text-[10px]" style={{ color: "var(--theme-text-tertiary)" }}>
+                          Larger text for big screens
+                        </p>
+                      </div>
+                    </div>
+                    {/* Toggle switch */}
+                    <div
+                      className="w-10 h-5 rounded-full p-0.5 transition-colors"
+                      style={{ background: classroomMode ? "var(--theme-accent)" : "var(--theme-text-tertiary)" }}
+                    >
+                      <div
+                        className="w-4 h-4 rounded-full transition-transform"
+                        style={{
+                          background: "white",
+                          transform: classroomMode ? "translateX(20px)" : "translateX(0)",
+                        }}
+                      />
+                    </div>
+                  </button>
                 </div>
               )}
             </div>

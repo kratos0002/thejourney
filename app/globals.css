@@ -35,6 +35,31 @@
   --theme-glow: rgba(184, 134, 11, 0.1);
 }
 
+/* Classroom Mode - Large screen accessibility */
+[data-classroom="true"] {
+  font-size: 20px; /* Increase base font size from 16px to 20px (1.25x) */
+}
+
+/* Classroom mode with dark theme - higher contrast */
+[data-classroom="true"]:not([data-theme="parchment"]) {
+  --theme-text-primary: #ffffff;
+  --theme-text-secondary: #c8d0d8;
+  --theme-text-tertiary: #9b9896;
+  --theme-accent: #e8b888;
+  --theme-border: rgba(240, 237, 230, 0.12);
+  --theme-border-strong: rgba(240, 237, 230, 0.2);
+}
+
+/* Classroom mode with light theme - higher contrast */
+[data-classroom="true"][data-theme="parchment"] {
+  --theme-text-primary: #1a1510;
+  --theme-text-secondary: #3c352a;
+  --theme-text-tertiary: #5a5348;
+  --theme-accent: #8a6000;
+  --theme-border: rgba(42, 37, 32, 0.15);
+  --theme-border-strong: rgba(42, 37, 32, 0.25);
+}
+
 @theme inline {
   --color-abyss: #0a0a0f;
   --color-deep-water: #12121a;

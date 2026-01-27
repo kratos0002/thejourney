@@ -11,6 +11,8 @@ interface ThemeContextType {
   theme: ThemeOption;
   resolvedTheme: ResolvedTheme;
   setTheme: (theme: ThemeOption) => void;
+  classroomMode: boolean;
+  setClassroomMode: (enabled: boolean) => void;
   isLoading: boolean;
 }
 
@@ -18,6 +20,8 @@ const ThemeContext = createContext<ThemeContextType>({
   theme: "night-sky",
   resolvedTheme: "night-sky",
   setTheme: () => {},
+  classroomMode: false,
+  setClassroomMode: () => {},
   isLoading: true,
 });
 
@@ -60,6 +64,16 @@ function applyTheme(resolvedTheme: ResolvedTheme) {
   }
 }
 
+function applyClassroomMode(enabled: boolean) {
+  if (typeof document === "undefined") return;
+  const html = document.documentElement;
+  if (enabled) {
+    html.setAttribute("data-classroom", "true");
+  } else {
+    html.removeAttribute("data-classroom");
+  }
+}
+
 interface Props {
   children: React.ReactNode;
 }
@@ -68,6 +82,7 @@ export function ThemeProvider({ children }: Props) {
   const { user } = useExploration();
   const [theme, setThemeState] = useState<ThemeOption>("night-sky");
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("night-sky");
+  const [classroomMode, setClassroomModeState] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   // Load theme preference from database for logged-in users
@@ -78,6 +93,8 @@ export function ThemeProvider({ children }: Props) {
         setThemeState("night-sky");
         setResolvedTheme("night-sky");
         applyTheme("night-sky");
+        setClassroomModeState(false);
+        applyClassroomMode(false);
         setIsLoading(false);
         return;
       }
@@ -85,7 +102,7 @@ export function ThemeProvider({ children }: Props) {
       try {
         const { data } = await supabase
           .from("user_preferences")
-          .select("theme")
+          .select("theme, classroom_mode")
           .eq("user_id", user.id)
           .single();
 
@@ -98,9 +115,15 @@ export function ThemeProvider({ children }: Props) {
         } else {
           applyTheme("night-sky");
         }
+
+        // Load classroom mode preference
+        const savedClassroomMode = data?.classroom_mode ?? false;
+        setClassroomModeState(savedClassroomMode);
+        applyClassroomMode(savedClassroomMode);
       } catch {
         // No preference saved, use default
         applyTheme("night-sky");
+        applyClassroomMode(false);
       }
 
       setIsLoading(false);
@@ -149,8 +172,30 @@ export function ThemeProvider({ children }: Props) {
     }
   }, [user]);
 
+  const setClassroomMode = useCallback(async (enabled: boolean) => {
+    setClassroomModeState(enabled);
+    applyClassroomMode(enabled);
+
+    // Save to database if logged in
+    if (user) {
+      try {
+        await supabase
+          .from("user_preferences")
+          .upsert({
+            user_id: user.id,
+            classroom_mode: enabled,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: "user_id",
+          });
+      } catch (error) {
+        console.error("Failed to save classroom mode preference:", error);
+      }
+    }
+  }, [user]);
+
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, isLoading }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, classroomMode, setClassroomMode, isLoading }}>
       {children}
     </ThemeContext.Provider>
   );
