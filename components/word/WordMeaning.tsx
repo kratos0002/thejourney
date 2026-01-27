@@ -1,7 +1,7 @@
 "use client";
 
-import { motion, useInView, AnimatePresence } from "framer-motion";
-import { useRef, useState, useMemo } from "react";
+import { motion, useInView } from "framer-motion";
+import { useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Word } from "@/data/word-types";
 import { trackEvent } from "@/lib/analytics";
@@ -16,25 +16,12 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
-  const [shareFeedback, setShareFeedback] = useState(false);
   const { exploredSlugs } = useExploration();
 
   const unexploredSuggestions = useMemo(
     () => suggestions.filter((s) => !exploredSlugs.has(s.slug)).slice(0, 3),
     [suggestions, exploredSlugs]
   );
-
-  const handleShare = () => {
-    const shareText = `"${word.hook}"\n\nTrace the journey of '${word.romanization}' →`;
-    const url = window.location.href;
-    if (navigator.share) {
-      navigator.share({ title: `${word.romanization} — The Journey`, text: shareText, url });
-    } else {
-      navigator.clipboard.writeText(`${shareText}\n${url}`);
-      setShareFeedback(true);
-      setTimeout(() => setShareFeedback(false), 2000);
-    }
-  };
 
   const paragraphs = word.meaningNow.split("\n\n");
 
@@ -72,9 +59,9 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
           ))}
         </div>
 
-        {/* Action buttons */}
+        {/* Action button */}
         <motion.div
-          className="mt-16 flex items-center justify-center gap-4"
+          className="mt-16 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.8 }}
@@ -85,19 +72,6 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
             onClick={() => router.push("/")}
           >
             Return to all words
-          </button>
-          <button
-            onClick={handleShare}
-            className="px-4 py-3 text-sm font-body rounded-full transition-all duration-300 cursor-pointer flex items-center gap-2"
-            style={{ color: "var(--theme-text-tertiary)", border: "1px solid var(--theme-border)" }}
-            aria-label="Share this word"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <polyline points="16,6 12,2 8,6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
-            </svg>
-            Share
           </button>
         </motion.div>
 
@@ -127,21 +101,6 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
             </div>
           </motion.div>
         )}
-
-        {/* Share feedback toast */}
-        <AnimatePresence>
-          {shareFeedback && (
-            <motion.div
-              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg text-xs font-body"
-              style={{ background: "var(--theme-accent-muted)", border: "1px solid var(--theme-accent)", color: "var(--theme-accent)" }}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-            >
-              Copied to clipboard
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
     </section>
   );
