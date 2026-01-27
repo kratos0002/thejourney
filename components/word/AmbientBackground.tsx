@@ -2,20 +2,33 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "@/components/ThemeProvider";
 
-// Color temperature per section (index matches layer order)
-const sectionAmbience = [
-  { from: "rgba(10, 10, 20, 0.9)", to: "rgba(15, 15, 30, 0.8)", accent: "rgba(240, 237, 230, 0.03)" },   // The Word - deep, warm moonlight
-  { from: "rgba(8, 12, 24, 0.9)", to: "rgba(12, 18, 35, 0.8)", accent: "rgba(168, 164, 160, 0.03)" },     // The Hook - slightly cool
-  { from: "rgba(10, 14, 28, 0.9)", to: "rgba(14, 20, 38, 0.8)", accent: "rgba(107, 104, 102, 0.03)" },    // The Story - neutral deep
-  { from: "rgba(15, 12, 20, 0.9)", to: "rgba(20, 15, 25, 0.8)", accent: "rgba(212, 165, 116, 0.04)" },    // The Journey - warm amber
-  { from: "rgba(8, 15, 22, 0.9)", to: "rgba(10, 20, 30, 0.8)", accent: "rgba(64, 150, 130, 0.04)" },      // The Sound - cool teal
-  { from: "rgba(12, 12, 18, 0.9)", to: "rgba(16, 16, 26, 0.8)", accent: "rgba(168, 164, 160, 0.03)" },    // The Relatives - neutral mist
-  { from: "rgba(14, 10, 16, 0.9)", to: "rgba(18, 14, 22, 0.8)", accent: "rgba(212, 165, 116, 0.05)" },    // Today - warm glow
+// Color temperature per section - Night Sky (dark theme)
+const darkAmbience = [
+  { from: "rgba(10, 10, 20, 0.9)", to: "rgba(15, 15, 30, 0.8)", accent: "rgba(240, 237, 230, 0.03)" },   // The Word
+  { from: "rgba(8, 12, 24, 0.9)", to: "rgba(12, 18, 35, 0.8)", accent: "rgba(168, 164, 160, 0.03)" },     // The Hook
+  { from: "rgba(10, 14, 28, 0.9)", to: "rgba(14, 20, 38, 0.8)", accent: "rgba(107, 104, 102, 0.03)" },    // The Story
+  { from: "rgba(15, 12, 20, 0.9)", to: "rgba(20, 15, 25, 0.8)", accent: "rgba(212, 165, 116, 0.04)" },    // The Journey
+  { from: "rgba(8, 15, 22, 0.9)", to: "rgba(10, 20, 30, 0.8)", accent: "rgba(64, 150, 130, 0.04)" },      // The Sound
+  { from: "rgba(12, 12, 18, 0.9)", to: "rgba(16, 16, 26, 0.8)", accent: "rgba(168, 164, 160, 0.03)" },    // The Relatives
+  { from: "rgba(14, 10, 16, 0.9)", to: "rgba(18, 14, 22, 0.8)", accent: "rgba(212, 165, 116, 0.05)" },    // Today
+];
+
+// Color temperature per section - Parchment (light theme)
+const lightAmbience = [
+  { from: "rgba(248, 245, 239, 0.95)", to: "rgba(255, 254, 250, 0.9)", accent: "rgba(184, 134, 11, 0.05)" },  // The Word
+  { from: "rgba(245, 242, 235, 0.95)", to: "rgba(252, 250, 245, 0.9)", accent: "rgba(139, 119, 101, 0.04)" }, // The Hook
+  { from: "rgba(248, 244, 238, 0.95)", to: "rgba(255, 253, 248, 0.9)", accent: "rgba(160, 140, 120, 0.04)" }, // The Story
+  { from: "rgba(252, 248, 240, 0.95)", to: "rgba(255, 252, 245, 0.9)", accent: "rgba(184, 134, 11, 0.06)" },  // The Journey
+  { from: "rgba(245, 248, 250, 0.95)", to: "rgba(250, 252, 255, 0.9)", accent: "rgba(74, 124, 124, 0.05)" },  // The Sound
+  { from: "rgba(248, 246, 242, 0.95)", to: "rgba(254, 252, 248, 0.9)", accent: "rgba(139, 119, 101, 0.04)" }, // The Relatives
+  { from: "rgba(252, 250, 244, 0.95)", to: "rgba(255, 254, 250, 0.9)", accent: "rgba(184, 134, 11, 0.06)" },  // Today
 ];
 
 export default function AmbientBackground() {
   const [activeSection, setActiveSection] = useState(0);
+  const { resolvedTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -35,6 +48,7 @@ export default function AmbientBackground() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const sectionAmbience = resolvedTheme === "parchment" ? lightAmbience : darkAmbience;
   const ambience = sectionAmbience[activeSection] || sectionAmbience[0];
 
   return (
