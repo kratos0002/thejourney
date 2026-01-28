@@ -544,7 +544,199 @@ export async function renderSoundCard(
   });
 }
 
-export type CardType = "moment" | "path";
+export type CardType = "moment" | "path" | "poster";
+
+/**
+ * Render "The Poster" card - museum exhibition style, hero typography
+ */
+export async function renderPosterCard(
+  word: Word,
+  size: CardSize = "story"
+): Promise<Blob> {
+  const { width, height } = CARD_SIZES[size];
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  const accent = getCulturalAccent(word.language);
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  // Deep background
+  ctx.fillStyle = "#08080c";
+  ctx.fillRect(0, 0, width, height);
+
+  // Atmospheric glow - soft, like candlelight
+  const atmosGlow = ctx.createRadialGradient(
+    centerX, centerY * 0.85, 0,
+    centerX, centerY * 0.85, width * 0.8
+  );
+  atmosGlow.addColorStop(0, `${accent.primary}18`);
+  atmosGlow.addColorStop(0.4, `${accent.secondary}08`);
+  atmosGlow.addColorStop(1, "transparent");
+  ctx.fillStyle = atmosGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  // Secondary glow at bottom
+  const bottomGlow = ctx.createRadialGradient(
+    centerX, height * 0.9, 0,
+    centerX, height * 0.9, width * 0.5
+  );
+  bottomGlow.addColorStop(0, `${accent.primary}10`);
+  bottomGlow.addColorStop(1, "transparent");
+  ctx.fillStyle = bottomGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  // Film grain texture
+  addFilmGrain(ctx, width, height, 0.03);
+
+  // Decorative arc - subtle journey line
+  ctx.beginPath();
+  ctx.strokeStyle = `${accent.primary}20`;
+  ctx.lineWidth = 1;
+  const arcStartX = width * 0.15;
+  const arcEndX = width * 0.85;
+  const arcY = height * 0.42;
+  ctx.moveTo(arcStartX, arcY);
+  ctx.quadraticCurveTo(centerX, arcY - 80, arcEndX, arcY);
+  ctx.stroke();
+
+  // Small dots on arc ends
+  ctx.fillStyle = `${accent.primary}40`;
+  ctx.beginPath();
+  ctx.arc(arcStartX, arcY, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(arcEndX, arcY, 4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Language label - top
+  const langY = size === "story" ? 180 : 120;
+  ctx.font = `300 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = `${accent.primary}90`;
+  ctx.textAlign = "center";
+  ctx.letterSpacing = "0.2em";
+  ctx.fillText(word.language.toUpperCase(), centerX, langY);
+
+  // Hero: Original script word - MASSIVE
+  const heroY = size === "story" ? height * 0.38 : height * 0.35;
+  const heroFontSize = size === "story" ? 140 : 110;
+
+  // Glow behind hero text
+  ctx.shadowColor = accent.primary;
+  ctx.shadowBlur = 60;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  ctx.font = `500 ${heroFontSize}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "#ffffff";
+  ctx.textAlign = "center";
+
+  // Check if text is too wide and scale down if needed
+  const heroMetrics = ctx.measureText(word.word);
+  const maxHeroWidth = width * 0.85;
+  let actualHeroSize = heroFontSize;
+  if (heroMetrics.width > maxHeroWidth) {
+    actualHeroSize = Math.floor(heroFontSize * (maxHeroWidth / heroMetrics.width));
+    ctx.font = `500 ${actualHeroSize}px "Cormorant Garamond", Georgia, serif`;
+  }
+
+  ctx.fillText(word.word, centerX, heroY);
+  ctx.shadowBlur = 0;
+
+  // Romanization - elegant, spaced
+  const romanY = heroY + (size === "story" ? 70 : 55);
+  ctx.font = `300 ${size === "story" ? 28 : 24}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "#a8a8a8";
+  ctx.fillText(word.romanization, centerX, romanY);
+
+  // Slug (English word) - the anchor
+  const slugY = romanY + (size === "story" ? 50 : 40);
+  ctx.font = `500 ${size === "story" ? 36 : 30}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "#f0ede6";
+  ctx.fillText(word.slug, centerX, slugY);
+
+  // Divider line
+  const dividerY = slugY + (size === "story" ? 50 : 40);
+  ctx.strokeStyle = `${accent.primary}30`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(centerX - 60, dividerY);
+  ctx.lineTo(centerX + 60, dividerY);
+  ctx.stroke();
+
+  // Hook - the soul of the word
+  const hookY = size === "story" ? height * 0.72 : height * 0.7;
+  const hookFontSize = size === "story" ? 26 : 22;
+  const hookLineHeight = hookFontSize * 1.6;
+  const maxHookWidth = width * 0.75;
+
+  ctx.font = `italic ${hookFontSize}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "#c8c4bc";
+  ctx.textAlign = "center";
+
+  const hookLines = wrapText(ctx, word.hook, maxHookWidth);
+  const hookStartY = hookY - ((hookLines.length - 1) * hookLineHeight) / 2;
+
+  hookLines.forEach((line, i) => {
+    ctx.fillText(line, centerX, hookStartY + i * hookLineHeight);
+  });
+
+  // Footer - minimal branding
+  const footerY = size === "story" ? height - 120 : height - 90;
+
+  // Subtle line
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(width * 0.3, footerY);
+  ctx.lineTo(width * 0.7, footerY);
+  ctx.stroke();
+
+  // Brand
+  ctx.font = `400 ${size === "story" ? 16 : 14}px "Cormorant Garamond", Georgia, serif`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.textAlign = "center";
+  ctx.fillText("The Journey", centerX, footerY + 30);
+
+  ctx.font = `300 ${size === "story" ? 12 : 10}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.fillText("etymology.life", centerX, footerY + 50);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to generate card image"));
+      },
+      "image/png",
+      1.0
+    );
+  });
+}
+
+/**
+ * Add film grain texture for organic feel
+ */
+function addFilmGrain(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  intensity: number = 0.05
+) {
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * intensity * 255;
+    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
 
 /**
  * Render any card type
@@ -559,6 +751,8 @@ export async function renderCard(
       return renderMomentCard(word, size);
     case "path":
       return renderPathCard(word, size);
+    case "poster":
+      return renderPosterCard(word, size);
   }
 }
 
