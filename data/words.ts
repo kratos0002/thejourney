@@ -13,6 +13,11 @@ import { newWordsBatch11 } from "./words-batch11";
 import { newWordsBatch12 } from "./words-batch12";
 import { newWordsBatch13 } from "./words-batch13";
 import { newWordsBatch14 } from "./words-batch14";
+import { batch15 } from "./words-batch15";
+import { batch16 } from "./words-batch16";
+import { batch17 } from "./words-batch17";
+import { batch18 } from "./words-batch18";
+import { batch19 } from "./words-batch19";
 
 export const words: Word[] = [
   {
@@ -327,8 +332,12 @@ export const words: Word[] = [
   }
 ];
 
-// Combine all word entries
-export const allWords: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10, ...newWordsBatch11, ...newWordsBatch12, ...newWordsBatch13, ...newWordsBatch14];
+// Combine all word entries and deduplicate by slug (first occurrence wins)
+const allWordsRaw: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10, ...newWordsBatch11, ...newWordsBatch12, ...newWordsBatch13, ...newWordsBatch14, ...batch15, ...batch16, ...batch17, ...batch18, ...batch19];
+
+export const allWords: Word[] = allWordsRaw.filter((word, index, self) =>
+  index === self.findIndex((w) => w.slug === word.slug)
+);
 
 export function getWordBySlug(slug: string): Word | undefined {
   return allWords.find((word) => word.slug === slug);
