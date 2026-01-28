@@ -445,7 +445,7 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       // Get theme-aware colors from CSS variables
       const computedStyle = getComputedStyle(document.documentElement);
       const textPrimary = computedStyle.getPropertyValue("--theme-text-primary").trim() || "#f0ede6";
-      const textTertiary = computedStyle.getPropertyValue("--theme-text-tertiary").trim() || "#8a8a8a";
+      const textSecondary = computedStyle.getPropertyValue("--theme-text-secondary").trim() || "#a8b0b8";
 
       node.append("text")
         .attr("y", labelY)
@@ -462,9 +462,10 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       node.append("text")
         .attr("y", labelY + (labelY > 0 ? (isMobile ? 12 : 16) : (isMobile ? -10 : -14)))
         .attr("text-anchor", "middle")
-        .attr("fill", textTertiary)
+        .attr("fill", textSecondary)
         .attr("font-size", infoFontSize)
         .attr("font-family", "var(--font-source-serif), serif")
+        .attr("font-weight", "500")
         .attr("opacity", 0)
         .attr("class", "label-info")
         .text(isMobile ? stop.location : `${stop.location} · ${stop.period}`);
@@ -501,7 +502,7 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       });
 
       gsap.to(node.select(".label-info").node(), {
-        opacity: 0.6,
+        opacity: 0.9,
         duration: 0.4,
         delay: delay + 0.2,
         ease: "power2.out",
