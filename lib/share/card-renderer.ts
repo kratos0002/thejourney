@@ -107,7 +107,7 @@ export async function renderMomentCard(
 
   // Word card/badge
   const wordCardY = size === "story" ? height * 0.58 : height * 0.55;
-  const wordCardHeight = size === "story" ? 220 : 200;
+  const wordCardHeight = size === "story" ? 260 : 240;
   const wordCardWidth = width - padding * 3;
 
   // Word card background
@@ -139,10 +139,15 @@ export async function renderMomentCard(
   ctx.fillStyle = "#a8b0b8";
   ctx.fillText(word.romanization, centerX, wordCardY + 130);
 
+  // Slug (the recognizable English word)
+  ctx.font = `500 ${size === "story" ? 24 : 20}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "#f0ede6";
+  ctx.fillText(word.slug, centerX, wordCardY + 170);
+
   // Language
-  ctx.font = `400 ${size === "story" ? 20 : 18}px "Source Serif 4", Georgia, serif`;
+  ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
   ctx.fillStyle = accent.primary;
-  ctx.fillText(word.language, centerX, wordCardY + 170);
+  ctx.fillText(word.language, centerX, wordCardY + 205);
 
   // Footer branding
   const footerY = size === "story" ? height - 140 : height - 100;
@@ -261,7 +266,7 @@ export async function renderPathCard(
   ctx.fillRect(0, 0, width, height);
 
   // Word at top
-  const wordY = size === "story" ? 180 : 120;
+  const wordY = size === "story" ? 160 : 110;
 
   ctx.shadowColor = accent.primary;
   ctx.shadowBlur = 30;
@@ -272,14 +277,19 @@ export async function renderPathCard(
   ctx.shadowBlur = 0;
 
   // Romanization
-  ctx.font = `400 ${size === "story" ? 24 : 20}px "Source Serif 4", Georgia, serif`;
+  ctx.font = `400 ${size === "story" ? 22 : 18}px "Source Serif 4", Georgia, serif`;
+  ctx.fillStyle = "#a8b0b8";
+  ctx.fillText(word.romanization, centerX, wordY + 38);
+
+  // Slug (the recognizable English word)
+  ctx.font = `500 ${size === "story" ? 28 : 24}px "Source Serif 4", Georgia, serif`;
   ctx.fillStyle = accent.primary;
-  ctx.fillText(word.romanization, centerX, wordY + 40);
+  ctx.fillText(word.slug, centerX, wordY + 75);
 
   // Journey visualization
   const journey = word.journey.slice(0, 4); // Max 4 stops
-  const mapStartY = size === "story" ? height * 0.22 : height * 0.25;
-  const mapHeight = size === "story" ? height * 0.5 : height * 0.45;
+  const mapStartY = size === "story" ? height * 0.25 : height * 0.28;
+  const mapHeight = size === "story" ? height * 0.45 : height * 0.4;
   const mapCenterY = mapStartY + mapHeight / 2;
 
   // Draw curved path connecting stops
@@ -335,21 +345,21 @@ export async function renderPathCard(
       ctx.fill();
 
       // Location label
-      ctx.font = `500 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
+      ctx.font = `500 ${size === "story" ? 20 : 18}px "Source Serif 4", Georgia, serif`;
       ctx.fillStyle = "#f0ede6";
       ctx.textAlign = "center";
-      ctx.fillText(stop.location, x, y + 35);
+      ctx.fillText(stop.location, x, y + 40);
 
       // Period
-      ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
+      ctx.font = `400 ${size === "story" ? 16 : 14}px "Source Serif 4", Georgia, serif`;
       ctx.fillStyle = "#6b6866";
-      ctx.fillText(stop.period, x, y + 55);
+      ctx.fillText(stop.period, x, y + 62);
 
       // Form (if different from previous)
       if (stop.form && stop.form !== "origin plant") {
-        ctx.font = `italic ${size === "story" ? 16 : 14}px "Cormorant Garamond", Georgia, serif`;
+        ctx.font = `italic ${size === "story" ? 22 : 18}px "Cormorant Garamond", Georgia, serif`;
         ctx.fillStyle = accent.primary;
-        ctx.fillText(stop.form, x, y - 25);
+        ctx.fillText(stop.form, x, y - 30);
       }
     }
   }
