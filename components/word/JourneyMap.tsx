@@ -442,10 +442,15 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       const formFontSize = isMobile ? "10px" : "13px";
       const infoFontSize = isMobile ? "8px" : "10px";
 
+      // Get theme-aware colors from CSS variables
+      const computedStyle = getComputedStyle(document.documentElement);
+      const textPrimary = computedStyle.getPropertyValue("--theme-text-primary").trim() || "#f0ede6";
+      const textTertiary = computedStyle.getPropertyValue("--theme-text-tertiary").trim() || "#8a8a8a";
+
       node.append("text")
         .attr("y", labelY)
         .attr("text-anchor", "middle")
-        .attr("fill", "#f0ede6")
+        .attr("fill", textPrimary)
         .attr("font-size", formFontSize)
         .attr("font-family", "var(--font-cormorant), serif")
         .attr("font-weight", "600")
@@ -457,7 +462,7 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
       node.append("text")
         .attr("y", labelY + (labelY > 0 ? (isMobile ? 12 : 16) : (isMobile ? -10 : -14)))
         .attr("text-anchor", "middle")
-        .attr("fill", "#8a8a8a")
+        .attr("fill", textTertiary)
         .attr("font-size", infoFontSize)
         .attr("font-family", "var(--font-source-serif), serif")
         .attr("opacity", 0)
