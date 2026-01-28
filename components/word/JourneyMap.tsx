@@ -436,30 +436,33 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
         .attr("opacity", 0)
         .attr("class", "inner-dot");
 
-      // Label - form (word at this stop) - larger and more visible
+      // Label - form (word at this stop) - responsive sizing
+      const isMobile = width < 600;
       const labelY = i % 2 === 0 ? -24 : 26;
+      const formFontSize = isMobile ? "10px" : "13px";
+      const infoFontSize = isMobile ? "8px" : "10px";
 
       node.append("text")
         .attr("y", labelY)
         .attr("text-anchor", "middle")
         .attr("fill", "#f0ede6")
-        .attr("font-size", "13px")
+        .attr("font-size", formFontSize)
         .attr("font-family", "var(--font-cormorant), serif")
         .attr("font-weight", "600")
         .attr("opacity", 0)
         .attr("class", "label-form")
         .text(stop.form);
 
-      // Label - location and period - larger
+      // Label - location and period - responsive sizing
       node.append("text")
-        .attr("y", labelY + (labelY > 0 ? 16 : -14))
+        .attr("y", labelY + (labelY > 0 ? (isMobile ? 12 : 16) : (isMobile ? -10 : -14)))
         .attr("text-anchor", "middle")
         .attr("fill", "#8a8a8a")
-        .attr("font-size", "10px")
+        .attr("font-size", infoFontSize)
         .attr("font-family", "var(--font-source-serif), serif")
         .attr("opacity", 0)
         .attr("class", "label-info")
-        .text(`${stop.location} · ${stop.period}`);
+        .text(isMobile ? stop.location : `${stop.location} · ${stop.period}`);
 
       // Animate node appearance
       const delay = 0.5 + i * 0.6;
@@ -726,7 +729,11 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
         <AnimatePresence mode="wait">
           {activeNode !== null && journey[activeNode] && (
             <motion.div
-              className="mt-6 p-6 rounded-2xl bg-ink/70 border border-moonlight/8 max-w-lg mx-auto backdrop-blur-sm relative"
+              className="mt-6 p-6 rounded-2xl max-w-lg mx-auto backdrop-blur-sm relative"
+              style={{
+                background: "var(--theme-surface)",
+                border: "1px solid var(--theme-border-strong)",
+              }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
@@ -740,7 +747,8 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
                   setCurrentStep(-1);
                   highlightNode(null);
                 }}
-                className="absolute top-3 right-3 text-fog/40 hover:text-moonlight transition-colors duration-200 cursor-pointer"
+                className="absolute top-3 right-3 transition-colors duration-200 cursor-pointer"
+                style={{ color: "var(--theme-text-tertiary)" }}
                 aria-label="Close detail"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -750,39 +758,60 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
 
               {/* Step indicator */}
               <div className="flex items-center gap-2 mb-3">
-                <span className="text-[10px] font-mono text-fog/40 uppercase tracking-wider">
+                <span
+                  className="text-[10px] font-mono uppercase tracking-wider"
+                  style={{ color: "var(--theme-text-tertiary)" }}
+                >
                   Stop {activeNode + 1} of {journey.length}
                 </span>
-                <div className="flex-1 h-px bg-moonlight/5" />
+                <div className="flex-1 h-px" style={{ background: "var(--theme-border)" }} />
               </div>
 
               {/* Script (original writing) */}
               {journey[activeNode].script && (
-                <p className="font-display text-2xl text-moonlight/90 mb-2 text-center">
+                <p
+                  className="font-display text-2xl mb-2 text-center"
+                  style={{ color: "var(--theme-text-primary)" }}
+                >
                   {journey[activeNode].script}
                 </p>
               )}
 
               {/* Form name */}
-              <p className="font-display text-lg text-amber-glow text-center mb-3">
+              <p
+                className="font-display text-lg text-center mb-3"
+                style={{ color: "var(--theme-accent)" }}
+              >
                 {journey[activeNode].form}
               </p>
 
               {/* Context description */}
-              <p className="font-body text-sm text-mist/70 leading-relaxed text-center">
+              <p
+                className="font-body text-sm leading-relaxed text-center"
+                style={{ color: "var(--theme-text-secondary)" }}
+              >
                 {journey[activeNode].context}
               </p>
 
               {/* Location & period */}
-              <div className="mt-4 pt-3 border-t border-moonlight/5 flex items-center justify-center gap-4">
-                <span className="text-xs text-fog/50 font-body flex items-center gap-1.5">
+              <div
+                className="mt-4 pt-3 flex items-center justify-center gap-4"
+                style={{ borderTop: "1px solid var(--theme-border)" }}
+              >
+                <span
+                  className="text-xs font-body flex items-center gap-1.5"
+                  style={{ color: "var(--theme-text-tertiary)" }}
+                >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                     <circle cx="12" cy="10" r="3" />
                   </svg>
                   {journey[activeNode].location}
                 </span>
-                <span className="text-xs text-fog/50 font-body flex items-center gap-1.5">
+                <span
+                  className="text-xs font-body flex items-center gap-1.5"
+                  style={{ color: "var(--theme-text-tertiary)" }}
+                >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12,6 12,12 16,14" />
@@ -802,7 +831,8 @@ export default function JourneyMap({ journey, word }: JourneyMapProps) {
                       setTimeout(() => setShareFeedback(false), 2000);
                     }
                   }}
-                  className="text-fog/40 hover:text-amber-glow transition-colors duration-200 cursor-pointer"
+                  className="transition-colors duration-200 cursor-pointer"
+                  style={{ color: "var(--theme-text-tertiary)" }}
                   aria-label="Share this stop"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
