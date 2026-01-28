@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Word } from "@/data/word-types";
 import {
@@ -8,6 +8,12 @@ import {
   filterWords,
   type ActiveFilters,
 } from "@/lib/word-filters";
+import {
+  getJourneysWithCounts,
+  getJourneySlugs,
+  type CuratedJourney,
+} from "@/lib/curated-journeys";
+import { useExploration } from "@/components/ExplorationProvider";
 
 interface FilterChipProps {
   label: string;
@@ -59,6 +65,63 @@ function FilterRow({ title, chips, activeChips, onToggle }: FilterRowProps) {
   );
 }
 
+// Journey Card Component
+interface JourneyCardProps {
+  journey: CuratedJourney & { wordCount: number; wordSlugs: string[] };
+  active: boolean;
+  exploredCount: number;
+  onClick: () => void;
+}
+
+function JourneyCard({ journey, active, exploredCount, onClick }: JourneyCardProps) {
+  const progress = journey.wordCount > 0 ? (exploredCount / journey.wordCount) * 100 : 0;
+
+  return (
+    <button
+      onClick={onClick}
+      className="shrink-0 w-36 p-3 rounded-xl text-left transition-all duration-300 cursor-pointer relative overflow-hidden"
+      style={{
+        background: active
+          ? "var(--theme-accent-muted)"
+          : "var(--theme-surface)",
+        border: `1px solid ${active ? "var(--theme-accent)" : "var(--theme-border)"}`,
+      }}
+    >
+      {/* Progress bar at bottom */}
+      {exploredCount > 0 && (
+        <div
+          className="absolute bottom-0 left-0 h-0.5 transition-all duration-500"
+          style={{
+            width: `${progress}%`,
+            background: active ? "var(--theme-accent)" : "var(--theme-text-tertiary)",
+            opacity: active ? 1 : 0.5,
+          }}
+        />
+      )}
+
+      <span className="text-lg mb-1 block">{journey.icon}</span>
+      <h4
+        className="font-display text-sm font-medium leading-tight mb-0.5"
+        style={{ color: active ? "var(--theme-accent)" : "var(--theme-text-primary)" }}
+      >
+        {journey.name}
+      </h4>
+      <p
+        className="text-[10px] font-body leading-tight"
+        style={{ color: "var(--theme-text-tertiary)" }}
+      >
+        {journey.tagline}
+      </p>
+      <p
+        className="text-[9px] font-body mt-1.5"
+        style={{ color: active ? "var(--theme-accent)" : "var(--theme-text-tertiary)", opacity: 0.7 }}
+      >
+        {exploredCount} of {journey.wordCount} explored
+      </p>
+    </button>
+  );
+}
+
 interface DiscoveryDrawerProps {
   words: Word[];
   onFiltersChange: (matchingSlugs: Set<string>, hasActiveFilters: boolean) => void;
@@ -71,19 +134,57 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
     themes: [],
     journeyPaths: [],
   });
+  const [activeJourneyId, setActiveJourneyId] = useState<string | null>(null);
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const { exploredSlugs } = useExploration();
 
   const availableFilters = useMemo(() => getAvailableFilters(words), [words]);
+  const journeysWithCounts = useMemo(() => getJourneysWithCounts(words), [words]);
 
   const hasActiveFilters = filters.languageFamilies.length > 0 ||
     filters.themes.length > 0 ||
-    filters.journeyPaths.length > 0;
+    filters.journeyPaths.length > 0 ||
+    activeJourneyId !== null;
 
   const matchingCount = useMemo(() => {
+    if (activeJourneyId) {
+      return getJourneySlugs(words, activeJourneyId).size;
+    }
     if (!hasActiveFilters) return words.length;
     return filterWords(words, filters).size;
-  }, [words, filters, hasActiveFilters]);
+  }, [words, filters, hasActiveFilters, activeJourneyId]);
+
+  // Keyboard accessibility - close on Escape
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Focus trap when drawer is open
+  useEffect(() => {
+    if (!isOpen || !drawerRef.current) return;
+
+    const focusableElements = drawerRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+
+    if (focusableElements.length > 0) {
+      focusableElements[0].focus();
+    }
+  }, [isOpen]);
 
   const toggleFilter = useCallback((category: keyof ActiveFilters, value: string) => {
+    // Clear journey selection when using chip filters
+    setActiveJourneyId(null);
+
     setFilters(prev => {
       const current = prev[category];
       const next = current.includes(value)
@@ -103,12 +204,27 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
     });
   }, [words, onFiltersChange]);
 
+  const selectJourney = useCallback((journeyId: string) => {
+    if (activeJourneyId === journeyId) {
+      // Deselect journey
+      setActiveJourneyId(null);
+      onFiltersChange(new Set(words.map(w => w.slug)), false);
+    } else {
+      // Select journey, clear chip filters
+      setActiveJourneyId(journeyId);
+      setFilters({ languageFamilies: [], themes: [], journeyPaths: [] });
+      const matching = getJourneySlugs(words, journeyId);
+      onFiltersChange(matching, true);
+    }
+  }, [words, onFiltersChange, activeJourneyId]);
+
   const clearFilters = useCallback(() => {
     setFilters({
       languageFamilies: [],
       themes: [],
       journeyPaths: [],
     });
+    setActiveJourneyId(null);
     onFiltersChange(new Set(words.map(w => w.slug)), false);
   }, [words, onFiltersChange]);
 
@@ -151,6 +267,7 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
 
             {/* Drawer Panel */}
             <motion.div
+              ref={drawerRef}
               className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-md rounded-t-2xl"
               style={{
                 paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -161,6 +278,9 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Discovery drawer"
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-2">
@@ -168,6 +288,7 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                   onClick={() => setIsOpen(false)}
                   className="w-10 h-1 rounded-full cursor-pointer"
                   style={{ background: "var(--theme-text-tertiary)", opacity: 0.3 }}
+                  aria-label="Close drawer"
                 />
               </div>
 
@@ -193,26 +314,77 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                 )}
               </div>
 
-              {/* Filter Rows */}
-              <div className="px-5 pb-6 space-y-4 max-h-[50vh] overflow-y-auto">
-                <FilterRow
-                  title="By origin"
-                  chips={availableFilters.languageFamilies}
-                  activeChips={filters.languageFamilies}
-                  onToggle={(chip) => toggleFilter("languageFamilies", chip)}
-                />
-                <FilterRow
-                  title="By theme"
-                  chips={availableFilters.themes}
-                  activeChips={filters.themes}
-                  onToggle={(chip) => toggleFilter("themes", chip)}
-                />
-                <FilterRow
-                  title="By journey"
-                  chips={availableFilters.journeyPaths}
-                  activeChips={filters.journeyPaths}
-                  onToggle={(chip) => toggleFilter("journeyPaths", chip)}
-                />
+              {/* Content */}
+              <div className="max-h-[60vh] overflow-y-auto">
+                {/* Curated Journeys Carousel */}
+                <div className="mb-4">
+                  <p className="text-[10px] font-body tracking-widest uppercase px-5 mb-2" style={{ color: "var(--theme-text-tertiary)" }}>
+                    Curated journeys
+                  </p>
+                  <div className="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-hide">
+                    {journeysWithCounts.map(journey => {
+                      const exploredCount = journey.wordSlugs.filter(slug => exploredSlugs.has(slug)).length;
+                      return (
+                        <JourneyCard
+                          key={journey.id}
+                          journey={journey}
+                          active={activeJourneyId === journey.id}
+                          exploredCount={exploredCount}
+                          onClick={() => selectJourney(journey.id)}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="px-5 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px" style={{ background: "var(--theme-border)" }} />
+                    <span className="text-[9px] font-body uppercase tracking-widest" style={{ color: "var(--theme-text-tertiary)", opacity: 0.5 }}>
+                      or filter by
+                    </span>
+                    <div className="flex-1 h-px" style={{ background: "var(--theme-border)" }} />
+                  </div>
+                </div>
+
+                {/* Filter Rows */}
+                <div className="px-5 pb-6 space-y-4">
+                  <FilterRow
+                    title="Origin"
+                    chips={availableFilters.languageFamilies}
+                    activeChips={filters.languageFamilies}
+                    onToggle={(chip) => toggleFilter("languageFamilies", chip)}
+                  />
+                  <FilterRow
+                    title="Theme"
+                    chips={availableFilters.themes}
+                    activeChips={filters.themes}
+                    onToggle={(chip) => toggleFilter("themes", chip)}
+                  />
+                  <FilterRow
+                    title="Path"
+                    chips={availableFilters.journeyPaths}
+                    activeChips={filters.journeyPaths}
+                    onToggle={(chip) => toggleFilter("journeyPaths", chip)}
+                  />
+
+                  {/* Empty state when no matches */}
+                  {hasActiveFilters && matchingCount === 0 && (
+                    <div className="text-center py-6">
+                      <p className="font-body text-sm" style={{ color: "var(--theme-text-secondary)" }}>
+                        No journeys walk all these paths...
+                      </p>
+                      <button
+                        onClick={clearFilters}
+                        className="mt-2 text-xs font-body transition-colors cursor-pointer"
+                        style={{ color: "var(--theme-accent)" }}
+                      >
+                        Clear filters
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           </>

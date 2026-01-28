@@ -15,8 +15,6 @@ type GenerationState = "idle" | "generating" | "ready" | "error";
 
 const CARD_TYPES: { type: CardType; label: string }[] = [
   { type: "poster", label: "Poster" },
-  { type: "moment", label: "The Essence" },
-  { type: "path", label: "The Journey" },
 ];
 
 export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
@@ -138,30 +136,6 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                 <p className="text-sm font-body mt-1" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>
                   {word.romanization}
                 </p>
-              </div>
-
-              {/* Card Type Selector */}
-              <div className="flex justify-center gap-6 mb-6">
-                {CARD_TYPES.map(({ type, label }) => (
-                  <button
-                    key={type}
-                    onClick={() => setCardType(type)}
-                    className="relative px-1 py-2 font-body text-sm transition-all duration-300"
-                    style={{
-                      color: cardType === type ? "var(--theme-text-primary)" : "var(--theme-text-tertiary)",
-                    }}
-                  >
-                    {label}
-                    {cardType === type && (
-                      <motion.div
-                        layoutId="activeCardType"
-                        className="absolute -bottom-0.5 left-0 right-0 h-px"
-                        style={{ background: "var(--theme-accent)" }}
-                        transition={{ duration: 0.2 }}
-                      />
-                    )}
-                  </button>
-                ))}
               </div>
 
               {/* Card Preview */}
