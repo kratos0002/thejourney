@@ -14,6 +14,7 @@ import {
   type CuratedJourney,
 } from "@/lib/curated-journeys";
 import { useExploration } from "@/components/ExplorationProvider";
+import { JourneyIcon } from "@/components/icons/JourneyIcons";
 
 interface FilterChipProps {
   label: string;
@@ -99,7 +100,12 @@ function JourneyCard({ journey, active, exploredCount, onClick }: JourneyCardPro
         />
       )}
 
-      <span className="text-lg mb-1 block">{journey.icon}</span>
+      <div
+        className="mb-1.5"
+        style={{ color: active ? "var(--theme-accent)" : "var(--theme-text-tertiary)" }}
+      >
+        <JourneyIcon journeyId={journey.id} size={20} />
+      </div>
       <h4
         className="font-display text-sm font-medium leading-tight mb-0.5"
         style={{ color: active ? "var(--theme-accent)" : "var(--theme-text-primary)" }}
@@ -361,12 +367,6 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                     chips={availableFilters.themes}
                     activeChips={filters.themes}
                     onToggle={(chip) => toggleFilter("themes", chip)}
-                  />
-                  <FilterRow
-                    title="Path"
-                    chips={availableFilters.journeyPaths}
-                    activeChips={filters.journeyPaths}
-                    onToggle={(chip) => toggleFilter("journeyPaths", chip)}
                   />
 
                   {/* Empty state when no matches */}

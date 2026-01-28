@@ -15,7 +15,6 @@ export interface CuratedJourney {
   name: string;
   tagline: string;
   description: string;
-  icon: string; // Emoji or icon identifier
   // Matching criteria - words must match at least one
   matchCriteria: {
     slugs?: string[];           // Explicit word slugs
@@ -34,7 +33,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "The Spice Road",
     tagline: "Words that traveled with merchants",
     description: "Follow the ancient trade routes where language, like silk and spice, crossed continents on the backs of camels and ships.",
-    icon: "🌶️",
     matchCriteria: {
       slugs: ["qahwa", "ketchup", "sugar", "tea", "curry", "bazaar", "caravan"],
       themes: ["Trade", "Food & Drink"],
@@ -47,7 +45,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Words of War",
     tagline: "Language born from conflict",
     description: "Wars destroy, but they also create — new borders, new alliances, and new words that outlast the battles that birthed them.",
-    icon: "⚔️",
     matchCriteria: {
       slugs: ["assassin", "algorithm", "admiral", "guerrilla", "berserk", "slogan"],
       themes: ["War"],
@@ -60,7 +57,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Sacred Etymologies",
     tagline: "Words from temples and texts",
     description: "Monks, priests, and pilgrims carried these words across mountains and centuries, preserving meaning in sacred vessels.",
-    icon: "🕯️",
     matchCriteria: {
       slugs: ["karma", "nirvana", "amen", "hallelujah", "avatar", "paradise"],
       themes: ["Religion"],
@@ -74,7 +70,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Untranslatable",
     tagline: "Words no language could replace",
     description: "Some concepts are so specific to a culture that other languages simply borrowed the word whole — a linguistic surrender.",
-    icon: "✨",
     matchCriteria: {
       slugs: ["saudade", "wanderlust", "ubuntu", "hygge", "schadenfreude", "zeitgeist", "sisu"],
       keywords: ["untranslatable", "no equivalent", "borrowed whole", "unique"],
@@ -86,7 +81,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Food's Travels",
     tagline: "The journey from field to fork",
     description: "Every dish has a story. These words traveled from distant harvests to your table, changing name and form at every border.",
-    icon: "🍜",
     matchCriteria: {
       slugs: ["qahwa", "tomato", "avocado", "tofu", "whiskey", "ketchup", "sugar", "tea"],
       themes: ["Food & Drink"],
@@ -99,7 +93,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "The Colonial Exchange",
     tagline: "Words that crossed with empires",
     description: "Colonialism left scars — and words. These traveled on ships of conquest, becoming part of languages they never chose.",
-    icon: "⛵",
     matchCriteria: {
       slugs: ["taboo", "tattoo", "safari", "boondocks", "coolie", "amah"],
       journeyPaths: ["Colonial"],
@@ -112,7 +105,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Breath & Soul",
     tagline: "Where body meets spirit",
     description: "Ancient peoples saw breath as the bridge between flesh and soul. These words remember when breathing and being were one.",
-    icon: "🌬️",
     matchCriteria: {
       slugs: ["saans", "yoga", "zen", "nirvana", "karma", "avatar"],
       themes: ["Body & Mind", "Religion"],
@@ -125,7 +117,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "Nature Named",
     tagline: "Words the earth gave us",
     description: "Mountains, storms, and creatures lent their essence to human speech. These words carry the weight of the natural world.",
-    icon: "🌊",
     matchCriteria: {
       slugs: ["tsunami", "typhoon", "monsoon", "jaguar", "puma", "condor"],
       themes: ["Nature"],
@@ -138,7 +129,6 @@ export const CURATED_JOURNEYS: CuratedJourney[] = [
     name: "The Scholar's Path",
     tagline: "Knowledge crossing borders",
     description: "In libraries from Baghdad to Oxford, scholars preserved and transformed words, building bridges of understanding across cultures.",
-    icon: "📜",
     matchCriteria: {
       slugs: ["algorithm", "algebra", "chemistry", "alchemy"],
       themes: ["Science"],
