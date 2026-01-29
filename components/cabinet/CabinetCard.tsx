@@ -10,11 +10,11 @@ interface CabinetCardProps {
   index: number;
 }
 
-function truncateHook(hook: string, maxLength = 70): string {
+function truncateHook(hook: string, maxLength = 60): string {
   if (hook.length <= maxLength) return hook;
   const truncated = hook.slice(0, maxLength);
   const lastSpace = truncated.lastIndexOf(" ");
-  return (lastSpace > 30 ? truncated.slice(0, lastSpace) : truncated) + "\u2026";
+  return (lastSpace > 25 ? truncated.slice(0, lastSpace) : truncated) + "\u2026";
 }
 
 function getGlowColor(word: Word): string {
@@ -27,7 +27,7 @@ function getGlowColor(word: Word): string {
 const cardVariants = {
   hidden: {
     opacity: 0,
-    y: 40,
+    y: 30,
   },
   visible: (i: number) => ({
     opacity: 1,
@@ -35,7 +35,7 @@ const cardVariants = {
     transition: {
       duration: 1.0,
       ease: easeSmooth,
-      delay: i * 0.08,
+      delay: i * 0.07,
     },
   }),
 };
@@ -53,11 +53,11 @@ export default function CabinetCard({ word, index }: CabinetCardProps) {
         y: -6,
         transition: { duration: 0.4, ease: easeSmooth },
       }}
-      className="group"
+      className="group shrink-0 w-[200px] sm:w-auto"
     >
       <Link
         href={`/word/${word.slug}`}
-        className="block text-center px-4 pt-8 pb-5 transition-all duration-500"
+        className="block text-center px-4 pt-6 pb-4 transition-all duration-500"
         style={{ position: "relative" }}
       >
         {/* Cultural color ambient glow behind the word */}
@@ -69,9 +69,9 @@ export default function CabinetCard({ word, index }: CabinetCardProps) {
         />
 
         {/* Word in original script — the artifact */}
-        <div className="relative mb-3">
+        <div className="relative mb-2">
           <p
-            className="font-display text-4xl md:text-[2.75rem] leading-tight"
+            className="font-display text-3xl sm:text-4xl md:text-[2.75rem] leading-tight"
             style={{
               color: "var(--theme-text-primary)",
               textShadow: `0 0 40px ${glowColor}30, 0 0 80px ${glowColor}15`,
@@ -91,7 +91,7 @@ export default function CabinetCard({ word, index }: CabinetCardProps) {
         </p>
 
         <p
-          className="text-[9px] uppercase tracking-[0.25em] font-body mb-3"
+          className="text-[9px] uppercase tracking-[0.25em] font-body mb-2"
           style={{ color: "var(--theme-text-tertiary)", opacity: 0.6 }}
         >
           {word.language}
@@ -99,8 +99,8 @@ export default function CabinetCard({ word, index }: CabinetCardProps) {
 
         {/* Hook — whispered context */}
         <p
-          className="font-body text-[11px] leading-relaxed max-w-[200px] mx-auto"
-          style={{ color: "var(--theme-text-secondary)", opacity: 0.5 }}
+          className="font-body text-[11px] leading-relaxed max-w-[180px] mx-auto hidden sm:block"
+          style={{ color: "var(--theme-text-secondary)", opacity: 0.45 }}
         >
           {truncateHook(word.hook)}
         </p>
