@@ -8,7 +8,7 @@ import { useExploration } from "@/components/ExplorationProvider";
 import { useTransition } from "@/components/TransitionProvider";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { getContinentFromCoords } from "@/lib/geo-utils";
-import { staggerContainer } from "@/lib/animations";
+import { fadeIn, easeSmooth } from "@/lib/animations";
 import CabinetHeader from "./CabinetHeader";
 import CabinetGrid from "./CabinetGrid";
 import CabinetEmpty from "./CabinetEmpty";
@@ -65,11 +65,24 @@ export default function CabinetPage({ words }: { words: Word[] }) {
 
   return (
     <main
-      className="min-h-screen pb-16 transition-colors duration-300"
+      className="grain min-h-screen pb-16 transition-colors duration-300 relative"
       style={{ background: "var(--theme-bg-primary)" }}
     >
+      {/* Ambient vignette */}
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(10, 10, 20, 0.4) 100%)",
+        }}
+      />
+
       {/* Back button */}
-      <div className="fixed top-0 left-0 right-0 z-10 p-5">
+      <motion.div
+        initial={{ opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.8, ease: easeSmooth, delay: 0.2 }}
+        className="fixed top-0 left-0 z-10 p-5"
+      >
         <button
           onClick={navigateHome}
           className="flex items-center gap-2 transition-opacity duration-300 hover:opacity-70 cursor-pointer"
@@ -87,18 +100,14 @@ export default function CabinetPage({ words }: { words: Word[] }) {
           </svg>
           <span className="text-xs font-body tracking-wider">Back</span>
         </button>
-      </div>
+      </motion.div>
 
       {/* Content */}
-      <div className="pt-24">
+      <div className="relative pt-24">
         {exploredWords.length === 0 ? (
           <CabinetEmpty />
         ) : (
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
+          <motion.div variants={fadeIn} initial="hidden" animate="visible">
             <CabinetHeader
               wordCount={metadata.wordCount}
               languageCount={metadata.languageCount}
