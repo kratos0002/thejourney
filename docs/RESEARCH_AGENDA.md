@@ -11,8 +11,8 @@ This document outlines research initiatives to elevate The Journey into the best
 | # | Research Area | Impact | Effort | Status |
 |---|---------------|--------|--------|--------|
 | 1 | Learning Science & Retention | Very High | High | Not Started |
-| 2 | Discovery & Serendipity | High | Medium | **In Progress** |
-| 3 | Social & Sharing Behavior | High | Low | Not Started |
+| 2 | Discovery & Serendipity | High | Medium | **Complete** |
+| 3 | Social & Sharing Behavior | High | Low | **Complete** |
 | 4 | Audio & Pronunciation Experience | Medium | Medium | Not Started |
 | 5 | Gamification Without Cheapening | Medium | Medium | Not Started |
 | 6 | Educator & Classroom Use | High | Low | Not Started |

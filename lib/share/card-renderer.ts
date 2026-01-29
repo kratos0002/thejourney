@@ -530,7 +530,7 @@ export async function renderSoundCard(
   ctx.font = `400 ${size === "story" ? 18 : 16}px "Source Serif 4", Georgia, serif`;
   ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
   ctx.textAlign = "center";
-  ctx.fillText("thejourney.app", centerX, dividerY + 40);
+  ctx.fillText("etymology.life", centerX, dividerY + 40);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(
@@ -786,7 +786,7 @@ export async function shareCard(
       await navigator.share({
         title: `The Journey of ${word.romanization}`,
         text: word.hook,
-        url: `https://thejourney.app/word/${word.slug}`,
+        url: `https://etymology.life/word/${word.slug}`,
         files: [file],
       });
       return true;

@@ -14,11 +14,11 @@ interface ShareDrawerProps {
 type GenerationState = "idle" | "generating" | "ready" | "error";
 
 const CARD_TYPES: { type: CardType; label: string }[] = [
-  { type: "poster", label: "Poster" },
+  { type: "moment", label: "Moment" },
 ];
 
 export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
-  const [cardType, setCardType] = useState<CardType>("poster");
+  const [cardType, setCardType] = useState<CardType>("moment");
   const [state, setState] = useState<GenerationState>("idle");
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
