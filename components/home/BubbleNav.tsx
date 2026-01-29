@@ -64,41 +64,17 @@ interface BubbleNavProps {
   words: Word[];
   filteredSlugs?: Set<string>;
   hasActiveFilters?: boolean;
-  featuredSlug?: string;
 }
 
-// Get a "featured word" that rotates daily, preferring unexplored words
-function getDailyFeaturedWord(words: Word[], exploredSlugs: Set<string>): string | undefined {
-  // Get unexplored words first, falling back to all words
-  const candidates = words.filter(w => !exploredSlugs.has(w.slug));
-  const pool = candidates.length > 0 ? candidates : words;
-
-  if (pool.length === 0) return undefined;
-
-  // Use day-based rotation for consistency within a session
-  const today = new Date();
-  const dayIndex = today.getFullYear() * 1000 + today.getMonth() * 32 + today.getDate();
-  const index = dayIndex % pool.length;
-
-  return pool[index].slug;
-}
-
-export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false, featuredSlug: propFeaturedSlug }: BubbleNavProps) {
+export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const { classroomMode } = useTheme();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
 
-  // Compute featured word (daily rotation or prop override)
-  const featuredSlug = useMemo(() => {
-    if (propFeaturedSlug) return propFeaturedSlug;
-    return getDailyFeaturedWord(words, exploredSlugs);
-  }, [propFeaturedSlug, words, exploredSlugs]);
-
   // Store filter state in refs for use in animation loop
   const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
   const hasActiveFiltersRef = useRef(hasActiveFilters);
-  const featuredSlugRef = useRef<string | undefined>(featuredSlug);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -176,10 +152,9 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
   useEffect(() => {
     filteredSlugsRef.current = filteredSlugs || new Set();
     hasActiveFiltersRef.current = hasActiveFilters;
-    featuredSlugRef.current = featuredSlug;
     // Force a bubble update when filters change
     updateBubbles();
-  }, [filteredSlugs, hasActiveFilters, featuredSlug, updateBubbles]);
+  }, [filteredSlugs, hasActiveFilters, updateBubbles]);
 
   // Animation loop — no React state, no layout-triggering properties
   useEffect(() => {
@@ -353,10 +328,8 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
         const isMatch = !hasActiveFilters || (filteredSlugs?.has(word.slug) ?? true);
-        const isFeatured = !hasActiveFilters && word.slug === featuredSlug && !explored;
 
         // When filters active: matching words are bright, explored gets subtle indicator
-        // When no filters: explored words are muted
         const shouldHighlight = hasActiveFilters && isMatch;
 
         // Adaptive font size based on word length (in rem for zoom support)
@@ -366,21 +339,15 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
         // Style logic:
         // - If filtering and matches: always bright (ignore explored muting)
         // - If not filtering and explored: muted
-        // - If featured: extra glow
         // - Otherwise: bright
         const isMuted = !hasActiveFilters && explored;
-
-        // Featured word gets enhanced glow
-        const featuredGlow = isFeatured
-          ? `0 0 30px var(--theme-accent), 0 0 60px var(--theme-accent-muted)`
-          : "";
 
         return (
           <button
             key={word.slug}
             ref={(el) => { bubbleRefs.current[i] = el; }}
             data-idx={i}
-            className={`absolute top-0 left-0 origin-center bubble-item ${isFeatured ? "featured-bubble" : ""}`}
+            className="absolute top-0 left-0 origin-center bubble-item"
             style={{
               width: "4rem",
               height: "4rem",
@@ -388,28 +355,24 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               opacity: 0,
             }}
             onClick={handleBubbleClick}
-            aria-label={`Explore ${word.slug}${isFeatured ? " (featured today)" : ""}`}
+            aria-label={`Explore ${word.slug}`}
           >
             <div
-              className={`w-full h-full rounded-full flex items-center justify-center relative ${isFeatured ? "animate-pulse-subtle" : ""}`}
+              className="w-full h-full rounded-full flex items-center justify-center relative"
               style={{
                 background: isMuted
                   ? "var(--theme-bubble-bg-muted)"
-                  : isFeatured
-                    ? "var(--theme-accent-muted)"
-                    : "var(--theme-bubble-bg)",
-                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : isFeatured ? "var(--theme-accent)" : getLanguageTint(word.language)}`,
+                  : "var(--theme-bubble-bg)",
+                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
                 boxShadow: isMuted
                   ? "0 2px 8px var(--theme-bubble-shadow), inset 0 1px 2px var(--theme-bubble-shadow)"
-                  : isFeatured
-                    ? `0 2px 12px var(--theme-bubble-shadow), ${featuredGlow}, inset 0 1px 3px var(--theme-bubble-shadow)`
-                    : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
+                  : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "var(--theme-bubble-text-muted)" : isFeatured ? "var(--theme-accent)" : "var(--theme-bubble-text)",
+                  color: isMuted ? "var(--theme-bubble-text-muted)" : "var(--theme-bubble-text)",
                   fontSize: `${fontSize}rem`,
                   textShadow: isMuted
                     ? "var(--theme-bubble-text-shadow-muted)"
@@ -418,24 +381,6 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               >
                 {word.slug}
               </span>
-              {/* Featured indicator */}
-              {isFeatured && (
-                <span
-                  className="absolute rounded-full flex items-center justify-center"
-                  style={{
-                    top: "-0.25rem",
-                    right: "-0.25rem",
-                    width: "1.125rem",
-                    height: "1.125rem",
-                    background: "var(--theme-accent)",
-                    boxShadow: "0 1px 4px rgba(0, 0, 0, 0.4)",
-                  }}
-                >
-                  <svg style={{ width: "0.625rem", height: "0.625rem" }} viewBox="0 0 24 24" fill="white">
-                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" />
-                  </svg>
-                </span>
-              )}
               {/* Small checkmark for explored words when they're visible */}
               {explored && (shouldHighlight || !hasActiveFilters) && (
                 <span

@@ -10,6 +10,7 @@ import StartPrompt from "@/components/home/StartPrompt";
 import ProfilePanel from "@/components/ProfilePanel";
 import FeedbackModal from "@/components/FeedbackModal";
 import DiscoveryDrawer from "@/components/home/DiscoveryDrawer";
+import DailyWordRitual from "@/components/home/DailyWordRitual";
 import { getNotificationCount } from "@/lib/feedback";
 import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
@@ -33,6 +34,7 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const { user } = useExploration();
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
+  const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
 
   const handleFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
     setFilteredSlugs(matching);
@@ -84,6 +86,9 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Start prompt for first-time users */}
       <StartPrompt />
+
+      {/* Daily word ritual (behind feature flag) */}
+      {dailyWordRitualEnabled && <DailyWordRitual words={words} />}
 
       {/* Header overlay - fades in classroom mode */}
       <motion.header
