@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useExploration } from "@/components/ExplorationProvider";
 
-export function useFeatureFlag(flagKey: string): boolean {
-  const [enabled, setEnabled] = useState(false);
+export function useFeatureFlag(flagKey: string): boolean | null {
+  const [enabled, setEnabled] = useState<boolean | null>(null);
   const { user } = useExploration();
 
   useEffect(() => {

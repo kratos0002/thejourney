@@ -21,19 +21,11 @@ export default function CabinetPage({ words }: { words: Word[] }) {
   const router = useRouter();
   const [languageFilter, setLanguageFilter] = useState<string | null>(null);
 
-  const [flagChecked, setFlagChecked] = useState(false);
-
   useEffect(() => {
-    // Small delay to let the feature flag hook resolve from Supabase
-    const timer = setTimeout(() => setFlagChecked(true), 500);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (flagChecked && !enabled) {
+    if (enabled === false) {
       router.replace("/");
     }
-  }, [flagChecked, enabled, router]);
+  }, [enabled, router]);
 
   const exploredWords = useMemo(
     () => words.filter((w) => exploredSlugs.has(w.slug)),
@@ -66,8 +58,8 @@ export default function CabinetPage({ words }: { words: Word[] }) {
     };
   }, [exploredWords]);
 
-  // Don't render while checking flag or if disabled
-  if (!flagChecked || !enabled) {
+  // Don't render while loading flag or if disabled
+  if (enabled === null || enabled === false) {
     return null;
   }
 
