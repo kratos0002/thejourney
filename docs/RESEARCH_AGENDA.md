@@ -10,11 +10,11 @@ This document outlines research initiatives to elevate The Journey into the best
 
 | # | Research Area | Impact | Effort | Status |
 |---|---------------|--------|--------|--------|
-| 1 | Learning Science & Retention | Very High | High | Not Started |
+| 1 | Learning Science & Retention | Very High | High | **Complete** |
 | 2 | Discovery & Serendipity | High | Medium | **Complete** |
 | 3 | Social & Sharing Behavior | High | Low | **Complete** |
 | 4 | Audio & Pronunciation Experience | Medium | Medium | Not Started |
-| 5 | Gamification Without Cheapening | Medium | Medium | Not Started |
+| 5 | Gamification Without Cheapening | Medium | Medium | **Complete** |
 | 6 | Educator & Classroom Use | High | Low | Not Started |
 | 7 | Accessibility & Internationalization | Medium | Low | Not Started |
 | 8 | Mobile App vs. Web | Medium | Low | Not Started |
@@ -132,9 +132,11 @@ This document outlines research initiatives to elevate The Journey into the best
 - What's the difference between "achievement" and "discovery" framing?
 
 **Outputs:**
-- [ ] Luxury app engagement analysis
-- [ ] Collection psychology research
-- [ ] Elegant progress system design
+- [x] Luxury app engagement analysis
+- [x] Collection psychology research
+- [x] Elegant progress system design
+
+**Status:** Complete — See `/docs/research/ENGAGEMENT_RETENTION_RESEARCH.md`
 
 ---
 
