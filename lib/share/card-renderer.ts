@@ -748,7 +748,7 @@ export async function renderCard(
 ): Promise<Blob> {
   switch (type) {
     case "moment":
-      return renderMomentCard(word, size);
+      return renderPosterCard(word, size);
     case "path":
       return renderPathCard(word, size);
     case "poster":

@@ -6,6 +6,7 @@ import { useTheme } from "@/components/ThemeProvider";
 import { Word } from "@/data/word-types";
 import { getUserNotifications, dismissNotification, type UserNotification } from "@/lib/feedback";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import Link from "next/link";
 import InstallInstructionsModal from "@/components/InstallInstructionsModal";
 import ThemeSelector from "@/components/ThemeSelector";
 
@@ -21,6 +22,7 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
   const { classroomMode, setClassroomMode } = useTheme();
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const showThemeSelector = useFeatureFlag("theme_selection");
+  const showCabinet = useFeatureFlag("cabinet_of_curiosities");
 
   const [authStep, setAuthStep] = useState<"idle" | "email" | "otp">("idle");
   const [email, setEmail] = useState("");
@@ -150,6 +152,29 @@ export default function ProfilePanel({ words, open, onClose, onFeedbackClick }: 
                   <p className="text-[9px] font-body tracking-widest uppercase" style={{ color: "var(--theme-text-tertiary)" }}>languages</p>
                 </div>
               </div>
+
+              {/* Your Cabinet link */}
+              {showCabinet && exploredCount > 0 && (
+                <Link
+                  href="/cabinet"
+                  onClick={onClose}
+                  className="w-full mb-4 py-2 text-xs font-body rounded-lg flex items-center justify-center gap-2 transition-colors"
+                  style={{
+                    color: "var(--theme-accent)",
+                    background: "var(--theme-accent-muted)",
+                    border: "1px solid var(--theme-accent)",
+                    opacity: 0.8,
+                  }}
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ opacity: 0.7 }}>
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  Your Cabinet
+                </Link>
+              )}
 
               {/* Progress */}
               <div className="mb-4">
