@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Word } from "@/data/word-types";
@@ -12,15 +12,12 @@ import { fadeIn, easeSmooth } from "@/lib/animations";
 import CabinetHeader from "./CabinetHeader";
 import CabinetGrid from "./CabinetGrid";
 import CabinetEmpty from "./CabinetEmpty";
-import CabinetMilestones from "./CabinetMilestones";
 
 export default function CabinetPage({ words }: { words: Word[] }) {
   const enabled = useFeatureFlag("cabinet_of_curiosities");
   const { exploredSlugs } = useExploration();
   const { navigateHome } = useTransition();
   const router = useRouter();
-  const [languageFilter, setLanguageFilter] = useState<string | null>(null);
-
   useEffect(() => {
     if (enabled === false) {
       router.replace("/");
@@ -31,11 +28,6 @@ export default function CabinetPage({ words }: { words: Word[] }) {
     () => words.filter((w) => exploredSlugs.has(w.slug)),
     [words, exploredSlugs]
   );
-
-  const filteredWords = useMemo(() => {
-    if (!languageFilter) return exploredWords;
-    return exploredWords.filter((w) => w.language === languageFilter);
-  }, [exploredWords, languageFilter]);
 
   const metadata = useMemo(() => {
     const languages = new Set<string>();
@@ -113,11 +105,7 @@ export default function CabinetPage({ words }: { words: Word[] }) {
               languageCount={metadata.languageCount}
               continentCount={metadata.continentCount}
             />
-            <CabinetGrid words={filteredWords} />
-            <CabinetMilestones
-              words={exploredWords}
-              onGroupByLanguage={setLanguageFilter}
-            />
+            <CabinetGrid words={exploredWords} />
           </motion.div>
         )}
       </div>
