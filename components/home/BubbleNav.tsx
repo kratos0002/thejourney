@@ -385,12 +385,13 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               height: "4rem",
               transform: "translate3d(-9999px, -9999px, 0) scale(0)",
               opacity: 0,
+              overflow: isDaily ? "visible" : undefined,
             }}
             onClick={handleBubbleClick}
             aria-label={`Explore ${word.slug}`}
           >
             <div
-              className={`w-full h-full rounded-full flex items-center justify-center relative${isDaily ? " animate-pulse-subtle" : ""}`}
+              className={`w-full h-full rounded-full flex items-center justify-center relative${isDaily ? " animate-pulse-subtle overflow-visible" : ""}`}
               style={{
                 background: isMuted
                   ? "var(--theme-bubble-bg-muted)"

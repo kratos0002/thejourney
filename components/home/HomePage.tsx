@@ -36,23 +36,29 @@ export default function HomePage({ words }: { words: Word[] }) {
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
 
-  // Daily word: compute once, used for globe rotation + subtitle hook
+  // Daily word: stable all day, independent of exploration state
   const dailyWord = useMemo(
-    () => dailyWordRitualEnabled ? getDailyFeaturedWord(words, exploredSlugs) : undefined,
-    [words, exploredSlugs, dailyWordRitualEnabled]
+    () => dailyWordRitualEnabled ? getDailyFeaturedWord(words) : undefined,
+    [words, dailyWordRitualEnabled]
   );
-  const showDailyHook = dailyWord && exploredCount > 0 && !exploredSlugs.has(dailyWord.slug);
+  // Glow only shows if the daily word hasn't been explored yet
+  const dailySlugForGlow = dailyWord && !exploredSlugs.has(dailyWord.slug) ? dailyWord.slug : undefined;
 
-  // Subtitle text cycles: show hook for a few seconds, then fade back
+  // Subtitle hook: show once per day (localStorage gated), then fade back
   const [showingHook, setShowingHook] = useState(false);
   useEffect(() => {
-    if (!showDailyHook) return;
-    // Show the hook after initial load settles
-    const showTimer = setTimeout(() => setShowingHook(true), 2500);
-    // Fade back to default after 10 seconds
+    if (!dailyWord || exploredCount === 0) return;
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const storageKey = "journey-daily-hook-shown";
+    if (localStorage.getItem(storageKey) === todayKey) return;
+
+    const showTimer = setTimeout(() => {
+      setShowingHook(true);
+      localStorage.setItem(storageKey, todayKey);
+    }, 2500);
     const hideTimer = setTimeout(() => setShowingHook(false), 12500);
     return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
-  }, [showDailyHook]);
+  }, [dailyWord, exploredCount]);
 
   const handleFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
     setFilteredSlugs(matching);
@@ -99,7 +105,7 @@ export default function HomePage({ words }: { words: Word[] }) {
           words={words}
           filteredSlugs={hasActiveFilters ? filteredSlugs : undefined}
           hasActiveFilters={hasActiveFilters}
-          dailySlug={showDailyHook ? dailyWord?.slug : undefined}
+          dailySlug={dailySlugForGlow}
         />
       </div>
 
@@ -123,12 +129,12 @@ export default function HomePage({ words }: { words: Word[] }) {
         >
           The Journey
         </motion.h1>
-        <div className="mt-1 relative h-6 sm:h-7 overflow-hidden">
+        <div className="mt-1 relative" style={{ minHeight: "1.5rem" }}>
           <AnimatePresence mode="wait">
             {showingHook && dailyWord ? (
               <motion.p
                 key="hook"
-                className="absolute inset-x-0 text-xs sm:text-sm font-body italic"
+                className="text-[11px] sm:text-sm font-body italic leading-snug max-w-md mx-auto px-4 line-clamp-2"
                 style={{ color: "var(--theme-accent)", opacity: 0.6 }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -140,7 +146,7 @@ export default function HomePage({ words }: { words: Word[] }) {
             ) : (
               <motion.p
                 key="default"
-                className="absolute inset-x-0 text-xs sm:text-sm font-body tracking-widest"
+                className="text-xs sm:text-sm font-body tracking-widest"
                 style={{ color: "var(--theme-text-secondary)", opacity: 0.4 }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
