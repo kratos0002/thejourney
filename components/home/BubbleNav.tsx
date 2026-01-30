@@ -64,13 +64,25 @@ interface BubbleNavProps {
   words: Word[];
   filteredSlugs?: Set<string>;
   hasActiveFilters?: boolean;
+  dailySlug?: string;
 }
 
-export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
+export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false, dailySlug }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const { classroomMode } = useTheme();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
+
+  // Rotate sphere to face the daily word on mount
+  const initialRotation = useMemo(() => {
+    if (!dailySlug) return { rx: 0, ry: 0 };
+    const idx = words.findIndex((w) => w.slug === dailySlug);
+    if (idx < 0) return { rx: 0, ry: 0 };
+    const pt = spherePoints[idx];
+    // Negate lon to rotate the point toward the viewer (z = front)
+    // Use lat for vertical tilt
+    return { rx: pt.lat, ry: -pt.lon };
+  }, [dailySlug, words, spherePoints]);
 
   // Store filter state in refs for use in animation loop
   const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
@@ -80,8 +92,8 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const loopRef = useRef<number>(0);
 
-  const anim = useRef({ rx: 0, ry: 0, radius: 280 });
-  const target = useRef({ rx: 0, ry: 0, radius: 280 });
+  const anim = useRef({ rx: initialRotation.rx, ry: initialRotation.ry, radius: 280 });
+  const target = useRef({ rx: initialRotation.rx, ry: initialRotation.ry, radius: 280 });
   const vel = useRef({ rx: 0, ry: 0 });
   const dragging = useRef(false);
   const dragOrigin = useRef({ x: 0, y: 0, rx: 0, ry: 0 });
@@ -328,6 +340,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
         const isMatch = !hasActiveFilters || (filteredSlugs?.has(word.slug) ?? true);
+        const isDaily = !hasActiveFilters && word.slug === dailySlug && !explored;
 
         // When filters active: matching words are bright, explored gets subtle indicator
         const shouldHighlight = hasActiveFilters && isMatch;
@@ -339,6 +352,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
         // Style logic:
         // - If filtering and matches: always bright (ignore explored muting)
         // - If not filtering and explored: muted
+        // - If daily word: warm accent glow
         // - Otherwise: bright
         const isMuted = !hasActiveFilters && explored;
 
@@ -358,21 +372,25 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
             aria-label={`Explore ${word.slug}`}
           >
             <div
-              className="w-full h-full rounded-full flex items-center justify-center relative"
+              className={`w-full h-full rounded-full flex items-center justify-center relative${isDaily ? " animate-pulse-subtle" : ""}`}
               style={{
                 background: isMuted
                   ? "var(--theme-bubble-bg-muted)"
-                  : "var(--theme-bubble-bg)",
-                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
+                  : isDaily
+                    ? "var(--theme-accent-muted)"
+                    : "var(--theme-bubble-bg)",
+                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : isDaily ? "var(--theme-accent)" : getLanguageTint(word.language)}`,
                 boxShadow: isMuted
                   ? "0 2px 8px var(--theme-bubble-shadow), inset 0 1px 2px var(--theme-bubble-shadow)"
-                  : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
+                  : isDaily
+                    ? `0 2px 12px var(--theme-bubble-shadow), 0 0 30px var(--theme-accent), 0 0 60px var(--theme-accent-muted), inset 0 1px 3px var(--theme-bubble-shadow)`
+                    : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "var(--theme-bubble-text-muted)" : "var(--theme-bubble-text)",
+                  color: isMuted ? "var(--theme-bubble-text-muted)" : isDaily ? "var(--theme-accent)" : "var(--theme-bubble-text)",
                   fontSize: `${fontSize}rem`,
                   textShadow: isMuted
                     ? "var(--theme-bubble-text-shadow-muted)"

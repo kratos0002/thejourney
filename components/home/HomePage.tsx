@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { fadeIn, fadeInUp } from "@/lib/animations";
 import { Word } from "@/data/word-types";
 import BubbleNav from "@/components/home/BubbleNav";
@@ -10,7 +10,7 @@ import StartPrompt from "@/components/home/StartPrompt";
 import ProfilePanel from "@/components/ProfilePanel";
 import FeedbackModal from "@/components/FeedbackModal";
 import DiscoveryDrawer from "@/components/home/DiscoveryDrawer";
-import DailyWordRitual from "@/components/home/DailyWordRitual";
+import { getDailyFeaturedWord } from "@/lib/daily-word";
 import { getNotificationCount } from "@/lib/feedback";
 import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
@@ -32,9 +32,27 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [notifCount, setNotifCount] = useState(0);
   const [filteredSlugs, setFilteredSlugs] = useState<Set<string>>(new Set());
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
-  const { user } = useExploration();
+  const { user, exploredSlugs, exploredCount } = useExploration();
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
+
+  // Daily word: compute once, used for globe rotation + subtitle hook
+  const dailyWord = useMemo(
+    () => dailyWordRitualEnabled ? getDailyFeaturedWord(words, exploredSlugs) : undefined,
+    [words, exploredSlugs, dailyWordRitualEnabled]
+  );
+  const showDailyHook = dailyWord && exploredCount > 0 && !exploredSlugs.has(dailyWord.slug);
+
+  // Subtitle text cycles: show hook for a few seconds, then fade back
+  const [showingHook, setShowingHook] = useState(false);
+  useEffect(() => {
+    if (!showDailyHook) return;
+    // Show the hook after initial load settles
+    const showTimer = setTimeout(() => setShowingHook(true), 2500);
+    // Fade back to default after 10 seconds
+    const hideTimer = setTimeout(() => setShowingHook(false), 12500);
+    return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
+  }, [showDailyHook]);
 
   const handleFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
     setFilteredSlugs(matching);
@@ -81,14 +99,12 @@ export default function HomePage({ words }: { words: Word[] }) {
           words={words}
           filteredSlugs={hasActiveFilters ? filteredSlugs : undefined}
           hasActiveFilters={hasActiveFilters}
+          dailySlug={showDailyHook ? dailyWord?.slug : undefined}
         />
       </div>
 
       {/* Start prompt for first-time users */}
       <StartPrompt />
-
-      {/* Daily word ritual (behind feature flag) */}
-      {dailyWordRitualEnabled && <DailyWordRitual words={words} />}
 
       {/* Header overlay - fades in classroom mode */}
       <motion.header
@@ -107,16 +123,35 @@ export default function HomePage({ words }: { words: Word[] }) {
         >
           The Journey
         </motion.h1>
-        <motion.p
-          className="mt-1 text-xs sm:text-sm font-body tracking-widest"
-          style={{ color: "var(--theme-text-secondary)", opacity: 0.4 }}
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.3 }}
-        >
-          Where every word began
-        </motion.p>
+        <div className="mt-1 relative h-6 sm:h-7 overflow-hidden">
+          <AnimatePresence mode="wait">
+            {showingHook && dailyWord ? (
+              <motion.p
+                key="hook"
+                className="absolute inset-x-0 text-xs sm:text-sm font-body italic"
+                style={{ color: "var(--theme-accent)", opacity: 0.6 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                &ldquo;{dailyWord.hook}&rdquo;
+              </motion.p>
+            ) : (
+              <motion.p
+                key="default"
+                className="absolute inset-x-0 text-xs sm:text-sm font-body tracking-widest"
+                style={{ color: "var(--theme-text-secondary)", opacity: 0.4 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                Where every word began
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
       </motion.header>
 
       {/* Profile button */}
