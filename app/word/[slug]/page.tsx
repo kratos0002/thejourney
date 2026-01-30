@@ -39,20 +39,38 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const word = await getWordBySlug(slug);
-  if (!word) return {};
+  if (!word) return { title: "Word Not Found" };
+
+  const baseUrl = process.env.NEXT_PUBLIC_URL || "https://etymology.life";
+  const capitalizedSlug = slug.charAt(0).toUpperCase() + slug.slice(1);
+
+  // Keyword-optimized title targeting "origin of [word]" and "[word] etymology"
+  const title = `${capitalizedSlug} — Origin & Etymology`;
+
+  // Search-optimized description combining hook with structured framing
+  const firstStop = word.journey[0];
+  const lastStop = word.journey[word.journey.length - 1];
+  const journeyFrame = firstStop && lastStop
+    ? ` Trace its journey from ${firstStop.location} to ${lastStop.location}.`
+    : "";
+  const description = `The word "${slug}" comes from ${word.language} ${word.romanization}. ${word.hook}${journeyFrame}`;
 
   return {
-    title: `${word.romanization} — The Journey`,
-    description: word.hook,
+    title,
+    description,
+    alternates: {
+      canonical: `${baseUrl}/word/${slug}`,
+    },
     openGraph: {
-      title: `${word.romanization} — The Journey`,
-      description: word.hook,
+      title: `${capitalizedSlug} — Origin & Etymology | The Journey`,
+      description,
       type: "article",
+      url: `${baseUrl}/word/${slug}`,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${word.romanization} — The Journey`,
-      description: word.hook,
+      title: `${capitalizedSlug} — Origin & Etymology | The Journey`,
+      description,
     },
   };
 }
@@ -82,28 +100,41 @@ export default async function WordPage({ params }: PageProps) {
     .map(w => ({ slug: w.slug, romanization: w.romanization }));
 
   const baseUrl = process.env.NEXT_PUBLIC_URL || "https://etymology.life";
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: `${enrichedWord.romanization} — Etymology & Origin`,
-    description: enrichedWord.hook,
-    url: `${baseUrl}/word/${enrichedWord.slug}`,
-    inLanguage: "en",
-    about: {
+  const wordUrl = `${baseUrl}/word/${enrichedWord.slug}`;
+
+  const jsonLd = [
+    {
+      "@context": "https://schema.org",
       "@type": "DefinedTerm",
       name: enrichedWord.romanization,
-      description: enrichedWord.meaningNow,
+      alternateName: enrichedWord.slug,
+      description: `The word "${enrichedWord.slug}" comes from ${enrichedWord.language} ${enrichedWord.romanization}. ${enrichedWord.hook}`,
       inDefinedTermSet: {
         "@type": "DefinedTermSet",
-        name: "The Journey — Etymology Collection",
+        name: "The Journey — Word Origins",
+        url: baseUrl,
       },
+      url: wordUrl,
     },
-    publisher: {
-      "@type": "Organization",
-      name: "The Journey",
-      url: baseUrl,
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Home",
+          item: baseUrl,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: enrichedWord.slug,
+          item: wordUrl,
+        },
+      ],
     },
-  };
+  ];
 
   return (
     <>

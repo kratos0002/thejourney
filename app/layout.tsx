@@ -54,7 +54,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_URL || "https://etymology.life"),
-  title: "The Journey — Where Every Word Began",
+  title: {
+    template: "%s | The Journey",
+    default: "The Journey — Where Every Word Began",
+  },
   description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
   icons: {
     icon: [

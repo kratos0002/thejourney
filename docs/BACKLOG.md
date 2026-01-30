@@ -8,7 +8,9 @@ Consolidated from completed research and ongoing product development. Organized 
 
 - [x] **Cabinet of Curiosities** — Personal collection view at `/cabinet` showing explored words as museum artifacts. Shelf-based layout, breathing glows, cultural color tinting, horizontal scroll on mobile. Behind `cabinet_of_curiosities` feature flag.
 - [x] **Share Cards (Poster/Moment)** — Museum-quality share cards for individual words.
+- [x] **Share Card Light/Dark Toggle** — Dark and light theme options for share cards with parchment-toned light palette and adjusted cultural accents.
 - [x] **Profile Panel Cabinet Link** — "Your Cabinet" link in profile panel when flag enabled and words explored.
+- [x] **Daily Word Ritual** — Header subtitle shows daily word's hook once per day (localStorage gated). Tappable to navigate to word. Behind `daily_word_ritual` feature flag.
 
 ---
 
@@ -16,7 +18,7 @@ Consolidated from completed research and ongoing product development. Organized 
 
 ### Daily Engagement
 
-- [ ] **Daily Word Ritual** — A daily featured word on the home screen/globe. Not a streak — a rotating spotlight with a fresh angle or cultural hook. Gentle opt-in push notification: "A word awaits." *(Source: Engagement Research, Learning Science Research)*
+- [x] **Daily Word Ritual** — ~~A daily featured word on the home screen/globe.~~ Shipped as header subtitle hook (once per day, localStorage gated, tappable). No bubble glow — the hook is a whisper, not a spotlight. *(Source: Engagement Research, Learning Science Research)*
 
 - [ ] **Word of the Day with Memory Weaving** — Combine new daily content with callbacks to words the user is about to forget. "Also: Remember qahwa? Here's something you didn't know..." *(Source: Spaced Repetition Research)*
 
@@ -33,6 +35,12 @@ Consolidated from completed research and ongoing product development. Organized 
 - [ ] **Curated Journeys** — Editorial paths like "Words of War," "Food's Travels," "The Silk Road's Vocabulary." Themed collections that create routes through the word catalog. *(Source: Discovery Research — curated rows beat infinite scroll)*
 
 - [ ] **Gentle Suggestions / Connections** — "If you liked qahwa, you might enjoy..." connections between words based on theme, origin, or route. *(Source: Discovery Research)*
+
+### SEO Technical Fixes (from SEO Research)
+
+- [ ] **DefinedTerm Schema + BreadcrumbList** — Replace Article JSON-LD with DefinedTerm on word pages. Add BreadcrumbList for navigation. Add AudioObject for pronunciation. *(Source: SEO Strategy Research — Merriam-Webster gold standard)*
+
+- [ ] **Keyword-Optimized Metadata** — Update title templates to target "origin of [word]", "where does [word] come from" patterns. Fix metadata duplication between page.tsx and layout.tsx. Add canonical URLs. *(Source: SEO Strategy Research)*
 
 ---
 
@@ -61,6 +69,16 @@ Consolidated from completed research and ongoing product development. Organized 
 - [ ] **Language Grouping** — At 10+ words, enable group-by-language toggle in the cabinet. CabinetMilestones component exists but is currently removed from the page. *(Component built, needs reintegration)*
 
 - [ ] **Cabinet Search/Filter** — At 20+ explored words, add a search/filter mechanism within the cabinet. *(Future scale need)*
+
+### SEO & Site Architecture (from SEO Research)
+
+- [ ] **Language-of-Origin Hub Pages** — Create `/origin/[language]` pages listing all words from that language with hooks. Serve as topical authority hubs and internal linking anchors. *(Source: SEO Strategy Research — internal linking = 4x traffic)*
+
+- [ ] **Related Words Cross-Linking** — Add "Related Words" section to word pages linking to 5-10 words sharing language, region, or journey path. *(Source: SEO Strategy Research)*
+
+- [ ] **Browse/Index Page** — Alphabetical listing of all words at `/words` or `/browse`. Ensures all pages reachable within 2 clicks from home. HTML sitemap equivalent. *(Source: SEO Strategy Research)*
+
+- [ ] **Direct-Answer Content Formatting** — Structure first paragraph of each word page for AI Overview citation: "The word [X] comes from [language] [word], meaning [meaning]." *(Source: SEO Strategy Research — GEO optimization)*
 
 ### Learning Science
 
@@ -152,5 +170,5 @@ Based on research, these features are explicitly excluded:
 ---
 
 *Created: January 2026*
-*Sources: 6 completed research documents in `/docs/research/`*
+*Sources: 7 completed research documents in `/docs/research/`*
 *See also: RESEARCH_AGENDA.md for open research areas*
