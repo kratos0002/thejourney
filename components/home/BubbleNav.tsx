@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useMemo, useEffect, useState } from "react";
+import { useRef, useCallback, useMemo, useEffect } from "react";
 import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 import { useExploration } from "@/components/ExplorationProvider";
@@ -64,43 +64,13 @@ interface BubbleNavProps {
   words: Word[];
   filteredSlugs?: Set<string>;
   hasActiveFilters?: boolean;
-  dailySlug?: string;
 }
 
-export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false, dailySlug }: BubbleNavProps) {
+export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const { classroomMode } = useTheme();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
-
-  // Rotate sphere to face the daily word on mount
-  const initialRotation = useMemo(() => {
-    if (!dailySlug) return { rx: 0, ry: 0 };
-    const idx = words.findIndex((w) => w.slug === dailySlug);
-    if (idx < 0) return { rx: 0, ry: 0 };
-    const pt = spherePoints[idx];
-    // Negate lon to rotate the point toward the viewer (z = front)
-    // Use lat for vertical tilt
-    return { rx: pt.lat, ry: -pt.lon };
-  }, [dailySlug, words, spherePoints]);
-
-  // "Word of the day" label — shown once per day, fades after 5 seconds
-  const [showDailyLabel, setShowDailyLabel] = useState(false);
-  useEffect(() => {
-    if (!dailySlug) return;
-    const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const storageKey = "journey-daily-label-shown";
-    const lastShown = localStorage.getItem(storageKey);
-    if (lastShown === todayKey) return;
-
-    // Show after globe settles
-    const showTimer = setTimeout(() => {
-      setShowDailyLabel(true);
-      localStorage.setItem(storageKey, todayKey);
-    }, 2000);
-    const hideTimer = setTimeout(() => setShowDailyLabel(false), 7000);
-    return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
-  }, [dailySlug]);
 
   // Store filter state in refs for use in animation loop
   const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
@@ -110,8 +80,8 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const loopRef = useRef<number>(0);
 
-  const anim = useRef({ rx: initialRotation.rx, ry: initialRotation.ry, radius: 280 });
-  const target = useRef({ rx: initialRotation.rx, ry: initialRotation.ry, radius: 280 });
+  const anim = useRef({ rx: 0, ry: 0, radius: 280 });
+  const target = useRef({ rx: 0, ry: 0, radius: 280 });
   const vel = useRef({ rx: 0, ry: 0 });
   const dragging = useRef(false);
   const dragOrigin = useRef({ x: 0, y: 0, rx: 0, ry: 0 });
@@ -358,7 +328,6 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
         const isMatch = !hasActiveFilters || (filteredSlugs?.has(word.slug) ?? true);
-        const isDaily = !hasActiveFilters && word.slug === dailySlug && !explored;
 
         // When filters active: matching words are bright, explored gets subtle indicator
         const shouldHighlight = hasActiveFilters && isMatch;
@@ -370,7 +339,6 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
         // Style logic:
         // - If filtering and matches: always bright (ignore explored muting)
         // - If not filtering and explored: muted
-        // - If daily word: warm accent glow
         // - Otherwise: bright
         const isMuted = !hasActiveFilters && explored;
 
@@ -385,31 +353,26 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               height: "4rem",
               transform: "translate3d(-9999px, -9999px, 0) scale(0)",
               opacity: 0,
-              overflow: isDaily ? "visible" : undefined,
             }}
             onClick={handleBubbleClick}
             aria-label={`Explore ${word.slug}`}
           >
             <div
-              className={`w-full h-full rounded-full flex items-center justify-center relative${isDaily ? " animate-pulse-subtle overflow-visible" : ""}`}
+              className="w-full h-full rounded-full flex items-center justify-center relative"
               style={{
                 background: isMuted
                   ? "var(--theme-bubble-bg-muted)"
-                  : isDaily
-                    ? "var(--theme-accent-muted)"
-                    : "var(--theme-bubble-bg)",
-                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : isDaily ? "var(--theme-accent)" : getLanguageTint(word.language)}`,
+                  : "var(--theme-bubble-bg)",
+                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
                 boxShadow: isMuted
                   ? "0 2px 8px var(--theme-bubble-shadow), inset 0 1px 2px var(--theme-bubble-shadow)"
-                  : isDaily
-                    ? `0 2px 12px var(--theme-bubble-shadow), 0 0 30px var(--theme-accent), 0 0 60px var(--theme-accent-muted), inset 0 1px 3px var(--theme-bubble-shadow)`
-                    : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
+                  : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
               }}
             >
               <span
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
-                  color: isMuted ? "var(--theme-bubble-text-muted)" : isDaily ? "var(--theme-accent)" : "var(--theme-bubble-text)",
+                  color: isMuted ? "var(--theme-bubble-text-muted)" : "var(--theme-bubble-text)",
                   fontSize: `${fontSize}rem`,
                   textShadow: isMuted
                     ? "var(--theme-bubble-text-shadow-muted)"
@@ -418,20 +381,6 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               >
                 {word.slug}
               </span>
-              {/* "Word of the day" label — fades once per day */}
-              {isDaily && showDailyLabel && (
-                <span
-                  className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-body text-[9px] tracking-[0.15em] uppercase pointer-events-none"
-                  style={{
-                    bottom: "-1.4rem",
-                    color: "var(--theme-accent)",
-                    opacity: 0.6,
-                    animation: "dailyLabelFade 5s ease-in-out forwards",
-                  }}
-                >
-                  word of the day
-                </span>
-              )}
               {/* Small checkmark for explored words when they're visible */}
               {explored && (shouldHighlight || !hasActiveFilters) && (
                 <span

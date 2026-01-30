@@ -32,7 +32,7 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [notifCount, setNotifCount] = useState(0);
   const [filteredSlugs, setFilteredSlugs] = useState<Set<string>>(new Set());
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
-  const { user, exploredSlugs, exploredCount } = useExploration();
+  const { user, exploredCount } = useExploration();
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
 
@@ -41,9 +41,6 @@ export default function HomePage({ words }: { words: Word[] }) {
     () => dailyWordRitualEnabled ? getDailyFeaturedWord(words) : undefined,
     [words, dailyWordRitualEnabled]
   );
-  // Glow only shows if the daily word hasn't been explored yet
-  const dailySlugForGlow = dailyWord && !exploredSlugs.has(dailyWord.slug) ? dailyWord.slug : undefined;
-
   // Subtitle hook: show once per day (localStorage gated), then fade back
   const [showingHook, setShowingHook] = useState(false);
   useEffect(() => {
@@ -105,7 +102,6 @@ export default function HomePage({ words }: { words: Word[] }) {
           words={words}
           filteredSlugs={hasActiveFilters ? filteredSlugs : undefined}
           hasActiveFilters={hasActiveFilters}
-          dailySlug={dailySlugForGlow}
         />
       </div>
 
