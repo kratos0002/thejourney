@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Word } from "@/data/word-types";
-import { renderCard, shareCard, downloadBlob, type CardType } from "@/lib/share/card-renderer";
+import { renderCard, shareCard, downloadBlob, type CardType, type CardTheme } from "@/lib/share/card-renderer";
 
 interface ShareDrawerProps {
   word: Word;
@@ -19,6 +19,7 @@ const CARD_TYPES: { type: CardType; label: string }[] = [
 
 export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
   const [cardType, setCardType] = useState<CardType>("moment");
+  const [cardTheme, setCardTheme] = useState<CardTheme>("dark");
   const [state, setState] = useState<GenerationState>("idle");
   const [cardBlob, setCardBlob] = useState<Blob | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
     setError(null);
 
     try {
-      const blob = await renderCard(word, cardType, "story");
+      const blob = await renderCard(word, cardType, "story", cardTheme);
       setCardBlob(blob);
 
       if (previewUrl) {
@@ -43,7 +44,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
       setError("Failed to generate card");
       setState("error");
     }
-  }, [word, cardType]);
+  }, [word, cardType, cardTheme]);
 
   useEffect(() => {
     if (open) {
@@ -63,7 +64,7 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
     if (open) {
       generateCard();
     }
-  }, [cardType]);
+  }, [cardType, cardTheme]);
 
   const handleShare = async () => {
     if (!cardBlob) return;
@@ -136,6 +137,35 @@ export default function ShareDrawer({ word, open, onClose }: ShareDrawerProps) {
                 <p className="text-sm font-body mt-1" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>
                   {word.romanization}
                 </p>
+              </div>
+
+              {/* Theme toggle */}
+              <div className="flex justify-center mb-5">
+                <div
+                  className="inline-flex rounded-full p-0.5"
+                  style={{ background: "var(--theme-bg-primary)", border: "1px solid var(--theme-border)" }}
+                >
+                  <button
+                    onClick={() => setCardTheme("dark")}
+                    className="px-4 py-1.5 rounded-full text-[11px] font-body tracking-wide transition-all duration-300"
+                    style={{
+                      background: cardTheme === "dark" ? "var(--theme-accent)" : "transparent",
+                      color: cardTheme === "dark" ? "var(--theme-bg-primary)" : "var(--theme-text-tertiary)",
+                    }}
+                  >
+                    Dark
+                  </button>
+                  <button
+                    onClick={() => setCardTheme("light")}
+                    className="px-4 py-1.5 rounded-full text-[11px] font-body tracking-wide transition-all duration-300"
+                    style={{
+                      background: cardTheme === "light" ? "var(--theme-accent)" : "transparent",
+                      color: cardTheme === "light" ? "var(--theme-bg-primary)" : "var(--theme-text-tertiary)",
+                    }}
+                  >
+                    Light
+                  </button>
+                </div>
               </div>
 
               {/* Card Preview */}

@@ -12,6 +12,49 @@ export const CARD_SIZES = {
 } as const;
 
 export type CardSize = keyof typeof CARD_SIZES;
+export type CardTheme = "dark" | "light";
+
+// Theme color palettes
+const THEME_COLORS = {
+  dark: {
+    bg: ["#0a0a14", "#0f0f1a", "#12121e"],       // gradient stops
+    bgDeep: "#08080c",                             // poster deep bg
+    vignette: "rgba(10, 10, 20, 0.5)",
+    vignetteStrong: "rgba(10, 10, 20, 0.6)",
+    textPrimary: "#f0ede6",
+    textSecondary: "#a8b0b8",
+    textTertiary: "#6b6866",
+    textHero: "#ffffff",
+    textHook: "#c8c4bc",
+    cardBg: "rgba(20, 20, 30, 0.6)",
+    cardBgAlt: "rgba(20, 20, 30, 0.5)",
+    innerDot: "#0a0a14",
+    footerText: "rgba(240, 237, 230, 0.5)",
+    footerLine: "rgba(255, 255, 255, 0.08)",
+    footerBrand: "rgba(255, 255, 255, 0.4)",
+    footerUrl: "rgba(255, 255, 255, 0.25)",
+    quoteWatermark: "15",                          // hex alpha for decorative quote
+  },
+  light: {
+    bg: ["#f8f5ef", "#fffefa", "#f8f5ef"],
+    bgDeep: "#f0ece4",
+    vignette: "rgba(248, 245, 239, 0.4)",
+    vignetteStrong: "rgba(248, 245, 239, 0.5)",
+    textPrimary: "#2a2520",
+    textSecondary: "#6b6560",
+    textTertiary: "#9a938b",
+    textHero: "#2a2520",
+    textHook: "#4a4440",
+    cardBg: "rgba(255, 255, 252, 0.7)",
+    cardBgAlt: "rgba(255, 255, 252, 0.6)",
+    innerDot: "#f8f5ef",
+    footerText: "rgba(42, 37, 32, 0.4)",
+    footerLine: "rgba(42, 37, 32, 0.1)",
+    footerBrand: "rgba(42, 37, 32, 0.5)",
+    footerUrl: "rgba(42, 37, 32, 0.3)",
+    quoteWatermark: "0a",
+  },
+} as const;
 
 // Cultural color accents based on language origin
 function getCulturalAccent(language: string): { primary: string; secondary: string } {
@@ -35,12 +78,35 @@ function getCulturalAccent(language: string): { primary: string; secondary: stri
   return { primary: "#d4a574", secondary: "#a67c52" }; // Default amber
 }
 
+// Cultural accents adjusted for light backgrounds (deeper/richer)
+function getCulturalAccentLight(language: string): { primary: string; secondary: string } {
+  const lang = language.toLowerCase();
+
+  if (lang.includes("arabic") || lang.includes("persian"))
+    return { primary: "#5a3d8a", secondary: "#3d2b5e" };
+  if (lang.includes("hindi") || lang.includes("sanskrit") || lang.includes("pali"))
+    return { primary: "#a06830", secondary: "#7a4a1e" };
+  if (lang.includes("japanese") || lang.includes("chinese"))
+    return { primary: "#3a6868", secondary: "#1e3a3a" };
+  if (lang.includes("french") || lang.includes("italian") || lang.includes("spanish") || lang.includes("latin"))
+    return { primary: "#4a6ca8", secondary: "#3a4a72" };
+  if (lang.includes("german") || lang.includes("norse") || lang.includes("yiddish"))
+    return { primary: "#6a6a88", secondary: "#4a4a66" };
+  if (lang.includes("greek"))
+    return { primary: "#7a6ab0", secondary: "#5a4a88" };
+  if (lang.includes("zulu") || lang.includes("swahili"))
+    return { primary: "#6a9a4a", secondary: "#4a7a2a" };
+
+  return { primary: "#b8860b", secondary: "#8a6400" };
+}
+
 /**
  * Render "The Moment" card - hero quote with the word
  */
 export async function renderMomentCard(
   word: Word,
-  size: CardSize = "story"
+  size: CardSize = "story",
+  theme: CardTheme = "dark"
 ): Promise<Blob> {
   const { width, height } = CARD_SIZES[size];
   const canvas = document.createElement("canvas");
@@ -48,15 +114,16 @@ export async function renderMomentCard(
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  const accent = getCulturalAccent(word.language);
+  const colors = THEME_COLORS[theme];
+  const accent = theme === "dark" ? getCulturalAccent(word.language) : getCulturalAccentLight(word.language);
   const padding = 80;
   const centerX = width / 2;
 
   // Background gradient
   const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-  bgGradient.addColorStop(0, "#0a0a14");
-  bgGradient.addColorStop(0.5, "#0f0f1a");
-  bgGradient.addColorStop(1, "#12121e");
+  bgGradient.addColorStop(0, colors.bg[0]);
+  bgGradient.addColorStop(0.5, colors.bg[1]);
+  bgGradient.addColorStop(1, colors.bg[2]);
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, width, height);
 
@@ -77,13 +144,13 @@ export async function renderMomentCard(
     centerX, height / 2, height * 0.8
   );
   vignetteGradient.addColorStop(0, "transparent");
-  vignetteGradient.addColorStop(1, "rgba(10, 10, 20, 0.5)");
+  vignetteGradient.addColorStop(1, colors.vignette);
   ctx.fillStyle = vignetteGradient;
   ctx.fillRect(0, 0, width, height);
 
   // Decorative quotation mark
   ctx.font = "300px Georgia, serif";
-  ctx.fillStyle = `${accent.primary}15`;
+  ctx.fillStyle = `${accent.primary}${colors.quoteWatermark}`;
   ctx.textAlign = "center";
   ctx.fillText("\u201C", centerX - 100, height * 0.28);
 
@@ -94,7 +161,7 @@ export async function renderMomentCard(
   const maxHookWidth = width - padding * 2;
 
   ctx.font = `italic ${hookFontSize}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#f0ede6";
+  ctx.fillStyle = colors.textPrimary;
   ctx.textAlign = "center";
 
   // Word wrap the hook
@@ -111,7 +178,7 @@ export async function renderMomentCard(
   const wordCardWidth = width - padding * 3;
 
   // Word card background
-  ctx.fillStyle = "rgba(20, 20, 30, 0.6)";
+  ctx.fillStyle = colors.cardBg;
   ctx.beginPath();
   roundRect(ctx, (width - wordCardWidth) / 2, wordCardY, wordCardWidth, wordCardHeight, 20);
   ctx.fill();
@@ -123,12 +190,12 @@ export async function renderMomentCard(
 
   // Word glow
   ctx.shadowColor = accent.primary;
-  ctx.shadowBlur = 40;
+  ctx.shadowBlur = theme === "dark" ? 40 : 20;
 
   // Word in original script
   const wordFontSize = size === "story" ? 72 : 64;
   ctx.font = `600 ${wordFontSize}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = colors.textHero;
   ctx.textAlign = "center";
   ctx.fillText(word.word, centerX, wordCardY + 80);
 
@@ -136,12 +203,12 @@ export async function renderMomentCard(
 
   // Romanization
   ctx.font = `400 ${size === "story" ? 28 : 24}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "#a8b0b8";
+  ctx.fillStyle = colors.textSecondary;
   ctx.fillText(word.romanization, centerX, wordCardY + 130);
 
   // Slug (the recognizable English word)
   ctx.font = `500 ${size === "story" ? 24 : 20}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "#f0ede6";
+  ctx.fillStyle = colors.textPrimary;
   ctx.fillText(word.slug, centerX, wordCardY + 170);
 
   // Language
@@ -168,7 +235,7 @@ export async function renderMomentCard(
 
   // Site URL
   ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  ctx.fillStyle = colors.footerText;
   ctx.fillText("etymology.life", centerX, footerY + 58);
 
   // Convert to blob
@@ -235,7 +302,8 @@ function roundRect(
  */
 export async function renderPathCard(
   word: Word,
-  size: CardSize = "story"
+  size: CardSize = "story",
+  theme: CardTheme = "dark"
 ): Promise<Blob> {
   const { width, height } = CARD_SIZES[size];
   const canvas = document.createElement("canvas");
@@ -243,15 +311,16 @@ export async function renderPathCard(
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  const accent = getCulturalAccent(word.language);
+  const colors = THEME_COLORS[theme];
+  const accent = theme === "dark" ? getCulturalAccent(word.language) : getCulturalAccentLight(word.language);
   const padding = 80;
   const centerX = width / 2;
 
   // Background gradient
   const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
-  bgGradient.addColorStop(0, "#0a0a14");
-  bgGradient.addColorStop(0.5, "#0f0f1a");
-  bgGradient.addColorStop(1, "#12121e");
+  bgGradient.addColorStop(0, colors.bg[0]);
+  bgGradient.addColorStop(0.5, colors.bg[1]);
+  bgGradient.addColorStop(1, colors.bg[2]);
   ctx.fillStyle = bgGradient;
   ctx.fillRect(0, 0, width, height);
 
@@ -261,7 +330,7 @@ export async function renderPathCard(
     centerX, height / 2, height * 0.7
   );
   vignetteGradient.addColorStop(0, "transparent");
-  vignetteGradient.addColorStop(1, "rgba(10, 10, 20, 0.6)");
+  vignetteGradient.addColorStop(1, colors.vignetteStrong);
   ctx.fillStyle = vignetteGradient;
   ctx.fillRect(0, 0, width, height);
 
@@ -269,16 +338,16 @@ export async function renderPathCard(
   const wordY = size === "story" ? 160 : 110;
 
   ctx.shadowColor = accent.primary;
-  ctx.shadowBlur = 30;
+  ctx.shadowBlur = theme === "dark" ? 30 : 15;
   ctx.font = `600 ${size === "story" ? 64 : 56}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = colors.textHero;
   ctx.textAlign = "center";
   ctx.fillText(word.word, centerX, wordY);
   ctx.shadowBlur = 0;
 
   // Romanization
   ctx.font = `400 ${size === "story" ? 22 : 18}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "#a8b0b8";
+  ctx.fillStyle = colors.textSecondary;
   ctx.fillText(word.romanization, centerX, wordY + 38);
 
   // Slug (the recognizable English word)
@@ -335,24 +404,24 @@ export async function renderPathCard(
       // Dot
       ctx.beginPath();
       ctx.arc(x, y, 12, 0, Math.PI * 2);
-      ctx.fillStyle = i === 0 ? accent.primary : i === journey.length - 1 ? "#ffffff" : `${accent.primary}cc`;
+      ctx.fillStyle = i === 0 ? accent.primary : i === journey.length - 1 ? colors.textHero : `${accent.primary}cc`;
       ctx.fill();
 
       // Inner dot
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, Math.PI * 2);
-      ctx.fillStyle = "#0a0a14";
+      ctx.fillStyle = colors.innerDot;
       ctx.fill();
 
       // Location label
       ctx.font = `500 ${size === "story" ? 20 : 18}px "Source Serif 4", Georgia, serif`;
-      ctx.fillStyle = "#f0ede6";
+      ctx.fillStyle = colors.textPrimary;
       ctx.textAlign = "center";
       ctx.fillText(stop.location, x, y + 40);
 
       // Period
       ctx.font = `400 ${size === "story" ? 16 : 14}px "Source Serif 4", Georgia, serif`;
-      ctx.fillStyle = "#6b6866";
+      ctx.fillStyle = colors.textTertiary;
       ctx.fillText(stop.period, x, y + 62);
 
       // Form (if different from previous)
@@ -371,7 +440,7 @@ export async function renderPathCard(
   const timeSpan = `${firstStop?.period || ""} \u2192 ${lastStop?.period || "today"}`;
 
   ctx.font = `400 ${size === "story" ? 20 : 18}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "#a8b0b8";
+  ctx.fillStyle = colors.textSecondary;
   ctx.textAlign = "center";
   ctx.fillText(timeSpan, centerX, summaryY);
 
@@ -380,7 +449,7 @@ export async function renderPathCard(
   const hook = word.hook.length > 60 ? word.hook.substring(0, 57) + "..." : word.hook;
 
   ctx.font = `italic ${size === "story" ? 22 : 20}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#f0ede6";
+  ctx.fillStyle = colors.textPrimary;
   ctx.fillText(hook, centerX, hookY);
 
   // Footer branding
@@ -402,7 +471,7 @@ export async function renderPathCard(
 
   // Site URL
   ctx.font = `400 ${size === "story" ? 14 : 12}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "rgba(240, 237, 230, 0.5)";
+  ctx.fillStyle = colors.footerText;
   ctx.fillText("etymology.life", centerX, footerY + 58);
 
   return new Promise((resolve, reject) => {
@@ -551,7 +620,8 @@ export type CardType = "moment" | "path" | "poster";
  */
 export async function renderPosterCard(
   word: Word,
-  size: CardSize = "story"
+  size: CardSize = "story",
+  theme: CardTheme = "dark"
 ): Promise<Blob> {
   const { width, height } = CARD_SIZES[size];
   const canvas = document.createElement("canvas");
@@ -559,12 +629,13 @@ export async function renderPosterCard(
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  const accent = getCulturalAccent(word.language);
+  const colors = THEME_COLORS[theme];
+  const accent = theme === "dark" ? getCulturalAccent(word.language) : getCulturalAccentLight(word.language);
   const centerX = width / 2;
   const centerY = height / 2;
 
   // Deep background
-  ctx.fillStyle = "#08080c";
+  ctx.fillStyle = colors.bgDeep;
   ctx.fillRect(0, 0, width, height);
 
   // Atmospheric glow - soft, like candlelight
@@ -588,8 +659,8 @@ export async function renderPosterCard(
   ctx.fillStyle = bottomGlow;
   ctx.fillRect(0, 0, width, height);
 
-  // Film grain texture
-  addFilmGrain(ctx, width, height, 0.03);
+  // Film grain texture (lighter on light theme)
+  addFilmGrain(ctx, width, height, theme === "dark" ? 0.03 : 0.015);
 
   // Decorative arc - subtle journey line
   ctx.beginPath();
@@ -625,12 +696,12 @@ export async function renderPosterCard(
 
   // Glow behind hero text
   ctx.shadowColor = accent.primary;
-  ctx.shadowBlur = 60;
+  ctx.shadowBlur = theme === "dark" ? 60 : 30;
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
 
   ctx.font = `500 ${heroFontSize}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = colors.textHero;
   ctx.textAlign = "center";
 
   // Check if text is too wide and scale down if needed
@@ -648,13 +719,13 @@ export async function renderPosterCard(
   // Romanization - elegant, spaced
   const romanY = heroY + (size === "story" ? 70 : 55);
   ctx.font = `300 ${size === "story" ? 28 : 24}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "#a8a8a8";
+  ctx.fillStyle = colors.textSecondary;
   ctx.fillText(word.romanization, centerX, romanY);
 
   // Slug (English word) - the anchor
   const slugY = romanY + (size === "story" ? 50 : 40);
   ctx.font = `500 ${size === "story" ? 36 : 30}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#f0ede6";
+  ctx.fillStyle = colors.textPrimary;
   ctx.fillText(word.slug, centerX, slugY);
 
   // Divider line
@@ -673,7 +744,7 @@ export async function renderPosterCard(
   const maxHookWidth = width * 0.75;
 
   ctx.font = `italic ${hookFontSize}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "#c8c4bc";
+  ctx.fillStyle = colors.textHook;
   ctx.textAlign = "center";
 
   const hookLines = wrapText(ctx, word.hook, maxHookWidth);
@@ -687,7 +758,7 @@ export async function renderPosterCard(
   const footerY = size === "story" ? height - 120 : height - 90;
 
   // Subtle line
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.strokeStyle = colors.footerLine;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(width * 0.3, footerY);
@@ -696,12 +767,12 @@ export async function renderPosterCard(
 
   // Brand
   ctx.font = `400 ${size === "story" ? 16 : 14}px "Cormorant Garamond", Georgia, serif`;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.fillStyle = colors.footerBrand;
   ctx.textAlign = "center";
   ctx.fillText("The Journey", centerX, footerY + 30);
 
   ctx.font = `300 ${size === "story" ? 12 : 10}px "Source Serif 4", Georgia, serif`;
-  ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+  ctx.fillStyle = colors.footerUrl;
   ctx.fillText("etymology.life", centerX, footerY + 50);
 
   return new Promise((resolve, reject) => {
@@ -744,15 +815,16 @@ function addFilmGrain(
 export async function renderCard(
   word: Word,
   type: CardType,
-  size: CardSize = "story"
+  size: CardSize = "story",
+  theme: CardTheme = "dark"
 ): Promise<Blob> {
   switch (type) {
     case "moment":
-      return renderPosterCard(word, size);
+      return renderPosterCard(word, size, theme);
     case "path":
-      return renderPathCard(word, size);
+      return renderPathCard(word, size, theme);
     case "poster":
-      return renderPosterCard(word, size);
+      return renderPosterCard(word, size, theme);
   }
 }
 
