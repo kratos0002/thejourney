@@ -14,6 +14,7 @@ import { getDailyFeaturedWord } from "@/lib/daily-word";
 import { getNotificationCount } from "@/lib/feedback";
 import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
+import { useTransition } from "@/components/TransitionProvider";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
@@ -33,6 +34,7 @@ export default function HomePage({ words }: { words: Word[] }) {
   const [filteredSlugs, setFilteredSlugs] = useState<Set<string>>(new Set());
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const { user, exploredCount } = useExploration();
+  const { navigateToWord } = useTransition();
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
 
@@ -128,17 +130,21 @@ export default function HomePage({ words }: { words: Word[] }) {
         <div className="mt-1 relative" style={{ minHeight: "1.5rem" }}>
           <AnimatePresence mode="wait">
             {showingHook && dailyWord ? (
-              <motion.p
+              <motion.button
                 key="hook"
-                className="text-[11px] sm:text-sm font-body italic leading-snug max-w-md mx-auto px-4 line-clamp-2"
+                className="text-[11px] sm:text-sm font-body italic leading-snug max-w-md mx-auto px-4 line-clamp-2 pointer-events-auto cursor-pointer"
                 style={{ color: "var(--theme-accent)", opacity: 0.6 }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+                onClick={(e) => {
+                  trackEvent("daily_word_tapped", { slug: dailyWord.slug });
+                  navigateToWord(dailyWord.slug, dailyWord.word, { x: e.clientX, y: e.clientY });
+                }}
               >
                 &ldquo;{dailyWord.hook}&rdquo;
-              </motion.p>
+              </motion.button>
             ) : (
               <motion.p
                 key="default"
