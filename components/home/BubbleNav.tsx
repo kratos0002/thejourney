@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback, useMemo, useEffect } from "react";
+import { useRef, useCallback, useMemo, useEffect, useState } from "react";
 import { Word } from "@/data/word-types";
 import { useTransition } from "@/components/TransitionProvider";
 import { useExploration } from "@/components/ExplorationProvider";
@@ -83,6 +83,24 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     // Use lat for vertical tilt
     return { rx: pt.lat, ry: -pt.lon };
   }, [dailySlug, words, spherePoints]);
+
+  // "Word of the day" label — shown once per day, fades after 5 seconds
+  const [showDailyLabel, setShowDailyLabel] = useState(false);
+  useEffect(() => {
+    if (!dailySlug) return;
+    const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const storageKey = "journey-daily-label-shown";
+    const lastShown = localStorage.getItem(storageKey);
+    if (lastShown === todayKey) return;
+
+    // Show after globe settles
+    const showTimer = setTimeout(() => {
+      setShowDailyLabel(true);
+      localStorage.setItem(storageKey, todayKey);
+    }, 2000);
+    const hideTimer = setTimeout(() => setShowDailyLabel(false), 7000);
+    return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
+  }, [dailySlug]);
 
   // Store filter state in refs for use in animation loop
   const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
@@ -399,6 +417,20 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               >
                 {word.slug}
               </span>
+              {/* "Word of the day" label — fades once per day */}
+              {isDaily && showDailyLabel && (
+                <span
+                  className="absolute left-1/2 -translate-x-1/2 whitespace-nowrap font-body text-[9px] tracking-[0.15em] uppercase pointer-events-none"
+                  style={{
+                    bottom: "-1.4rem",
+                    color: "var(--theme-accent)",
+                    opacity: 0.6,
+                    animation: "dailyLabelFade 5s ease-in-out forwards",
+                  }}
+                >
+                  word of the day
+                </span>
+              )}
               {/* Small checkmark for explored words when they're visible */}
               {explored && (shouldHighlight || !hasActiveFilters) && (
                 <span

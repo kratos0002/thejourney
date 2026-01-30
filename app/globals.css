@@ -222,9 +222,11 @@ body {
   animation: pulse-subtle 3s ease-in-out infinite;
 }
 
-/* Featured bubble extra styling - on the button level */
-.featured-bubble {
-  z-index: 1;
+@keyframes dailyLabelFade {
+  0% { opacity: 0; }
+  10% { opacity: 0.6; }
+  80% { opacity: 0.6; }
+  100% { opacity: 0; }
 }
 
 /* Hide scrollbar for filter rows */
