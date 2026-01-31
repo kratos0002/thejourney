@@ -526,29 +526,34 @@ function drawHook(ctx: CanvasRenderingContext2D, hook: string, opacity: number) 
 // ── Draw: watermark ───────────────────────────────────────────────
 function drawWatermark(ctx: CanvasRenderingContext2D) {
   ctx.save();
-  ctx.globalAlpha = 0.25;
-  ctx.font = "14px 'Source Serif 4', system-ui, sans-serif";
-  ctx.fillStyle = FOG;
-  ctx.textAlign = "center";
 
-  const y = HEIGHT - 60;
+  const y = HEIGHT - 100;
   const text = "etymology.life";
-  const tw = ctx.measureText(text).width;
-  const lineW = 40;
-  const gap = 12;
 
-  ctx.strokeStyle = FOG;
+  // Text
+  ctx.globalAlpha = 0.4;
+  ctx.font = "300 24px 'Cormorant Garamond', Georgia, serif";
+  ctx.fillStyle = MOONLIGHT;
+  ctx.textAlign = "center";
+  ctx.letterSpacing = "2px";
+  ctx.fillText(text, WIDTH / 2, y);
+
+  // Decorative lines flanking the text
+  const tw = ctx.measureText(text).width;
+  const lineW = 60;
+  const gap = 16;
+  ctx.globalAlpha = 0.2;
+  ctx.strokeStyle = MOONLIGHT;
   ctx.lineWidth = 0.5;
   ctx.beginPath();
-  ctx.moveTo(WIDTH / 2 - tw / 2 - gap - lineW, y - 4);
-  ctx.lineTo(WIDTH / 2 - tw / 2 - gap, y - 4);
+  ctx.moveTo(WIDTH / 2 - tw / 2 - gap - lineW, y - 6);
+  ctx.lineTo(WIDTH / 2 - tw / 2 - gap, y - 6);
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(WIDTH / 2 + tw / 2 + gap, y - 4);
-  ctx.lineTo(WIDTH / 2 + tw / 2 + gap + lineW, y - 4);
+  ctx.moveTo(WIDTH / 2 + tw / 2 + gap, y - 6);
+  ctx.lineTo(WIDTH / 2 + tw / 2 + gap + lineW, y - 6);
   ctx.stroke();
 
-  ctx.fillText(text, WIDTH / 2, y);
   ctx.restore();
 }
 
