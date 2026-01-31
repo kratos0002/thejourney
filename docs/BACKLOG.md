@@ -32,15 +32,15 @@ Consolidated from completed research and ongoing product development. Organized 
 
 ### Discovery & Browsing
 
-- [ ] **Curated Journeys** — Editorial paths like "Words of War," "Food's Travels," "The Silk Road's Vocabulary." Themed collections that create routes through the word catalog. *(Source: Discovery Research — curated rows beat infinite scroll)*
+- [x] **Curated Journeys** — Editorial paths like "Words of War," "Food's Travels," "The Silk Road's Vocabulary." Themed collections that create routes through the word catalog. Behind `discovery_drawer` feature flag. *(Source: Discovery Research — curated rows beat infinite scroll)*
 
 - [ ] **Gentle Suggestions / Connections** — "If you liked qahwa, you might enjoy..." connections between words based on theme, origin, or route. *(Source: Discovery Research)*
 
 ### SEO Technical Fixes (from SEO Research)
 
-- [ ] **DefinedTerm Schema + BreadcrumbList** — Replace Article JSON-LD with DefinedTerm on word pages. Add BreadcrumbList for navigation. Add AudioObject for pronunciation. *(Source: SEO Strategy Research — Merriam-Webster gold standard)*
+- [x] **DefinedTerm Schema + BreadcrumbList** — Replace Article JSON-LD with DefinedTerm on word pages. Add BreadcrumbList for navigation. Add AudioObject for pronunciation. *(Source: SEO Strategy Research — Merriam-Webster gold standard)*
 
-- [ ] **Keyword-Optimized Metadata** — Update title templates to target "origin of [word]", "where does [word] come from" patterns. Fix metadata duplication between page.tsx and layout.tsx. Add canonical URLs. *(Source: SEO Strategy Research)*
+- [x] **Keyword-Optimized Metadata** — Update title templates to target "origin of [word]", "where does [word] come from" patterns. Fix metadata duplication between page.tsx and layout.tsx. Add canonical URLs. *(Source: SEO Strategy Research)*
 
 ---
 

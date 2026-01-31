@@ -12,6 +12,7 @@ import { fadeIn, easeSmooth } from "@/lib/animations";
 import CabinetHeader from "./CabinetHeader";
 import CabinetGrid from "./CabinetGrid";
 import CabinetEmpty from "./CabinetEmpty";
+import CabinetSignInNudge from "./CabinetSignInNudge";
 
 export default function CabinetPage({ words }: { words: Word[] }) {
   const enabled = useFeatureFlag("cabinet_of_curiosities");
@@ -105,6 +106,7 @@ export default function CabinetPage({ words }: { words: Word[] }) {
               languageCount={metadata.languageCount}
               continentCount={metadata.continentCount}
             />
+            <CabinetSignInNudge />
             <CabinetGrid words={exploredWords} />
           </motion.div>
         )}
