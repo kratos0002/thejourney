@@ -129,6 +129,12 @@ export default async function WordPage({ params }: PageProps) {
         {
           "@type": "ListItem",
           position: 2,
+          name: "Browse",
+          item: `${baseUrl}/browse`,
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
           name: enrichedWord.slug,
           item: wordUrl,
         },
