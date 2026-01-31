@@ -385,6 +385,17 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                     </div>
                   )}
                 </div>
+
+                {/* Browse link */}
+                <div className="px-5 pb-8 pt-2 text-center">
+                  <a
+                    href="/browse"
+                    className="inline-block font-body text-xs tracking-wide transition-opacity duration-300 hover:opacity-80"
+                    style={{ color: "var(--theme-text-tertiary)", opacity: 0.45 }}
+                  >
+                    Or explore the full collection &rarr;
+                  </a>
+                </div>
               </div>
             </motion.div>
           </>
