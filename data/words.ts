@@ -24,6 +24,7 @@ import { batch22 } from "./words-batch22";
 import { batch23 } from "./words-batch23";
 import { batch24 } from "./words-batch24";
 import { batch25 } from "./words-batch25";
+import { batch26 } from "./words-batch26";
 
 export const words: Word[] = [
   {
@@ -339,7 +340,7 @@ export const words: Word[] = [
 ];
 
 // Combine all word entries and deduplicate by slug (first occurrence wins)
-const allWordsRaw: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10, ...newWordsBatch11, ...newWordsBatch12, ...newWordsBatch13, ...newWordsBatch14, ...batch15, ...batch16, ...batch17, ...batch18, ...batch19, ...batch20, ...batch21, ...batch22, ...batch23, ...batch24, ...batch25];
+const allWordsRaw: Word[] = [...words, ...newWords, ...newWordsBatch2, ...newWordsBatch3, ...newWordsBatch5, ...newWordsBatch6, ...newWordsBatch7, ...newWordsBatch8, ...newWordsBatch9, ...newWordsBatch10, ...newWordsBatch11, ...newWordsBatch12, ...newWordsBatch13, ...newWordsBatch14, ...batch15, ...batch16, ...batch17, ...batch18, ...batch19, ...batch20, ...batch21, ...batch22, ...batch23, ...batch24, ...batch25, ...batch26];
 
 export const allWords: Word[] = allWordsRaw.filter((word, index, self) =>
   index === self.findIndex((w) => w.slug === word.slug)
