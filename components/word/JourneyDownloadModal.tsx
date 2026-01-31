@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { exportJourneyAnimation } from "@/lib/journey-export";
 import type { Word } from "@/data/word-types";
@@ -16,6 +16,19 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
   const [progress, setProgress] = useState(0);
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [canShareFiles, setCanShareFiles] = useState(false);
+
+  // Detect Web Share API file support on mount
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.canShare) {
+      try {
+        const testFile = new File([""], "test.mp4", { type: "video/mp4" });
+        setCanShareFiles(navigator.canShare({ files: [testFile] }));
+      } catch {
+        setCanShareFiles(false);
+      }
+    }
+  }, []);
 
   const handleExport = useCallback(async () => {
     setStatus("rendering");
@@ -51,6 +64,30 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
     URL.revokeObjectURL(url);
   }, [resultBlob, word.slug]);
 
+  const handleShare = useCallback(async () => {
+    if (!resultBlob) return;
+    const file = new File(
+      [resultBlob],
+      `${word.slug}-journey.mp4`,
+      { type: "video/mp4" }
+    );
+
+    try {
+      await navigator.share({
+        title: `${word.word} — The Journey`,
+        text: word.hook,
+        files: [file],
+      });
+    } catch (err) {
+      // User cancelled share — ignore AbortError
+      if (err instanceof Error && err.name !== "AbortError") {
+        console.warn("[Journey] Share failed:", err);
+        // Fallback to download
+        handleDownload();
+      }
+    }
+  }, [resultBlob, word, handleDownload]);
+
   const handleClose = useCallback(() => {
     if (status === "rendering") return;
     setStatus("idle");
@@ -84,16 +121,16 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ duration: 0.3 }}
           >
-            <h3 className="font-display text-lg text-moonlight/90 mb-1">Download Journey</h3>
+            <h3 className="font-display text-lg text-moonlight/90 mb-1">Share This Journey</h3>
             <p className="text-xs text-fog/50 font-body mb-5">
-              Export as a vertical video with map animation and stop-by-stop details
+              A cinematic video of this word&apos;s journey across the world
             </p>
 
             {/* Generate */}
             {status === "idle" && (
               <>
                 <p className="text-[10px] text-fog/30 font-body mb-4">
-                  Format: MP4 video, 1080x1920 · Estimated size: {fileSizeEstimate}
+                  Format: MP4 video, 1080×1920 · Estimated size: {fileSizeEstimate}
                 </p>
                 <button
                   onClick={handleExport}
@@ -125,22 +162,39 @@ export default function JourneyDownloadModal({ isOpen, onClose, word }: Props) {
               </div>
             )}
 
-            {/* Done */}
+            {/* Done — Share + Download buttons */}
             {status === "done" && (
               <div className="py-4 text-center">
-                <p className="text-sm text-moonlight/80 font-body mb-1">Ready to download</p>
+                <p className="text-sm text-moonlight/80 font-body mb-1">Ready</p>
                 <p className="text-[10px] text-fog/40 font-body mb-4">{fileSizeEstimate}</p>
-                <button
-                  onClick={handleDownload}
-                  className="w-full py-2.5 bg-amber-glow/15 border border-amber-glow/40 rounded-lg text-amber-glow text-sm font-body tracking-wider hover:bg-amber-glow/25 transition-all cursor-pointer flex items-center justify-center gap-2"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7,10 12,15 17,10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  Download .mp4
-                </button>
+                <div className="flex gap-3">
+                  {/* Download — secondary */}
+                  <button
+                    onClick={handleDownload}
+                    className="flex-1 py-2.5 bg-ink border border-moonlight/15 rounded-lg text-moonlight/70 text-sm font-body tracking-wider hover:border-moonlight/30 transition-all cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7,10 12,15 17,10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    Download
+                  </button>
+                  {/* Share — primary (only if supported) */}
+                  {canShareFiles && (
+                    <button
+                      onClick={handleShare}
+                      className="flex-1 py-2.5 bg-amber-glow/15 border border-amber-glow/40 rounded-lg text-amber-glow text-sm font-body tracking-wider hover:bg-amber-glow/25 transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                        <polyline points="16,6 12,2 8,6" />
+                        <line x1="12" y1="2" x2="12" y2="15" />
+                      </svg>
+                      Share
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
