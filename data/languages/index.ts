@@ -7,13 +7,15 @@
 
 import type { LanguageHistory } from "../language-types";
 import { sanskrit } from "./sanskrit";
+import { persian } from "./persian";
 
 // Export individual languages
-export { sanskrit };
+export { sanskrit, persian };
 
 // All languages as array
 export const allLanguages: LanguageHistory[] = [
   sanskrit,
+  persian,
 ];
 
 // Lookup by slug
