@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "remotion:studio": "remotion studio remotion/index.ts",
-    "remotion:render": "remotion render remotion/index.ts JourneyReel out/reel.mp4"
+    "remotion:render": "remotion render remotion/index.ts JourneyReel out/reel.mp4",
+    "words:registry": "npx tsx scripts/generate-slug-registry.ts",
+    "words:validate": "npx tsx scripts/validate-words.ts",
+    "words:check": "npm run words:registry && npm run words:validate"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

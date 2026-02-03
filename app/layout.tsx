@@ -58,9 +58,10 @@ export const metadata: Metadata = {
     template: "%s | The Journey",
     default: "The Journey — Where Every Word Began",
   },
-  description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries.",
+  description: "An immersive exploration of words and their etymological journeys across languages, cultures, and centuries—discover where everyday language began and how meanings traveled through time.",
   icons: {
     icon: [
+      { url: "/favicon.ico", type: "image/x-icon" },
       { url: "/icons/icon.svg", type: "image/svg+xml" },
       { url: "/icons/icon-192.png", type: "image/png", sizes: "192x192" },
     ],
