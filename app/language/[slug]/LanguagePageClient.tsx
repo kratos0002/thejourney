@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { LanguageHistory } from "@/data/language-types";
 import { useTransition } from "@/components/TransitionProvider";
-import AmbientBackground from "@/components/word/AmbientBackground";
 
 const LanguageHistoryMap = dynamic(
   () => import("@/components/language/LanguageHistoryMap"),
@@ -38,7 +37,6 @@ export default function LanguagePageClient({ language }: LanguagePageClientProps
       className="relative transition-colors duration-300"
       style={{ background: "var(--theme-bg-primary)" }}
     >
-      <AmbientBackground />
 
       {/* Header */}
       <motion.header
