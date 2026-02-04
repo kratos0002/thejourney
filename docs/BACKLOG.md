@@ -12,6 +12,8 @@ Consolidated from completed research and ongoing product development. Organized 
 - [x] **Profile Panel Cabinet Link** — "Your Cabinet" link in profile panel when flag enabled and words explored.
 - [x] **Daily Word Ritual** — Header subtitle shows daily word's hook once per day (localStorage gated). Tappable to navigate to word. Behind `daily_word_ritual` feature flag.
 - [x] **Language History (M1)** — Animated zone-based map showing how languages spread across the world through eras. Sanskrit (6 phases) and Persian (7 phases) live at `/language/[slug]`. Index page at `/languages`. Mobile-optimized with tap-to-reveal regions, dot stepper timeline, reduced visual clutter. See `/docs/features/LANGUAGE_HISTORY_BACKLOG.md` for full backlog.
+- [x] **Language History (M2 partial)** — 8 additional language histories: Arabic (23 words), Latin (6), Ancient Greek (4), Japanese (6), Italian (14), Russian (9), Nahuatl (8), Tamil (4). Total 10 languages with 6-7 phases each.
+- [x] **Language Family Trees (M3)** — Interactive D3 collapsible dendrograms for 5 language families: Indo-European (~35 nodes), Afro-Asiatic, Dravidian, Japonic, Uto-Aztecan. `/families` index + `/family/[slug]` detail pages with breadcrumb navigation.
 - [x] **Word Creation Tooling** — Slug registry (`data/slug-registry.txt`) and validation scripts to prevent duplicate words. `npm run words:check` runs both.
 
 ---

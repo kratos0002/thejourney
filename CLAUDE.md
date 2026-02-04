@@ -1,5 +1,24 @@
 # Journey Project - Claude Instructions
 
+## Documentation Rule — MANDATORY
+
+**Every commit/push MUST include documentation updates.** Before committing, check and update:
+
+1. **`docs/PRODUCT_AUDIT_FEB_2026.md`** — Update counts (words, languages, families, pages)
+2. **`docs/features/LANGUAGE_HISTORY_BACKLOG.md`** — Mark shipped items, update task status
+3. **`docs/BACKLOG.md`** — Move completed items to Shipped, update priorities
+4. **`docs/INDEX.md`** — Update if new docs/sections were added
+5. **`CLAUDE.md`** — Update file structure if new directories/patterns were introduced
+6. **`docs/RESEARCH_AGENDA.md`** — Update status of any affected research areas
+
+**Checklist before every push:**
+- [ ] Are feature counts accurate? (words, languages, families, pages)
+- [ ] Are shipped items marked as shipped in backlogs?
+- [ ] Does INDEX.md reflect any new docs?
+- [ ] Does CLAUDE.md reflect any new file patterns/workflows?
+
+---
+
 ## Word Creation Workflow
 
 When creating new word etymology entries, **ALWAYS** follow this workflow:

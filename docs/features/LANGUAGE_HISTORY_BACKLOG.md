@@ -83,11 +83,11 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 - [x] Show peak as lingua franca (Turkey to India)
 - [x] Cross-reference existing Persian-origin words (18 words linked)
 
-### 2.2 Arabic Language History
-- [ ] Research Arabic spread with Islamic expansion
-- [ ] Map pre-Islamic → Conquest → Golden Age → Modern phases
-- [ ] Show current 26-country reach
-- [ ] Cross-reference existing Arabic-origin words
+### 2.2 Arabic Language History ✅
+- [x] Research Arabic spread with Islamic expansion (7 phases)
+- [x] Map pre-Islamic → Conquest → Golden Age → Modern phases
+- [x] Show current 26-country reach
+- [x] Cross-reference existing Arabic-origin words (23 words linked)
 
 ### 2.3 Map UX Evolution (from research — see "Learnings" section below)
 - [ ] **Scrollytelling integration** — Scroll position drives era transitions (research shows highest retention)
@@ -104,35 +104,40 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 
 ---
 
-## Milestone 3: Language Family Trees ← RESEARCH COMPLETE, READY TO BUILD
+## Milestone 3: Language Family Trees ✅ SHIPPED
 
 **Goal**: Add a hierarchical layer ABOVE individual languages. Show how Sanskrit, Persian, Greek, Latin, and English all descend from Proto-Indo-European. Create a 3-level navigation: Family Trees → Languages → Words.
 
+**Status**: Shipped February 2026. 5 family trees (Indo-European, Afro-Asiatic, Dravidian, Japonic, Uto-Aztecan) with interactive D3 dendrograms. 10 language histories connected.
+
 **Research**: See `/docs/research/LANGUAGE_FAMILY_TREE_RESEARCH.md` for full findings.
 
-### 3.1 Data Model & Tree Structure
-- [ ] Expand `LanguageFamilyNode` interface in `language-types.ts` (nested tree with level, status, classification)
-- [ ] Create `data/language-families/` directory for family tree data files
-- [ ] Build Indo-European tree data (10 branches, sub-branches, ~20 language nodes)
-- [ ] Build Afro-Asiatic tree data (Semitic branch, Arabic)
+### 3.1 Data Model & Tree Structure ✅
+- [x] Expand `LanguageFamilyNode` interface in `language-types.ts` (nested tree with level, status, classification)
+- [x] Create `data/language-families/` directory for family tree data files
+- [x] Build Indo-European tree data (10 branches, sub-branches, ~35 language nodes)
+- [x] Build Afro-Asiatic tree data (Semitic, Berber, Egyptian branches)
+- [x] Build Dravidian tree data (Southern, South-Central, Northern branches)
+- [x] Build Japonic tree data (Japanese, Ryukyuan)
+- [x] Build Uto-Aztecan tree data (Southern/Northern branches)
 - [ ] Wire word counts to tree nodes (how many of 302 words trace through each branch)
-- [ ] Connect existing language histories (Sanskrit, Persian) to their tree positions
+- [x] Connect language histories to their tree positions via `languageSlugs`
 
-### 3.2 Family Tree Pages
-- [ ] Create `/families` index page with family cards (museum-style, matching `/languages`)
-- [ ] Create `/family/[slug]` route with `generateStaticParams`
-- [ ] Breadcrumb navigation: All Families → Indo-European → Indo-Iranian → Sanskrit → Word
-- [ ] Family detail page: hero + narrative + interactive tree + member languages
-- [ ] Handle size asymmetry (IE has ~270 words, others have 3-8)
+### 3.2 Family Tree Pages ✅
+- [x] Create `/families` index page with family cards (museum-style, matching `/languages`)
+- [x] Create `/family/[slug]` route with `generateStaticParams`
+- [x] Breadcrumb navigation: Home → Families → Indo-European
+- [x] Family detail page: hero + narrative + interactive tree + member languages + branch list
+- [x] Handle size asymmetry (IE is large, others are small)
 
-### 3.3 Tree Visualization (Phase 1: Collapsible Dendrogram)
-- [ ] Create `LanguageFamilyTree` component using D3 hierarchy + tree layout
-- [ ] Collapsible nodes: expand/collapse branches on click
-- [ ] Color-code by branch (Indo-Iranian, Germanic, Italic, etc.)
-- [ ] Node styling: living (solid), extinct (dimmed), reconstructed (dashed)
-- [ ] Word count badges on nodes showing content available
-- [ ] Click language node → navigate to `/language/[slug]` if it exists
-- [ ] Mobile: vertical tree with tap to expand, or drill-down pattern
+### 3.3 Tree Visualization (Phase 1: Collapsible Dendrogram) ✅
+- [x] Create `LanguageFamilyTree` component using D3 hierarchy + tree layout
+- [x] Collapsible nodes: expand/collapse branches on click
+- [x] Color-code by branch (Indo-Iranian, Germanic, Italic, etc.)
+- [x] Node styling: living (hollow circle), extinct (italic text), collapsed (filled circle)
+- [x] Legend showing node types
+- [x] Click language node → navigate to `/language/[slug]` if it exists (accent-colored, dot indicator)
+- [x] Mobile: zoom + pan, auto-collapse deeper levels
 
 ### 3.4 Tree Visualization (Phase 2: Sunburst — Future)
 - [ ] D3 zoomable sunburst as hero visualization on `/families`
@@ -147,9 +152,15 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 - [ ] "Cognate explorer": related words across IE languages
 - [ ] "Shared roots": PIE roots that became words in multiple languages
 
-### 3.6 Additional Language Histories
-- [ ] Greek (Ancient → Koine → Byzantine → Modern)
-- [ ] Latin (Classical → Vulgar → Romance split)
+### 3.6 Additional Language Histories (SHIPPED — 8 new languages)
+- [x] Arabic (7 phases, 23 related words) — Afro-Asiatic / Semitic
+- [x] Latin (6 phases, 6 related words) — Indo-European / Italic
+- [x] Ancient Greek (6 phases, 4 related words) — Indo-European / Hellenic
+- [x] Japanese (6 phases, 6 related words) — Japonic
+- [x] Italian (6 phases, 14 related words) — Indo-European / Romance
+- [x] Russian (6 phases, 9 related words) — Indo-European / Slavic
+- [x] Nahuatl (6 phases, 8 related words) — Uto-Aztecan
+- [x] Tamil (6 phases, 4 related words) — Dravidian
 - [ ] Proto-Indo-European (reconstruction, theoretical homeland)
 
 ### Key Research Findings (from LANGUAGE_FAMILY_TREE_RESEARCH.md)
@@ -169,7 +180,7 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 **Goal**: Expand beyond Indo-European to show world language diversity.
 
 ### 4.1 Semitic Languages
-- [ ] Arabic (already done in M2)
+- [x] Arabic (shipped in M3)
 - [ ] Hebrew (Ancient → Medieval → Modern revival)
 - [ ] Aramaic (lingua franca of ancient Near East)
 
@@ -180,7 +191,7 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 ### 4.3 Other Major Families
 - [ ] Austronesian (Malay, Indonesian, Tagalog spread across Pacific)
 - [ ] Niger-Congo (Bantu expansion across Africa)
-- [ ] Dravidian (Tamil, Telugu — pre-Indo-European India)
+- [x] Dravidian — Tamil shipped in M3; family tree includes Telugu, Kannada, Malayalam
 
 ### 4.4 World Language Map
 - [ ] Create global overview showing all language families
@@ -365,9 +376,10 @@ Ranked by impact (what we fixed in M1.6):
 - [ ] Scrollytelling integration for map
 - [ ] SEO: ranking for "history of [language]" queries
 
-### M3+ (Growth)
-- [ ] 10+ language histories
-- [ ] Language family tree driving exploration
+### M3 (Language Family Trees) ✅
+- [x] 10 language histories shipped
+- [x] 5 language family trees with interactive dendrograms
+- [x] Family tree pages driving exploration (breadcrumb nav, connected languages)
 - [ ] Language Biography adoption rate
 
 ---
@@ -391,9 +403,13 @@ Ranked by impact (what we fixed in M1.6):
 ### Code
 - LanguageHistoryMap: `/components/language/LanguageHistoryMap.tsx`
 - Language types: `/data/language-types.ts`
-- Language data: `/data/languages/` (sanskrit.ts, persian.ts, index.ts)
+- Language data: `/data/languages/` (10 files: sanskrit, persian, arabic, latin, greek, japanese, italian, russian, nahuatl, tamil)
+- Language family data: `/data/language-families/` (5 files: indo-european, afro-asiatic, dravidian, japonic, uto-aztecan)
+- Family tree component: `/components/language/LanguageFamilyTree.tsx`
 - Language page: `/app/language/[slug]/` (page.tsx, LanguagePageClient.tsx)
+- Family page: `/app/family/[slug]/` (page.tsx, FamilyPageClient.tsx)
 - Languages index: `/app/languages/` (page.tsx, LanguagesPage.tsx)
+- Families index: `/app/families/` (page.tsx, FamiliesPage.tsx)
 - Word JourneyMap (reference): `/components/word/JourneyMap.tsx`
 
 ### Research Sources
@@ -409,5 +425,5 @@ Ranked by impact (what we fixed in M1.6):
 ---
 
 *Created: February 2026*
-*Status: M1 shipped, M2 in progress*
+*Status: M1 shipped, M2 partial (Arabic done, cross-links pending), M3 shipped*
 *Last updated: February 2026*

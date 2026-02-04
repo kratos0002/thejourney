@@ -4,7 +4,7 @@
 
 **The Journey** is a premium, curated etymology app that transforms words from dry reference material into immersive, visual experiences. Positioned as "knowledge-as-luxury" — closer to an art book or museum exhibition than a dictionary.
 
-**Current State:** Production app with 302 words, 2 language histories, comprehensive admin dashboard, full theme system, share cards, cabinet, and daily word ritual shipped. Monetization infrastructure built but disabled. Language History feature (M1) just shipped.
+**Current State:** Production app with 302 words, 10 language histories, 5 language family trees, comprehensive admin dashboard, full theme system, share cards, cabinet, and daily word ritual shipped. Monetization infrastructure built but disabled. Language History M1–M3 shipped.
 
 **Live at:** [etymology.life](https://www.etymology.life)
 
@@ -53,7 +53,10 @@
 - [x] Browse page — filterable word grid with language sections
 - [x] Discovery drawer — curated journeys, filtering
 - [x] Language History (M1) — Sanskrit + Persian with animated zone maps
+- [x] Language History (M2 partial) — Arabic, Latin, Greek, Japanese, Italian, Russian, Nahuatl, Tamil (total 10 languages)
+- [x] Language Family Trees (M3) — Indo-European, Afro-Asiatic, Dravidian, Japonic, Uto-Aztecan with interactive D3 dendrograms
 - [x] Languages index page (/languages)
+- [x] Families index page (/families) + family detail pages (/family/[slug])
 - [x] Word creation tooling (slug registry, validation scripts)
 - [x] SEO optimization (DefinedTerm schema, BreadcrumbList, keyword metadata)
 - [x] Sitemap and robots.txt
@@ -64,14 +67,14 @@
 - [ ] Theme selector for users — behind `theme_selection` flag
 
 ### In Progress
-- [ ] Language History M2 (Arabic, scrollytelling, cross-links)
-
-### Planned
 - [ ] Word-to-language cross-links
 - [ ] Scrollytelling map integration
+
+### Planned
 - [ ] Flow lines on map (migration paths)
 - [ ] Spaced repetition / memory features
-- [ ] Expansion to more language histories
+- [ ] Cross-family loanword arc visualization
+- [ ] Zoomable sunburst hero on /families
 
 ---
 
@@ -79,17 +82,19 @@
 
 ### Current Stats
 - **Total Words:** 302 across 29 batches + 1 legacy batch
-- **Language Families:** 15+ (Indo-Aryan, Semitic, Germanic, Romance, Slavic, Austronesian, Bantu, CJK, Celtic, Turkic, etc.)
+- **Language Families:** 15+ source families in words (Indo-Aryan, Semitic, Germanic, Romance, Slavic, Austronesian, Bantu, CJK, Celtic, Turkic, etc.)
 - **Scripts:** Latin, Arabic, Devanagari, Japanese (Kanji/Hiragana), Chinese, Hebrew, Korean, Cyrillic, Thai, Greek, and more
-- **Language Histories:** 2 (Sanskrit: 6 phases, Persian: 7 phases)
+- **Language Histories:** 10 (Sanskrit, Persian, Arabic, Latin, Greek, Japanese, Italian, Russian, Nahuatl, Tamil)
+- **Language Family Trees:** 5 (Indo-European, Afro-Asiatic, Dravidian, Japonic, Uto-Aztecan)
+- **Static Pages:** 338
 
 ### Content Files
 | File | Content |
 |------|---------|
 | `data/words-batch{2-31}.ts` | 29 batch files with ~10 words each |
 | `data/words-new.ts` | Legacy batch |
-| `data/languages/sanskrit.ts` | Sanskrit history, 6 phases, 14 related words |
-| `data/languages/persian.ts` | Persian history, 7 phases, 18 related words |
+| `data/languages/*.ts` | 10 language histories (6-7 phases each) |
+| `data/language-families/*.ts` | 5 family tree data files with nested tree structures |
 
 ---
 
@@ -154,7 +159,7 @@ See `docs/MONETIZATION.md` for full research and strategy.
 | Cabinet | Planned | Shipped |
 | Daily word ritual | Planned | Shipped |
 | Browse page | In progress | Shipped |
-| Language History | Not started | M1 shipped (Sanskrit + Persian) |
+| Language History | Not started | M1-M3 shipped (10 languages, 5 family trees) |
 | Word tooling | None | Slug registry + validation |
 | SEO | Basic | DefinedTerm schema, keyword optimization |
 
