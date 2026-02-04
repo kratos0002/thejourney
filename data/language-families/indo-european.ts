@@ -204,6 +204,7 @@ export const indoEuropean: LanguageFamilyTree = {
             region: "Greece, Cyprus",
             description:
               "One of the oldest recorded living languages. The foundation of Western philosophy, science, and democracy.",
+            languageSlugs: ["greek"],
             displayColor: "#8BB0C8",
           },
         ],
@@ -234,6 +235,7 @@ export const indoEuropean: LanguageFamilyTree = {
             region: "Rome → Roman Empire",
             description:
               "The language of the Roman Empire. Dead as a native tongue but alive in its children: French, Spanish, Italian, Portuguese, Romanian.",
+            languageSlugs: ["latin"],
             displayColor: "#B08B9E",
           },
           {
@@ -287,6 +289,7 @@ export const indoEuropean: LanguageFamilyTree = {
                 status: "living",
                 classification: "established",
                 region: "Italy",
+                languageSlugs: ["italian"],
                 displayColor: "#9C7C8C",
               },
               {
@@ -568,6 +571,7 @@ export const indoEuropean: LanguageFamilyTree = {
                 status: "living",
                 classification: "established",
                 region: "Russia & former Soviet states",
+                languageSlugs: ["russian"],
                 displayColor: "#9B8BAE",
               },
               {

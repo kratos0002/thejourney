@@ -1,0 +1,251 @@
+import type { LanguageHistory } from "../language-types";
+
+export const tamil: LanguageHistory = {
+  slug: "tamil",
+  language: "Tamil",
+  script: "தமிழ்",
+  romanization: "Tamiḻ",
+  languageFamily: "Dravidian",
+  parentFamily: "Dravidian",
+  hook: "One of the world's oldest living languages with a continuous literary tradition spanning over 2,000 years — and the proof that India's linguistic heritage goes far deeper than Sanskrit.",
+  originRegion: "Southern India (Tamil Nadu)",
+  originPeriod: "~500 BCE (earliest inscriptions)",
+  currentSpeakers: "~78 million native speakers across India, Sri Lanka, Singapore, and diaspora",
+
+  story: [
+    "Tamil belongs to the Dravidian language family — a group of languages entirely unrelated to the Indo-European family that includes Sanskrit, Persian, and English. While Aryan languages spread across northern India, Dravidian languages held firm in the south. Tamil, with written records stretching back to at least the 3rd century BCE, has one of the longest continuous literary traditions of any living language on Earth.",
+    "The Sangam literature (300 BCE – 300 CE) is Tamil's crowning achievement — thousands of poems about love, war, and nature composed by poets at literary academies (sangams) in the ancient city of Madurai. These poems are remarkable for their secular sophistication, psychological depth, and vivid descriptions of landscape and emotion. They rival anything produced in the ancient world and predated Dante by a thousand years.",
+    "Tamil's relationship with Sanskrit is complex and fascinating. As a Dravidian language, Tamil's grammar, core vocabulary, and sound system are fundamentally different from Sanskrit. But centuries of coexistence led to deep mutual influence. Sanskrit borrowed Dravidian words (including possibly 'orange,' originally from Tamil 'nāram'). Tamil absorbed Sanskrit vocabulary for religion and philosophy. The South Asian Sprachbund — a zone of convergent features across unrelated language families — is one of linguistics' most studied phenomena.",
+    "Today, Tamil is spoken by 78 million people across Tamil Nadu (India), northern Sri Lanka, Singapore (where it is an official language), and a vast global diaspora. Tamil's influence on English comes through maritime trade: catamaran (kaṭṭumaram, 'tied wood'), curry (kaṟi), pariah (paṟaiyar), and possibly mango and ginger. The Tamil Nadu government has declared Tamil a 'classical language' — and at over 2,000 years of continuous literary tradition, the claim is hard to dispute.",
+  ],
+
+  phases: [
+    {
+      era: "500 BCE – 300 CE",
+      name: "Sangam Period",
+      form: "Old Tamil",
+      regions: [
+        {
+          name: "Tamil Nadu & Kerala",
+          modernCountries: ["India"],
+          speakerCount: "~2–4 million",
+          dominance: "native",
+          coordinates: [78.5, 10.5],
+          radius: 5,
+        },
+        {
+          name: "Northern Sri Lanka",
+          modernCountries: ["Sri Lanka"],
+          speakerCount: "~200,000–500,000",
+          dominance: "native",
+          coordinates: [80.2, 9.7],
+          radius: 2,
+        },
+      ],
+      context:
+        "The golden age of Tamil literature. Sangam poets compose thousands of poems in a sophisticated literary tradition. The Tolkāppiyam, a grammar and poetics treatise, is composed during this period. Tamil-speaking kingdoms (Chera, Chola, Pandya) control southern India and trade with Rome, Southeast Asia, and China. Tamil-Brahmi inscriptions appear in caves and pottery.",
+      keyEvents: [
+        "Tolkāppiyam grammar composed (~200 BCE)",
+        "Sangam poetry anthologies (300 BCE – 300 CE)",
+        "Tamil-Brahmi inscriptions in caves",
+        "Roman trade with Tamil kingdoms (Muziris port)",
+        "Three Tamil kingdoms: Chera, Chola, Pandya",
+      ],
+      color: "#C75050",
+    },
+    {
+      era: "300–600 CE",
+      name: "Post-Sangam & Bhakti Dawn",
+      form: "Middle Tamil (transitional)",
+      regions: [
+        {
+          name: "Tamil Country",
+          modernCountries: ["India"],
+          speakerCount: "~5–6 million",
+          dominance: "native",
+          coordinates: [79, 11],
+          radius: 5,
+        },
+      ],
+      context:
+        "The Sangam age fades and Tamil enters a period of transition. Buddhism and Jainism, which had flourished alongside Hinduism, begin to decline in the Tamil region. The Pallava dynasty rises, patronizing both Tamil and Sanskrit. The earliest bhakti (devotional) poetry begins — saints composing passionate hymns to Shiva and Vishnu in Tamil, challenging Sanskrit's monopoly on religious expression.",
+      keyEvents: [
+        "Pallava dynasty rises (4th century CE)",
+        "Silappatikaram epic composed (~2nd–5th century CE)",
+        "Early bhakti devotional poetry begins",
+        "Tamil-Sanskrit contact deepens",
+      ],
+      color: "#D76060",
+    },
+    {
+      era: "600–1300 CE",
+      name: "Chola Empire & Maritime Expansion",
+      form: "Middle Tamil",
+      regions: [
+        {
+          name: "Chola Empire (South India)",
+          modernCountries: ["India"],
+          speakerCount: "~10–15 million",
+          dominance: "native",
+          coordinates: [79.5, 11],
+          radius: 6,
+        },
+        {
+          name: "Sri Lanka (Jaffna Kingdom)",
+          modernCountries: ["Sri Lanka"],
+          speakerCount: "~1–2 million",
+          dominance: "native",
+          coordinates: [80.2, 9.5],
+          radius: 3,
+        },
+        {
+          name: "Southeast Asian trade network",
+          modernCountries: ["Malaysia", "Indonesia", "Singapore"],
+          speakerCount: "Trading communities",
+          dominance: "trade",
+          coordinates: [103.8, 1.3],
+          radius: 4,
+        },
+      ],
+      context:
+        "The Chola dynasty builds one of history's great maritime empires, controlling Indian Ocean trade routes. Chola navies reach Sumatra and the Malay Peninsula. Tamil trading communities (chettiars) establish permanent settlements across Southeast Asia. The bhakti movement reaches its peak — Alvar and Nayanar poets compose devotional masterpieces in Tamil that reshape Hinduism. Kamban's Tamil Ramayana rivals Valmiki's Sanskrit original.",
+      keyEvents: [
+        "Chola Empire at its peak (985–1044 CE under Rajendra I)",
+        "Chola naval expedition to Sumatra (1025 CE)",
+        "Tamil trading communities across Southeast Asia",
+        "Kamban's Ramavataram (Tamil Ramayana, 12th century)",
+        "Great Chola temples of Tanjore",
+      ],
+      color: "#E87070",
+    },
+    {
+      era: "1300–1600 CE",
+      name: "Vijayanagara & Nayak Period",
+      form: "Late Middle Tamil → Early Modern Tamil",
+      regions: [
+        {
+          name: "Tamil Nadu",
+          modernCountries: ["India"],
+          speakerCount: "~8–10 million",
+          dominance: "native",
+          coordinates: [79, 11],
+          radius: 5,
+        },
+        {
+          name: "Jaffna & Northern Sri Lanka",
+          modernCountries: ["Sri Lanka"],
+          speakerCount: "~1 million",
+          dominance: "native",
+          coordinates: [80.2, 9.7],
+          radius: 2,
+        },
+      ],
+      context:
+        "After the Chola decline, the Vijayanagara Empire and Nayak governors patronize Tamil culture. Portuguese arrive in 1498, beginning European contact. Christian missionaries translate the Bible into Tamil and set up the first Tamil printing press (1578) — one of the earliest in any Indian language. Tamil begins absorbing Portuguese and later Dutch vocabulary.",
+      keyEvents: [
+        "Vijayanagara Empire patronizes Tamil (14th–16th century)",
+        "Portuguese arrive (1498)",
+        "First Tamil printing press (1578)",
+        "Christian missionary translations",
+      ],
+      color: "#C75050",
+    },
+    {
+      era: "1600–1947 CE",
+      name: "Colonial Period",
+      form: "Modern Tamil",
+      regions: [
+        {
+          name: "Tamil Nadu (British India)",
+          modernCountries: ["India"],
+          speakerCount: "~20–30 million",
+          dominance: "native",
+          coordinates: [79, 11],
+          radius: 5,
+        },
+        {
+          name: "Ceylon (Sri Lanka)",
+          modernCountries: ["Sri Lanka"],
+          speakerCount: "~2–3 million",
+          dominance: "native",
+          coordinates: [80, 8],
+          radius: 3,
+        },
+        {
+          name: "Malaya & Southeast Asia",
+          modernCountries: ["Malaysia", "Singapore"],
+          speakerCount: "~1 million (plantation workers)",
+          dominance: "native",
+          coordinates: [101.7, 3.1],
+          radius: 3,
+        },
+      ],
+      context:
+        "Under British rule, Tamil words enter English through colonial contact: catamaran, curry, pariah, cheroot, mulligatawny. The British transport Tamil laborers to Malaya, Singapore, Fiji, South Africa, and the Caribbean, creating a global Tamil diaspora. A Tamil literary renaissance emerges in the 19th century. The anti-Hindi agitation (1937, 1965) in Tamil Nadu fiercely defends Tamil identity against northern linguistic dominance.",
+      keyEvents: [
+        "British East India Company in Madras (1640+)",
+        "Tamil words enter English (catamaran, curry, pariah)",
+        "Tamil diaspora across British Empire",
+        "Tamil literary renaissance (19th–20th century)",
+        "Anti-Hindi agitation (1937, 1965)",
+      ],
+      color: "#B84040",
+    },
+    {
+      era: "1947 CE–Present",
+      name: "Classical Revival & Global Diaspora",
+      form: "Modern Tamil",
+      regions: [
+        {
+          name: "Tamil Nadu, India",
+          modernCountries: ["India"],
+          speakerCount: "~68 million",
+          dominance: "native",
+          coordinates: [79, 11],
+          radius: 5,
+        },
+        {
+          name: "Sri Lanka",
+          modernCountries: ["Sri Lanka"],
+          speakerCount: "~5 million",
+          dominance: "native",
+          coordinates: [80.2, 9],
+          radius: 3,
+        },
+        {
+          name: "Singapore & Malaysia",
+          modernCountries: ["Singapore", "Malaysia"],
+          speakerCount: "~5 million",
+          dominance: "native",
+          coordinates: [103.8, 1.3],
+          radius: 2,
+        },
+        {
+          name: "Global diaspora",
+          modernCountries: ["Canada", "UK", "USA", "Australia", "UAE"],
+          speakerCount: "~3–5 million",
+          dominance: "native",
+          coordinates: [-79, 43],
+          radius: 4,
+        },
+      ],
+      context:
+        "Tamil is declared a 'Classical Language of India' in 2004 — the first to receive this status. Tamil is an official language of India, Sri Lanka, and Singapore. The Tamil film industry (Kollywood) is one of the world's largest. The global Tamil diaspora, particularly in Canada, the UK, and the Gulf states, maintains vibrant cultural connections. Tamil computing and internet presence grows rapidly.",
+      keyEvents: [
+        "Tamil declared Classical Language of India (2004)",
+        "Tamil as official language of Singapore",
+        "Kollywood: massive Tamil film industry",
+        "Global Tamil diaspora (~78 million speakers total)",
+        "Tamil digital renaissance",
+      ],
+      color: "#D46060",
+    },
+  ],
+
+  relatedWords: [
+    "catamaran",
+    "curry",
+    "pariah",
+    "mango",
+  ],
+};

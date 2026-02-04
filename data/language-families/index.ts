@@ -8,14 +8,20 @@
 import type { LanguageFamilyTree, LanguageFamilyNode } from "../language-types";
 import { indoEuropean } from "./indo-european";
 import { afroAsiatic } from "./afro-asiatic";
+import { japonic } from "./japonic";
+import { utoAztecan } from "./uto-aztecan";
+import { dravidian } from "./dravidian";
 
 // Export individual families
-export { indoEuropean, afroAsiatic };
+export { indoEuropean, afroAsiatic, japonic, utoAztecan, dravidian };
 
-// All families as array (sorted by word count descending at runtime)
+// All families as array (sorted by word count / importance)
 export const allFamilies: LanguageFamilyTree[] = [
   indoEuropean,
   afroAsiatic,
+  dravidian,
+  japonic,
+  utoAztecan,
 ];
 
 // Lookup by slug

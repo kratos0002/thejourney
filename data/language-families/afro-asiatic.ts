@@ -61,6 +61,7 @@ export const afroAsiatic: LanguageFamilyTree = {
             region: "Arabian Peninsula → 26 countries",
             description:
               "The language of the Quran and the Islamic Golden Age. Spread across 26 countries and donated hundreds of words to European languages.",
+            languageSlugs: ["arabic"],
             displayColor: "#E8B830",
           },
           {
