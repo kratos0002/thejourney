@@ -83,12 +83,71 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     };
   }, [isPlaying, currentPhase, playbackSpeed, phases.length]);
 
+  // Zoom to fit the active phase's regions
+  const zoomToPhase = useCallback((phaseIndex: number) => {
+    if (!svgRef.current || !projectionRef.current || !zoomRef.current) return;
+
+    const svg = d3.select(svgRef.current);
+    const projection = projectionRef.current;
+    const phase = phases[phaseIndex];
+    const { width, height } = dimensionsRef.current;
+    const isMobile = isMobileRef.current;
+    const radiusMult = getRadiusMultiplier(isMobile);
+
+    // Project all region centers and account for their radii
+    const projected: { x: number; y: number; r: number }[] = [];
+    phase.regions.forEach(region => {
+      const pos = projection(region.coordinates);
+      if (!pos) return;
+      const r = (region.radius || 5) * radiusMult;
+      projected.push({ x: pos[0], y: pos[1], r });
+    });
+
+    if (projected.length === 0) return;
+
+    // Calculate bounding box including radii
+    const padding = isMobile ? 50 : 70;
+    const minX = Math.min(...projected.map(p => p.x - p.r)) - padding;
+    const maxX = Math.max(...projected.map(p => p.x + p.r)) + padding;
+    const minY = Math.min(...projected.map(p => p.y - p.r)) - padding;
+    const maxY = Math.max(...projected.map(p => p.y + p.r)) + padding;
+
+    const bboxWidth = maxX - minX;
+    const bboxHeight = maxY - minY;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    // Calculate scale to fit, but cap it so we don't zoom in absurdly on single-region phases
+    const scaleX = width / bboxWidth;
+    const scaleY = height / bboxHeight;
+    const scale = Math.min(scaleX, scaleY, isMobile ? 3 : 2.5); // Cap max zoom
+
+    // Don't zoom out past 1x (the initial full view)
+    const finalScale = Math.max(scale, 0.9);
+
+    // Calculate translation to center the bbox
+    const tx = width / 2 - centerX * finalScale;
+    const ty = height / 2 - centerY * finalScale;
+
+    const transform = d3.zoomIdentity
+      .translate(tx, ty)
+      .scale(finalScale);
+
+    svg.transition()
+      .duration(800)
+      .ease(d3.easeCubicInOut)
+      .call(zoomRef.current.transform as never, transform);
+  }, [phases]);
+
   // Update map when phase changes
   useEffect(() => {
     if (!svgRef.current || !projectionRef.current) return;
     setTappedRegion(null); // Clear tooltip on phase change
     updatePhaseDisplay(currentPhase);
-  }, [currentPhase]);
+    // Zoom to fit the active phase after a short delay (let zones start animating first)
+    const timer = setTimeout(() => zoomToPhase(currentPhase), 150);
+    return () => clearTimeout(timer);
+  }, [currentPhase, zoomToPhase]);
 
   const handlePlay = () => {
     if (currentPhase >= phases.length - 1) {
@@ -113,12 +172,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     setIsPlaying(false);
     setCurrentPhase(0);
     setTappedRegion(null);
-    if (svgRef.current && zoomRef.current) {
-      const svg = d3.select(svgRef.current);
-      svg.transition().duration(600).call(
-        zoomRef.current.transform as never, d3.zoomIdentity
-      );
-    }
+    // zoomToPhase will be called by the currentPhase useEffect
   };
 
   // Swipe detection for mobile
@@ -398,7 +452,10 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     // Initial display
     updatePhaseDisplay(currentPhase);
 
-  }, [phases, currentPhase, updatePhaseDisplay]);
+    // Zoom to fit the initial phase after a brief delay
+    setTimeout(() => zoomToPhase(currentPhase), 300);
+
+  }, [phases, currentPhase, updatePhaseDisplay, zoomToPhase]);
 
   useEffect(() => {
     if (!isInView || hasAnimated.current) return;
