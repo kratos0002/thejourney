@@ -289,6 +289,8 @@ export const indoEuropean: LanguageFamilyTree = {
                 status: "living",
                 classification: "established",
                 region: "Italy",
+                description:
+                  "Born from Dante's pen, Italian became the language of art, music, and food — giving English more loanwords than any other Romance tongue.",
                 languageSlugs: ["italian"],
                 displayColor: "#9C7C8C",
               },
@@ -571,6 +573,8 @@ export const indoEuropean: LanguageFamilyTree = {
                 status: "living",
                 classification: "established",
                 region: "Russia & former Soviet states",
+                description:
+                  "The language of Tolstoy, Dostoevsky, and the world's largest nation. A Slavic tongue that shaped empires from Moscow to the Pacific.",
                 languageSlugs: ["russian"],
                 displayColor: "#9B8BAE",
               },

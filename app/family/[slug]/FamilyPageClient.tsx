@@ -9,7 +9,6 @@ import { useTransition } from "@/components/TransitionProvider";
 import type { LanguageFamilyTree } from "@/data/language-types";
 import { countLanguages, getConnectedLanguages } from "@/data/language-families";
 
-// Dynamic import to avoid SSR issues with D3
 const LanguageFamilyTreeViz = dynamic(
   () => import("@/components/language/LanguageFamilyTree"),
   { ssr: false }
@@ -18,6 +17,20 @@ const LanguageFamilyTreeViz = dynamic(
 interface FamilyPageClientProps {
   family: LanguageFamilyTree;
 }
+
+// Staggered card animation variants
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: easeSmooth,
+      delay: i * 0.08,
+    },
+  }),
+};
 
 export default function FamilyPageClient({ family }: FamilyPageClientProps) {
   const { navigateHome } = useTransition();
@@ -41,7 +54,7 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
         }}
       />
 
-      {/* Back / breadcrumbs */}
+      {/* Breadcrumbs */}
       <motion.div
         initial={{ opacity: 0, x: -10 }}
         animate={{ opacity: 1, x: 0 }}
@@ -54,41 +67,17 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
             className="flex items-center gap-1 transition-opacity duration-300 hover:opacity-70 cursor-pointer"
             style={{ color: "var(--theme-text-tertiary)" }}
           >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
             <span className="text-xs font-body tracking-wider">Home</span>
           </button>
-          <span
-            className="text-xs font-body"
-            style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}
-          >
-            /
-          </span>
-          <Link
-            href="/families"
-            className="text-xs font-body tracking-wider transition-opacity hover:opacity-70"
-            style={{ color: "var(--theme-text-tertiary)" }}
-          >
+          <span className="text-xs font-body" style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}>/</span>
+          <Link href="/families" className="text-xs font-body tracking-wider transition-opacity hover:opacity-70" style={{ color: "var(--theme-text-tertiary)" }}>
             Families
           </Link>
-          <span
-            className="text-xs font-body"
-            style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}
-          >
-            /
-          </span>
-          <span
-            className="text-xs font-body tracking-wider"
-            style={{ color: "var(--theme-accent)", opacity: 0.8 }}
-          >
+          <span className="text-xs font-body" style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}>/</span>
+          <span className="text-xs font-body tracking-wider" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>
             {family.name}
           </span>
         </div>
@@ -136,48 +125,20 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
               transition={{ duration: 0.8, delay: 0.6 }}
               className="flex justify-center gap-8 mt-8"
             >
-              <div className="text-center">
-                <p
-                  className="text-2xl font-display"
-                  style={{ color: "var(--theme-accent)" }}
-                >
-                  {branchCount}
-                </p>
-                <p
-                  className="text-xs font-body uppercase tracking-wider"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Branches
-                </p>
-              </div>
-              <div className="text-center">
-                <p
-                  className="text-2xl font-display"
-                  style={{ color: "var(--theme-accent)" }}
-                >
-                  {languageCount}
-                </p>
-                <p
-                  className="text-xs font-body uppercase tracking-wider"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Languages
-                </p>
-              </div>
-              <div className="text-center">
-                <p
-                  className="text-2xl font-display"
-                  style={{ color: "var(--theme-accent)" }}
-                >
-                  {family.totalSpeakers}
-                </p>
-                <p
-                  className="text-xs font-body uppercase tracking-wider"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Speakers
-                </p>
-              </div>
+              {[
+                { value: branchCount, label: "Branches" },
+                { value: languageCount, label: "Languages" },
+                { value: family.totalSpeakers, label: "Speakers" },
+              ].map((stat, i) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-2xl font-display" style={{ color: "var(--theme-accent)" }}>
+                    {stat.value}
+                  </p>
+                  <p className="text-xs font-body uppercase tracking-wider" style={{ color: "var(--theme-text-tertiary)" }}>
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </motion.div>
           </header>
 
@@ -186,7 +147,7 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.7 }}
-            className="max-w-3xl mx-auto px-6 mb-12"
+            className="max-w-3xl mx-auto px-6 mb-16"
           >
             {family.story.map((paragraph, i) => (
               <p
@@ -204,7 +165,7 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="max-w-5xl mx-auto px-4 sm:px-6 mb-12"
+            className="max-w-5xl mx-auto px-4 sm:px-6 mb-16"
           >
             <h2
               className="font-display text-xl sm:text-2xl text-center mb-6"
@@ -222,8 +183,7 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
               className="text-center text-xs font-body mt-4"
               style={{ color: "var(--theme-text-tertiary)", opacity: 0.6 }}
             >
-              Click nodes to expand branches. Highlighted languages link to their
-              history pages.
+              Click nodes to expand branches. Highlighted languages link to their history pages.
             </p>
           </motion.section>
 
@@ -232,7 +192,7 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.9 }}
-            className="max-w-3xl mx-auto px-6 mb-12"
+            className="max-w-3xl mx-auto px-6 mb-16"
           >
             <div
               className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-6 rounded-2xl"
@@ -241,236 +201,273 @@ export default function FamilyPageClient({ family }: FamilyPageClientProps) {
                 border: "1px solid var(--theme-border)",
               }}
             >
-              <div>
-                <p
-                  className="text-xs font-body uppercase tracking-wider mb-1"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Origin Region
-                </p>
-                <p
-                  className="font-body text-sm"
-                  style={{ color: "var(--theme-text-secondary)" }}
-                >
-                  {family.originRegion}
-                </p>
-              </div>
-              <div>
-                <p
-                  className="text-xs font-body uppercase tracking-wider mb-1"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Origin Period
-                </p>
-                <p
-                  className="font-body text-sm"
-                  style={{ color: "var(--theme-text-secondary)" }}
-                >
-                  {family.originPeriod}
-                </p>
-              </div>
-              <div>
-                <p
-                  className="text-xs font-body uppercase tracking-wider mb-1"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Living Languages
-                </p>
-                <p
-                  className="font-body text-sm"
-                  style={{ color: "var(--theme-text-secondary)" }}
-                >
-                  {family.livingLanguages}
-                </p>
-              </div>
-              <div>
-                <p
-                  className="text-xs font-body uppercase tracking-wider mb-1"
-                  style={{ color: "var(--theme-text-tertiary)" }}
-                >
-                  Total Speakers
-                </p>
-                <p
-                  className="font-body text-sm"
-                  style={{ color: "var(--theme-text-secondary)" }}
-                >
-                  {family.totalSpeakers}
-                </p>
-              </div>
+              {[
+                { label: "Origin Region", value: family.originRegion },
+                { label: "Origin Period", value: family.originPeriod },
+                { label: "Living Languages", value: family.livingLanguages },
+                { label: "Total Speakers", value: family.totalSpeakers },
+              ].map((item) => (
+                <div key={item.label}>
+                  <p className="text-xs font-body uppercase tracking-wider mb-1" style={{ color: "var(--theme-text-tertiary)" }}>
+                    {item.label}
+                  </p>
+                  <p className="font-body text-sm" style={{ color: "var(--theme-text-secondary)" }}>
+                    {item.value}
+                  </p>
+                </div>
+              ))}
             </div>
           </motion.section>
 
-          {/* Connected Language Histories */}
+          {/* ── Explore Language Histories ── */}
           {connectedLanguages.length > 0 && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.0 }}
-              className="max-w-3xl mx-auto px-6 mb-12"
-            >
-              <h2
-                className="font-display text-xl sm:text-2xl text-center mb-6"
-                style={{ color: "var(--theme-text-primary)" }}
+            <section className="max-w-3xl mx-auto px-6 mb-16">
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.8 }}
               >
-                Explore Language Histories
-              </h2>
+                <p
+                  className="text-xs font-body uppercase tracking-[0.2em] text-center mb-2"
+                  style={{ color: "var(--theme-text-tertiary)", opacity: 0.6 }}
+                >
+                  Deep Dives
+                </p>
+                <h2
+                  className="font-display text-xl sm:text-2xl text-center mb-8"
+                  style={{ color: "var(--theme-text-primary)" }}
+                >
+                  Explore Language Histories
+                </h2>
+              </motion.div>
 
               <div className="grid gap-4">
-                {connectedLanguages.map((lang) => (
-                  <Link
+                {connectedLanguages.map((lang, i) => (
+                  <motion.div
                     key={lang.id}
-                    href={`/language/${lang.languageSlugs![0]}`}
+                    custom={i}
+                    variants={cardVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-40px" }}
+                    whileHover={{
+                      y: -4,
+                      transition: { duration: 0.3, ease: easeSmooth },
+                    }}
+                    className="group"
                   >
-                    <div
-                      className="group p-4 rounded-xl transition-all duration-300 hover:scale-[1.02]"
-                      style={{
-                        background: "var(--theme-surface)",
-                        border: "1px solid var(--theme-border)",
-                      }}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3
-                            className="font-display text-lg group-hover:opacity-80 transition-opacity"
-                            style={{ color: "var(--theme-accent)" }}
-                          >
-                            {lang.name}
-                          </h3>
-                          {lang.description && (
-                            <p
-                              className="text-sm font-body mt-1 line-clamp-1"
-                              style={{ color: "var(--theme-text-secondary)" }}
-                            >
-                              {lang.description}
-                            </p>
-                          )}
-                        </div>
+                    <Link href={`/language/${lang.languageSlugs![0]}`}>
+                      <div
+                        className="relative p-5 sm:p-6 rounded-2xl transition-all duration-500 overflow-hidden"
+                        style={{
+                          background: "var(--theme-surface)",
+                          border: "1px solid var(--theme-border)",
+                        }}
+                      >
+                        {/* Hover glow overlay */}
                         <div
-                          className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300 group-hover:translate-x-1"
+                          className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"
                           style={{
-                            background: "var(--theme-surface-hover)",
-                            color: "var(--theme-text-tertiary)",
+                            background: `radial-gradient(ellipse at center 30%, ${lang.displayColor || "var(--theme-accent)"}15 0%, transparent 70%)`,
                           }}
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M5 12h14M12 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </motion.section>
-          )}
+                        />
 
-          {/* Branch list */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.1 }}
-            className="max-w-3xl mx-auto px-6 mb-12"
-          >
-            <h2
-              className="font-display text-xl sm:text-2xl text-center mb-6"
-              style={{ color: "var(--theme-text-primary)" }}
-            >
-              Branches of {family.name}
-            </h2>
+                        <div className="relative flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-4 min-w-0">
+                            {/* Color accent bar */}
+                            <div
+                              className="w-1 h-10 rounded-full flex-shrink-0 transition-all duration-500 group-hover:h-12"
+                              style={{
+                                background: lang.displayColor || "var(--theme-accent)",
+                                opacity: 0.7,
+                                boxShadow: `0 0 12px ${lang.displayColor || "var(--theme-accent)"}30`,
+                              }}
+                            />
+                            <div className="min-w-0">
+                              <h3
+                                className="font-display text-lg sm:text-xl transition-all duration-300"
+                                style={{
+                                  color: "var(--theme-accent)",
+                                  textShadow: `0 0 30px ${lang.displayColor || "var(--theme-accent)"}20`,
+                                }}
+                              >
+                                {lang.name}
+                              </h3>
+                              {lang.description && (
+                                <p
+                                  className="text-sm font-body mt-1 leading-relaxed line-clamp-2"
+                                  style={{ color: "var(--theme-text-secondary)" }}
+                                >
+                                  {lang.description}
+                                </p>
+                              )}
+                              {lang.region && (
+                                <p
+                                  className="text-xs font-body mt-1.5"
+                                  style={{ color: "var(--theme-text-tertiary)", opacity: 0.7 }}
+                                >
+                                  {lang.region}
+                                </p>
+                              )}
+                            </div>
+                          </div>
 
-            <div className="grid gap-3">
-              {family.tree.children?.map((branch) => (
-                <div
-                  key={branch.id}
-                  className="p-4 rounded-xl"
-                  style={{
-                    background: "var(--theme-surface)",
-                    border: "1px solid var(--theme-border)",
-                  }}
-                >
-                  <div className="flex items-start gap-3">
-                    {/* Branch color dot */}
-                    <div
-                      className="w-3 h-3 rounded-full mt-1.5 flex-shrink-0"
-                      style={{
-                        background: branch.displayColor || "var(--theme-text-tertiary)",
-                        opacity: branch.status === "extinct" ? 0.4 : 0.8,
-                      }}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h3
-                          className="font-display text-base"
-                          style={{
-                            color:
-                              branch.status === "extinct"
-                                ? "var(--theme-text-tertiary)"
-                                : "var(--theme-text-primary)",
-                            fontStyle:
-                              branch.status === "extinct" ? "italic" : "normal",
-                          }}
-                        >
-                          {branch.name}
-                          {branch.status === "extinct" && " †"}
-                        </h3>
-                        {branch.approximateAge && (
-                          <span
-                            className="text-[10px] font-body px-1.5 py-0.5 rounded-full"
+                          {/* Arrow */}
+                          <div
+                            className="flex items-center justify-center w-9 h-9 rounded-full transition-all duration-300 group-hover:translate-x-1 flex-shrink-0"
                             style={{
                               background: "var(--theme-surface-hover)",
                               color: "var(--theme-text-tertiary)",
                             }}
                           >
-                            {branch.approximateAge}
-                          </span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M5 12h14M12 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ── Branches ── */}
+          <section className="max-w-3xl mx-auto px-6 mb-16">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.8 }}
+            >
+              <p
+                className="text-xs font-body uppercase tracking-[0.2em] text-center mb-2"
+                style={{ color: "var(--theme-text-tertiary)", opacity: 0.6 }}
+              >
+                Classification
+              </p>
+              <h2
+                className="font-display text-xl sm:text-2xl text-center mb-8"
+                style={{ color: "var(--theme-text-primary)" }}
+              >
+                Branches of {family.name}
+              </h2>
+            </motion.div>
+
+            <div className="grid gap-4">
+              {family.tree.children?.map((branch, i) => (
+                <motion.div
+                  key={branch.id}
+                  custom={i}
+                  variants={cardVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true, margin: "-30px" }}
+                  className="group"
+                >
+                  <div
+                    className="relative p-5 sm:p-6 rounded-2xl transition-all duration-500 overflow-hidden"
+                    style={{
+                      background: "var(--theme-surface)",
+                      border: "1px solid var(--theme-border)",
+                    }}
+                  >
+                    {/* Subtle ambient glow from branch color */}
+                    <div
+                      className="absolute inset-0 rounded-2xl opacity-30 transition-opacity duration-700"
+                      style={{
+                        background: `radial-gradient(ellipse at 10% 50%, ${branch.displayColor || "#888"}10 0%, transparent 60%)`,
+                      }}
+                    />
+
+                    <div className="relative flex items-start gap-4">
+                      {/* Branch color accent */}
+                      <div className="flex flex-col items-center gap-1 pt-1 flex-shrink-0">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{
+                            background: branch.displayColor || "var(--theme-text-tertiary)",
+                            opacity: branch.status === "extinct" ? 0.4 : 0.9,
+                            boxShadow: branch.status !== "extinct"
+                              ? `0 0 10px ${branch.displayColor || "transparent"}40`
+                              : "none",
+                          }}
+                        />
+                        {/* Thin line connecting to sub-branches visually */}
+                        {branch.children && branch.children.length > 0 && (
+                          <div
+                            className="w-px flex-1 min-h-[16px]"
+                            style={{
+                              background: `linear-gradient(to bottom, ${branch.displayColor || "var(--theme-border)"}40, transparent)`,
+                            }}
+                          />
                         )}
                       </div>
-                      {branch.description && (
-                        <p
-                          className="text-sm font-body mt-1 leading-relaxed"
-                          style={{ color: "var(--theme-text-secondary)" }}
-                        >
-                          {branch.description}
-                        </p>
-                      )}
-                      {/* Sub-branch names */}
-                      {branch.children && branch.children.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {branch.children.map((child) => (
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2.5 flex-wrap">
+                          <h3
+                            className="font-display text-base sm:text-lg"
+                            style={{
+                              color: branch.status === "extinct"
+                                ? "var(--theme-text-tertiary)"
+                                : "var(--theme-text-primary)",
+                              fontStyle: branch.status === "extinct" ? "italic" : "normal",
+                            }}
+                          >
+                            {branch.name}
+                            {branch.status === "extinct" && " †"}
+                          </h3>
+                          {branch.approximateAge && (
                             <span
-                              key={child.id}
-                              className="text-[10px] font-body px-1.5 py-0.5 rounded"
-                              style={{
-                                background: "var(--theme-surface-hover)",
-                                color:
-                                  child.status === "extinct"
+                              className="text-[10px] font-mono tracking-wide"
+                              style={{ color: "var(--theme-text-tertiary)", opacity: 0.6 }}
+                            >
+                              {branch.approximateAge}
+                            </span>
+                          )}
+                        </div>
+
+                        {branch.description && (
+                          <p
+                            className="text-sm font-body mt-1.5 leading-relaxed"
+                            style={{ color: "var(--theme-text-secondary)" }}
+                          >
+                            {branch.description}
+                          </p>
+                        )}
+
+                        {/* Sub-branch chips */}
+                        {branch.children && branch.children.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-3">
+                            {branch.children.map((child) => (
+                              <span
+                                key={child.id}
+                                className="text-[10px] font-body px-2 py-0.5 rounded-full transition-colors duration-300"
+                                style={{
+                                  background: "var(--theme-surface-hover)",
+                                  color: child.status === "extinct"
                                     ? "var(--theme-text-tertiary)"
                                     : "var(--theme-text-secondary)",
-                                fontStyle:
-                                  child.status === "extinct"
-                                    ? "italic"
-                                    : "normal",
-                              }}
-                            >
-                              {child.name}
-                              {child.status === "extinct" && " †"}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                                  fontStyle: child.status === "extinct" ? "italic" : "normal",
+                                  border: "1px solid var(--theme-border)",
+                                }}
+                              >
+                                {child.name}
+                                {child.status === "extinct" && " †"}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </motion.section>
+          </section>
         </motion.div>
       </div>
     </main>
