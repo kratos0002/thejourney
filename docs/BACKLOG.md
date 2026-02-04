@@ -11,6 +11,8 @@ Consolidated from completed research and ongoing product development. Organized 
 - [x] **Share Card Light/Dark Toggle** — Dark and light theme options for share cards with parchment-toned light palette and adjusted cultural accents.
 - [x] **Profile Panel Cabinet Link** — "Your Cabinet" link in profile panel when flag enabled and words explored.
 - [x] **Daily Word Ritual** — Header subtitle shows daily word's hook once per day (localStorage gated). Tappable to navigate to word. Behind `daily_word_ritual` feature flag.
+- [x] **Language History (M1)** — Animated zone-based map showing how languages spread across the world through eras. Sanskrit (6 phases) and Persian (7 phases) live at `/language/[slug]`. Index page at `/languages`. Mobile-optimized with tap-to-reveal regions, dot stepper timeline, reduced visual clutter. See `/docs/features/LANGUAGE_HISTORY_BACKLOG.md` for full backlog.
+- [x] **Word Creation Tooling** — Slug registry (`data/slug-registry.txt`) and validation scripts to prevent duplicate words. `npm run words:check` runs both.
 
 ---
 
@@ -35,6 +37,16 @@ Consolidated from completed research and ongoing product development. Organized 
 - [x] **Curated Journeys** — Editorial paths like "Words of War," "Food's Travels," "The Silk Road's Vocabulary." Themed collections that create routes through the word catalog. Behind `discovery_drawer` feature flag. *(Source: Discovery Research — curated rows beat infinite scroll)*
 
 - [ ] **Gentle Suggestions / Connections** — "If you liked qahwa, you might enjoy..." connections between words based on theme, origin, or route. *(Source: Discovery Research)*
+
+### Language History (M2 — Core Languages & Map Evolution)
+
+- [ ] **Arabic Language History** — Third language to ship. Map pre-Islamic → Conquest → Golden Age → Modern phases across 26 countries. Cross-reference existing Arabic-origin words.
+
+- [ ] **Scrollytelling Map** — Research shows scroll-driven era transitions produce highest retention. Scroll position controls which phase is displayed. Uses Scrollama.js or similar. *(Source: Penn State 2025, multiple cartographic UX studies)*
+
+- [ ] **Word→Language Cross-Links** — Link from word pages to their source language history ("Learn about Sanskrit →"). Add `languageSlug` to word entries. Auto-generate "Related Words" on language pages.
+
+- [ ] **Flow Lines on Map** — Animated migration/diffusion paths between regions. Shows trade routes, conquest paths, religious expansion visually. *(Source: Flowmap.gl research, temporal flow map studies)*
 
 ### SEO Technical Fixes (from SEO Research)
 
@@ -133,7 +145,7 @@ These areas have open research items. Features here are speculative until resear
 | 7 | Accessibility & i18n | Screen readers with multi-script, RTL support, WCAG |
 | 8 | Mobile App vs. Web | Native app vs. PWA, notification strategy |
 | 9 | Content Pipeline & AI | How to scale to 500+ words without sacrificing quality |
-| 10 | Comparative Linguistics Visualization | Etymology trees, language family connections |
+| 10 | ~~Comparative Linguistics Visualization~~ | ~~Etymology trees, language family connections~~ — **Partially researched**: Language History M1 shipped. Zone-based map visualization, mobile UX patterns, and era transition techniques researched. See `/docs/features/LANGUAGE_HISTORY_BACKLOG.md` for findings. Family trees still open. |
 
 ---
 
@@ -170,5 +182,7 @@ Based on research, these features are explicitly excluded:
 ---
 
 *Created: January 2026*
+*Last updated: February 2026 (Language History M1 shipped, map UX research added)*
 *Sources: 7 completed research documents in `/docs/research/`*
 *See also: RESEARCH_AGENDA.md for open research areas*
+*See also: /docs/features/LANGUAGE_HISTORY_BACKLOG.md for language history deep-dive*

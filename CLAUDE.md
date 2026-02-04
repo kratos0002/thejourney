@@ -83,3 +83,69 @@ Reference `data/words-batch26.ts` for quality examples. Each entry should:
 - Include accurate historical dates and locations
 - Have precise geographic coordinates for the journey map
 - Cross-reference other words in the collection where appropriate
+
+---
+
+## Language History Feature
+
+### File Structure
+
+```
+data/
+  language-types.ts              # TypeScript interfaces (LanguageHistory, LanguagePhase, LanguageRegion)
+  languages/
+    index.ts                     # Central export, allLanguages array, getLanguageBySlug()
+    sanskrit.ts                  # Sanskrit: 6 phases, 14 related words
+    persian.ts                   # Persian: 7 phases, 18 related words
+
+components/
+  language/
+    LanguageHistoryMap.tsx        # Zone-based D3 map with phase animation
+
+app/
+  language/[slug]/
+    page.tsx                     # Server component (SEO, generateStaticParams)
+    LanguagePageClient.tsx       # Client component (hero, story, map, related words)
+  languages/
+    page.tsx                     # Server component for /languages index
+    LanguagesPage.tsx            # Client component with museum-style cards
+```
+
+### Adding a New Language
+
+1. Create `data/languages/{slug}.ts` following the `LanguageHistory` interface
+2. Each language needs: 4-7 phases, each with regions (coordinates + radius + dominance)
+3. Add import and export in `data/languages/index.ts`
+4. Build to verify: `npm run build`
+
+### Map Design Rules (from research)
+
+These rules were learned from UX research and bug fixes. Follow them:
+
+1. **Mobile-first**: Design for 320px, add complexity at breakpoints
+2. **Max 2 disclosure levels**: Map + zones (level 1), tap for tooltip (level 2). Never deeper.
+3. **No labels on mobile by default**: Labels overlap when regions cluster. Use tap-to-reveal.
+4. **Tight gradients**: 4-stop radial gradient (0%, 50%, 85%, 100%). Concentrate color in center.
+5. **Small radius multiplier**: 8 (mobile) / 10 (desktop). Old value of 15 was too large.
+6. **Low glow**: stdDeviation 3 (mobile) / 4 (desktop). Old value of 8 was too noisy.
+7. **Hide non-essential controls on mobile**: Zoom buttons (pinch works), reset, speed. Keep playback.
+8. **Dot stepper on mobile**: Never wrap timeline buttons. Use dots + current era name.
+9. **Center dots**: Always show a small solid dot at region center as anchor point.
+10. **44px minimum touch targets**: Invisible hit areas for tap interactions.
+
+### Bugs to Watch For
+
+- **AmbientBackground**: Do NOT use on language pages. It's designed for 7-section word pages and causes flickering on pages with different section counts.
+- **D3 selection types**: Use explicit generics like `svg.select<SVGDefsElement>("defs")` to avoid TypeScript errors.
+- **Coordinate order**: Always `[longitude, latitude]`, not `[lat, lng]`.
+
+---
+
+## App Design Principles
+
+The app follows a "museum curator" voice. Key anti-patterns to avoid:
+- No streaks, badges, leaderboards, XP, or gamification
+- No urgency or FOMO tactics
+- Content IS the reward — never build meta-games around it
+- Frame everything as invitation, not obligation
+- See `/docs/BACKLOG.md` for full anti-patterns list

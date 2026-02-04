@@ -19,94 +19,69 @@ Languages are just macro-scale word journeys. They spread through the same force
 
 ---
 
-## Milestone 1: Foundation (MVP)
+## Milestone 1: Foundation (MVP) ✅ SHIPPED
 
 **Goal**: Ship one complete language history page (Sanskrit) with zone-based map visualization.
 
-### 1.1 Data Model & Types
-- [ ] Create `LanguageHistory` interface in `data/language-types.ts`
-- [ ] Create `LanguagePhase` interface for era-based progression
-- [ ] Create `LanguageRegion` interface for geographic zones
-- [ ] Add language family taxonomy (Indo-European, Semitic, Sino-Tibetan, etc.)
+**Status**: Shipped February 2026. Sanskrit + Persian live. Map decluttered for mobile.
 
-```typescript
-// Target data structure
-interface LanguageHistory {
-  slug: string;                    // "sanskrit"
-  language: string;                // "Sanskrit"
-  script: string;                  // "संस्कृत"
-  romanization: string;            // "Saṃskṛta"
-  languageFamily: string;          // "Indo-Aryan"
-  parentFamily: string;            // "Indo-European"
-  hook: string;                    // Compelling one-liner
-  originRegion: string;            // "Northwest India"
-  originPeriod: string;            // "~1500 BCE"
-  currentSpeakers: string;         // "~24,000 native; 300M+ liturgical"
+### 1.1 Data Model & Types ✅
+- [x] Create `LanguageHistory` interface in `data/language-types.ts`
+- [x] Create `LanguagePhase` interface for era-based progression
+- [x] Create `LanguageRegion` interface for geographic zones
+- [x] Add language family taxonomy (Indo-European, Semitic, Sino-Tibetan, etc.)
 
-  story: string[];                 // 3-4 paragraph overview
-  phases: LanguagePhase[];         // 4-6 major eras
-  relatedWords: string[];          // Slugs of words from this language
-}
+Types live in `data/language-types.ts`. See file for current interfaces.
 
-interface LanguagePhase {
-  era: string;                     // "1500-500 BCE"
-  name: string;                    // "Vedic Period"
-  form: string;                    // "Vedic Sanskrit"
-  regions: LanguageRegion[];
-  context: string;                 // Why it spread/changed
-  keyEvents: string[];             // "Panini's grammar codified"
-  color: string;                   // Phase color for map
-}
+### 1.2 First Language Data: Sanskrit ✅
+- [x] Research and write Sanskrit language history (6 phases, 14 related words)
+- [x] Define 6 major phases (Vedic → Classical → Buddhist Expansion → Cosmopolitan Peak → Decline → Modern)
+- [x] Map geographic spread for each phase
+- [x] Identify key events and transitions
+- [x] Cross-reference with existing Sanskrit-origin words in collection
 
-interface LanguageRegion {
-  name: string;                    // "Northwest India"
-  modernCountries: string[];       // ["India", "Pakistan"]
-  speakerCount: string;            // "~2 million"
-  dominance: 'native' | 'prestige' | 'liturgical' | 'trade' | 'colonial';
-  coordinates: [number, number];   // Center point for region
-  radius?: number;                 // Approximate spread radius in km
-}
-```
+### 1.3 Language History Map Component ✅
+- [x] Fork `JourneyMap.tsx` → `LanguageHistoryMap.tsx`
+- [x] Replace point-and-arc rendering with zone/region rendering (radial gradients)
+- [x] Implement phase-based animation (regions glow and expand via GSAP)
+- [x] Add era timeline (clickable phases on desktop, dot stepper on mobile)
+- [x] Support multiple simultaneous regions per phase
+- [x] Tap-to-reveal region labels on mobile (tooltip on tap, always-visible on desktop)
+- [x] Playback controls (play/pause, prev/next, speed)
+- [x] Keyboard controls (space, arrows, escape)
+- [x] Swipe navigation on mobile
 
-### 1.2 First Language Data: Sanskrit
-- [ ] Research and write Sanskrit language history
-- [ ] Define 5-6 major phases (Vedic → Classical → Expansion → Decline → Modern)
-- [ ] Map geographic spread for each phase
-- [ ] Identify key events and transitions
-- [ ] Cross-reference with existing Sanskrit-origin words in collection
+### 1.4 Language Page ✅
+- [x] Create `/language/[slug]/page.tsx` route with `generateStaticParams`
+- [x] Design page layout (hero → story → map → related words)
+- [x] Phase detail card below map (context, events, regions)
+- [x] Link to related words from collection
+- [x] "Words from this language" section with links to `/word/[slug]`
 
-### 1.3 Language History Map Component
-- [ ] Fork `JourneyMap.tsx` → `LanguageHistoryMap.tsx`
-- [ ] Replace point-and-arc rendering with zone/region rendering
-- [ ] Implement phase-based animation (regions glow and expand)
-- [ ] Add era timeline at bottom (clickable phases)
-- [ ] Support multiple simultaneous regions per phase
-- [ ] Add speaker count labels on regions
-- [ ] Implement zoom to fit all active regions per phase
-
-### 1.4 Language Page
-- [ ] Create `/language/[slug]/page.tsx` route
-- [ ] Design page layout (map + story + phases + related words)
-- [ ] Add phase detail panel (click phase → see context, events, speaker counts)
-- [ ] Link to related words from collection
-- [ ] Add "Words from this language" section
-
-### 1.5 Navigation & Discovery
+### 1.5 Navigation & Discovery (Partial)
 - [ ] Add "Language Histories" section to discovery drawer
 - [ ] Link from word pages to their source language history
-- [ ] Add language history cards to browse page
+- [x] Created `/languages` index page with museum-style cards
+
+### 1.6 Mobile Optimization ✅ (added post-launch)
+- [x] Compact dot stepper replaces wrapping timeline buttons on mobile
+- [x] Region labels hidden on mobile, replaced with tap-to-reveal tooltips
+- [x] Reduced circle sizes (radius multiplier 15→8) and tighter gradients
+- [x] Reduced glow filter (stdDeviation 8→3) for less visual noise
+- [x] Zoom buttons hidden on mobile (pinch-to-zoom is native)
+- [x] Playback controls slimmed (reset + speed hidden on mobile)
 
 ---
 
-## Milestone 2: Core Languages
+## Milestone 2: Core Languages & Map Evolution
 
-**Goal**: Build out the three most impactful language histories.
+**Goal**: Build out remaining core languages and evolve the map based on research learnings.
 
-### 2.1 Persian Language History
-- [ ] Research Persian spread (Old → Middle → New Persian)
-- [ ] Map Achaemenid → Sasanian → Islamic → Mughal phases
-- [ ] Show peak as lingua franca (Turkey to India)
-- [ ] Cross-reference existing Persian-origin words
+### 2.1 Persian Language History ✅
+- [x] Research Persian spread (Old → Middle → New Persian) — 7 phases
+- [x] Map Achaemenid → Sasanian → Islamic → Mughal → Modern phases
+- [x] Show peak as lingua franca (Turkey to India)
+- [x] Cross-reference existing Persian-origin words (18 words linked)
 
 ### 2.2 Arabic Language History
 - [ ] Research Arabic spread with Islamic expansion
@@ -114,11 +89,18 @@ interface LanguageRegion {
 - [ ] Show current 26-country reach
 - [ ] Cross-reference existing Arabic-origin words
 
-### 2.3 Component Enhancements
-- [ ] Add language comparison mode (show two languages side-by-side)
-- [ ] Add "competition zones" where languages overlapped
-- [ ] Improve region rendering (soft edges, gradient falloff)
+### 2.3 Map UX Evolution (from research — see "Learnings" section below)
+- [ ] **Scrollytelling integration** — Scroll position drives era transitions (research shows highest retention)
+- [ ] **Flow lines** — Animated migration/diffusion paths between regions (stroke-dasharray technique)
+- [ ] **Soft-edge territory polygons** — Replace circles with semi-transparent polygons for geographically accurate zones
+- [ ] **Small multiples view** — Optional toggle to compare 2+ eras side-by-side
+- [ ] **Focus+context** — Dim (don't hide) non-active regions; highlight active era while maintaining geographic orientation
 - [ ] Add historical trade routes as context layer (Silk Road, Spice Routes)
+
+### 2.4 Cross-linking
+- [ ] Link from word pages to their source language history ("Learn about Sanskrit →")
+- [ ] Auto-generate "Related Words" on language pages by filtering `allWords` by language field
+- [ ] Add `languageSlug` field to word entries that have a language history page
 
 ---
 
@@ -195,52 +177,54 @@ interface LanguageRegion {
 
 ## Technical Considerations
 
-### Map Rendering
+### Map Rendering — Current Implementation (M1)
 
-**Current (JourneyMap)**:
-- Points connected by great-circle arcs
-- Sequential animation (stop 1 → 2 → 3)
-- Single path through discrete locations
+**JourneyMap (words)**: Points connected by great-circle arcs, sequential animation, single path.
 
-**Needed (LanguageHistoryMap)**:
-- Regions/zones that expand over time
-- Phase-based animation (era 1 → era 2 → era 3)
-- Multiple simultaneous regions per phase
-- Soft boundaries (languages don't have hard edges)
+**LanguageHistoryMap (languages)**: Radial gradient circles at coordinates, phase-based animation, multiple simultaneous regions per phase. Uses D3 + GSAP + Natural Earth projection.
 
-**Implementation options**:
-1. **Circle-based**: Draw circles at coordinates with radius = spread
-   - Pros: Simple, works with existing D3 setup
-   - Cons: Doesn't show actual country/region shapes
+**Key implementation decisions made**:
+- Radial gradients (not circles or choropleth) — shows fuzzy boundaries naturally
+- Tighter 4-stop gradient (0%, 50%, 85%, 100%) concentrates color in center
+- Small solid center dots as anchor points for each region
+- Invisible hit areas (min 30px) for touch targets
+- Responsive radius multiplier: 8 (mobile) / 10 (desktop)
 
-2. **Choropleth**: Color actual country/region polygons
-   - Pros: Geographically accurate
-   - Cons: Requires GeoJSON boundaries, modern countries didn't exist historically
+**Evolution path** (based on research, for M2+):
+1. **Current**: Radial gradient circles ← we are here
+2. **Next**: Semi-transparent polygons with soft/blurred edges where languages overlap
+3. **Future**: Scrollytelling-driven transitions + flow lines for migration routes
 
-3. **Heatmap/Gradient**: Radial gradients from center points
-   - Pros: Beautiful, shows fuzzy boundaries naturally
-   - Cons: More complex rendering
+### Map Mobile Design Patterns — What We Learned
 
-**Recommendation**: Start with circle-based (M1), evolve to gradient heatmap (M2+).
+Research from cartography and UX studies converged on these principles:
+
+1. **Progressive disclosure at max 2 levels** (NNGroup). We implemented: Level 1 = map with colored zones + dot stepper; Level 2 = tap region for tooltip.
+2. **Dim, don't hide context** — when focusing on a region, reduce opacity of surroundings rather than removing them. Maintains geographic orientation.
+3. **Zoom-dependent detail** — labels at overview zoom clutter; show them on tap/zoom only.
+4. **Collapsible controls** — bottom-sheet panels, hide non-essential buttons. We hide zoom, reset, speed on mobile.
+5. **44x44px minimum touch targets** — hit areas are invisible but sized for thumbs.
+6. **Start small, scale up** — build from 320px, add complexity at breakpoints.
 
 ### Data Storage
 
-**Option A**: TypeScript files (like words)
-- Pros: Simple, consistent with current approach
-- Cons: Harder to query relationships
+**Current**: TypeScript files in `data/languages/`. Simple, consistent with word storage.
+**Future (M3+)**: Migrate to Supabase when we need queryable word↔language relationships.
 
-**Option B**: Supabase tables
-- Pros: Queryable, can link words ↔ languages in DB
-- Cons: More infrastructure
+### Rendering Stack (Recommended for M2+)
 
-**Recommendation**: Start with TypeScript (M1-M2), migrate to Supabase when we need relationships (M3+).
+Research suggests this optimal stack for language spread maps:
+```
+Base Map:       Mapbox GL JS or MapLibre (vector tiles, style control)
+Data Rendering: deck.gl (GPU-accelerated polygons, smooth transitions)
+Animation:      D3.js transitions + time slider
+Narrative:      Scrollama.js (scroll-driven era progression)
+```
 
-### Cross-Linking
-
-Every word already has a `language` field. We can:
-1. Add `languageSlug` field to words that have a language history page
-2. Auto-generate "Related Words" on language pages by filtering `allWords`
-3. Add "Learn about [Language]" link on word pages
+Current stack (D3 + GSAP + topojson) works well for M1-M2 scope. Consider upgrading when we need:
+- 10+ languages with large polygon datasets
+- Smooth territory morphing between eras
+- Interactive flow line animations
 
 ---
 
@@ -262,16 +246,85 @@ Inherit from the main backlog, plus:
 
 ---
 
+## Learnings & Research Summary (February 2026)
+
+### What the Research Says About Language Map Visualization
+
+We conducted extensive research on how linguistic atlases, historical empire visualizations, and mobile-first map design work. Key findings:
+
+#### Best Techniques for Showing Language Era Transitions
+
+| Technique | Effectiveness | Best For |
+|-----------|--------------|----------|
+| **Scrollytelling** | Highest retention & comprehension (Penn State 2025 study) | Guided narrative experience — scroll drives era transitions |
+| **Animated transitions** | Users prefer it; better for showing spread/diffusion | Default experience; conveys dynamism of language spread |
+| **Small multiples** | Faster + more accurate for comparisons | Optional "Compare Eras" analytical mode |
+| **Time slider** | Good for free exploration after guided narrative | Post-narrative exploration |
+| **Flow lines** | Shows migration/diffusion routes visually | Major trade/conquest paths |
+| **Heatmaps** | Shows bilingual zones and gradual transitions naturally | Areas of language contact |
+| **Choropleth** | Clear territory boundaries | Political/administrative language zones |
+
+**Key insight**: Animation vs. small multiples research shows users *prefer* animation (more engaging) but small multiples are *faster and more accurate* for comparisons. **Use animation as default, offer small multiples as toggle.**
+
+#### Mobile-First Map Design (from academic cartography + industry)
+
+1. Mobile screens are not just smaller — they show a smaller *viewport*, meaning fewer visual cues. Demands fundamentally different styling.
+2. **Maximum 2 disclosure levels** (NNGroup). 3+ levels cause users to get lost between views.
+3. Use **relative units** (em/rem) not fixed pixels. Base labels at 0.875rem mobile, 1rem desktop.
+4. Thematic maps have fixed aspect ratios and unevenly distributed data — rescaling to mobile can make spatial units too small. Keep entire map visible for patterns, allow zoom for detail.
+5. A 2025 Penn State study found simpler scrollytelling maps are more accessible for mobile users, who spend less time on maps than desktop users.
+
+#### What Causes Clutter on Language Maps
+
+Ranked by impact (what we fixed in M1.6):
+1. **Showing all eras simultaneously** — single biggest source of clutter. Show one era at a time.
+2. **Always-visible labels** — text labels overlap when regions cluster. Hide on mobile, reveal on interaction.
+3. **Large fuzzy circles** — oversized gradients bleed into each other. Tighter gradient stops + smaller radius.
+4. **Multiple visible control groups** — zoom, playback, timeline, hints all competing for space.
+5. **Excessive glow filters** — stdDeviation 8+ creates visual noise, especially on dense phases.
+
+#### Notable Examples We Studied
+
+- **Business Insider Indo-European animation** — 8,000 years in 90 seconds, based on Quentin Atkinson's phylogenetic research
+- **Oreate AI Historical Territorial Changes** — 4000 BC to 2017, event annotation + spatiotemporal navigation
+- **Alberto Lucas Lopez "A World of Languages"** (Visual Capitalist) — 7,102 languages in one visualization
+- **UNESCO World Atlas of Languages** — color-coded endangerment overlays + revitalization mapping
+- **Global Linguistic Distributions Dataset (2025)** — first openly accessible, fully interoperable geographic dataset of language speaker areas
+
+#### Bugs We Hit and Fixed
+
+| Bug | Cause | Fix |
+|-----|-------|-----|
+| Flickering text on language page | `AmbientBackground` component designed for 7-section word pages; language page has different section structure | Removed AmbientBackground from LanguagePageClient |
+| TypeScript error on `svg.select("defs")` | D3 selection type inference too broad for `BaseType` | Added explicit generic: `svg.select<SVGDefsElement>("defs")` |
+| Timeline buttons wrapping to 3 rows on mobile | `flex-wrap` on 6-7 era buttons | Replaced with dot stepper on mobile, kept buttons on desktop |
+
+### Design Decisions Log
+
+| Decision | Options Considered | Chosen | Why |
+|----------|-------------------|--------|-----|
+| Zone rendering | Circles, Choropleth, Heatmap/Gradient | Radial gradients | Shows fuzzy boundaries naturally; simpler than polygons; linguistically more accurate than hard edges |
+| Mobile labels | Always show (small), Always hide, Tap-to-reveal | Tap-to-reveal | Eliminates overlap clutter; 2-level disclosure matches NNGroup research |
+| Timeline on mobile | Wrap buttons, Horizontal scroll, Dot stepper | Dot stepper + era name | Minimal vertical space; tappable; shows progress visually |
+| Map height on mobile | Fixed 350px, Aspect ratio 0.55, Taller ratio 0.65 | 0.65 ratio (max 400px) | More vertical space for regions; compensates for removed labels |
+| Controls on mobile | Show all, Hide all, Selective hide | Selective: hide zoom/reset/speed, keep playback | Pinch-to-zoom native; playback essential; speed/reset are power-user features |
+
+---
+
 ## Success Metrics
 
-### M1 (MVP)
-- [ ] Sanskrit page live with animated map
-- [ ] 3+ minutes average time on page
-- [ ] Links working from Sanskrit-origin word pages
+### M1 (MVP) ✅
+- [x] Sanskrit page live with animated map
+- [x] Persian page live with animated map
+- [x] `/languages` index page live
+- [x] Mobile-optimized map (decluttered, tap-to-reveal)
+- [ ] 3+ minutes average time on page (tracking needed)
+- [ ] Links working from Sanskrit-origin word pages (M2 cross-linking)
 
 ### M2 (Core Languages)
-- [ ] 3 language histories live
-- [ ] 10%+ of word page visitors click through to language history
+- [ ] Arabic language history live (3rd language)
+- [ ] Word→language cross-links working
+- [ ] Scrollytelling integration for map
 - [ ] SEO: ranking for "history of [language]" queries
 
 ### M3+ (Growth)
@@ -297,13 +350,26 @@ Inherit from the main backlog, plus:
 
 ## References
 
-- Existing JourneyMap: `/components/word/JourneyMap.tsx`
-- Word types: `/data/word-types.ts`
+### Code
+- LanguageHistoryMap: `/components/language/LanguageHistoryMap.tsx`
+- Language types: `/data/language-types.ts`
+- Language data: `/data/languages/` (sanskrit.ts, persian.ts, index.ts)
+- Language page: `/app/language/[slug]/` (page.tsx, LanguagePageClient.tsx)
+- Languages index: `/app/languages/` (page.tsx, LanguagesPage.tsx)
+- Word JourneyMap (reference): `/components/word/JourneyMap.tsx`
+
+### Research Sources
 - Visual learning research: `/docs/research/VISUAL_GEOGRAPHIC_LEARNING_RESEARCH.md`
 - Main backlog: `/docs/BACKLOG.md`
+- UNESCO World Atlas of Languages: https://en.wal.unesco.org
+- Global Linguistic Distributions Dataset (2025): Nature Scientific Data
+- Mobile Thematic Map Design (2025): Taylor & Francis
+- Penn State GeoGraphics Lab scrollytelling study (2025)
+- NNGroup Progressive Disclosure guidelines
+- Robertson et al. "Animation vs Small Multiples" effectiveness study
 
 ---
 
 *Created: February 2026*
-*Status: Planning*
-*Owner: TBD*
+*Status: M1 shipped, M2 in progress*
+*Last updated: February 2026*
