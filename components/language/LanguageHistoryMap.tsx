@@ -6,21 +6,24 @@ import * as d3 from "d3";
 import gsap from "gsap";
 import * as topojson from "topojson-client";
 import type { Topology, GeometryCollection } from "topojson-specification";
-import type { LanguagePhase, LanguageHistory } from "@/data/language-types";
+import type { LanguagePhase, LanguageHistory, LanguageRegion } from "@/data/language-types";
 
 interface LanguageHistoryMapProps {
   language: LanguageHistory;
 }
 
-// Dominance type to opacity mapping
+// Dominance type to opacity mapping — reduced for cleaner look
 const dominanceOpacity: Record<string, number> = {
-  native: 0.7,
-  prestige: 0.5,
-  liturgical: 0.35,
-  trade: 0.4,
-  colonial: 0.45,
-  scholarly: 0.3,
+  native: 0.55,
+  prestige: 0.4,
+  liturgical: 0.3,
+  trade: 0.35,
+  colonial: 0.38,
+  scholarly: 0.25,
 };
+
+// Responsive radius multiplier — much smaller than before
+const getRadiusMultiplier = (isMobile: boolean) => isMobile ? 8 : 10;
 
 export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -36,7 +39,17 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
   const hasAnimated = useRef(false);
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
 
+  // Tap-to-reveal tooltip state
+  const [tappedRegion, setTappedRegion] = useState<{
+    name: string;
+    dominance: string;
+    speakerCount?: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const { phases } = language;
+  const isMobileRef = useRef(false);
 
   // Playback logic
   useEffect(() => {
@@ -73,6 +86,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
   // Update map when phase changes
   useEffect(() => {
     if (!svgRef.current || !projectionRef.current) return;
+    setTappedRegion(null); // Clear tooltip on phase change
     updatePhaseDisplay(currentPhase);
   }, [currentPhase]);
 
@@ -98,6 +112,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
   const handleReset = () => {
     setIsPlaying(false);
     setCurrentPhase(0);
+    setTappedRegion(null);
     if (svgRef.current && zoomRef.current) {
       const svg = d3.select(svgRef.current);
       svg.transition().duration(600).call(
@@ -126,6 +141,25 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     touchStartRef.current = null;
   };
 
+  // Handle region tap/click for tooltip
+  const handleRegionInteraction = useCallback((region: LanguageRegion, screenX: number, screenY: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+
+    setTappedRegion(prev => {
+      // Toggle off if same region tapped again
+      if (prev && prev.name === region.name) return null;
+      return {
+        name: region.name,
+        dominance: region.dominance,
+        speakerCount: region.speakerCount,
+        x: screenX - rect.left,
+        y: screenY - rect.top,
+      };
+    });
+  }, []);
+
   // Update the visual display for a specific phase
   const updatePhaseDisplay = useCallback((phaseIndex: number) => {
     if (!svgRef.current || !projectionRef.current) return;
@@ -134,9 +168,11 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     const projection = projectionRef.current;
     const phase = phases[phaseIndex];
     const zonesGroup = svg.select(".zones-group");
+    const isMobile = isMobileRef.current;
+    const radiusMult = getRadiusMultiplier(isMobile);
 
-    // Fade out all existing zones
-    zonesGroup.selectAll(".region-zone")
+    // Fade out all existing zones and labels
+    zonesGroup.selectAll(".region-zone, .region-label, .region-hit-area")
       .transition()
       .duration(600)
       .attr("opacity", 0)
@@ -147,8 +183,8 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
       const pos = projection(region.coordinates);
       if (!pos) return;
 
-      const baseRadius = (region.radius || 5) * 15;
-      const opacity = dominanceOpacity[region.dominance] || 0.4;
+      const baseRadius = (region.radius || 5) * radiusMult;
+      const opacity = dominanceOpacity[region.dominance] || 0.35;
 
       // Create gradient for this region
       const gradientId = `region-gradient-${phaseIndex}-${i}`;
@@ -163,15 +199,21 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
         .attr("cy", "50%")
         .attr("r", "50%");
 
+      // Tighter gradient — core is more concentrated, fades faster
       gradient.append("stop")
         .attr("offset", "0%")
         .attr("stop-color", phase.color)
         .attr("stop-opacity", opacity);
 
       gradient.append("stop")
-        .attr("offset", "70%")
+        .attr("offset", "50%")
         .attr("stop-color", phase.color)
-        .attr("stop-opacity", opacity * 0.5);
+        .attr("stop-opacity", opacity * 0.4);
+
+      gradient.append("stop")
+        .attr("offset", "85%")
+        .attr("stop-color", phase.color)
+        .attr("stop-opacity", opacity * 0.1);
 
       gradient.append("stop")
         .attr("offset", "100%")
@@ -196,29 +238,61 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
         ease: "power2.out",
       });
 
-      // Add label for region
-      const isMobile = dimensionsRef.current.width < 600;
-      const labelFontSize = isMobile ? "9px" : "11px";
+      // Small center dot — always visible, acts as anchor point
+      const dot = zonesGroup.append("circle")
+        .attr("class", `region-zone region-dot-${i}`)
+        .attr("cx", pos[0])
+        .attr("cy", pos[1])
+        .attr("r", 0)
+        .attr("fill", phase.color)
+        .attr("opacity", 0);
 
-      const label = zonesGroup.append("text")
-        .attr("class", `region-label region-label-${i}`)
-        .attr("x", pos[0])
-        .attr("y", pos[1] + baseRadius + 15)
-        .attr("text-anchor", "middle")
-        .attr("fill", "#f0ede6")
-        .attr("font-size", labelFontSize)
-        .attr("font-family", "var(--font-source-serif), serif")
-        .attr("opacity", 0)
-        .text(region.name);
-
-      gsap.to(label.node(), {
-        opacity: 0.7,
+      gsap.to(dot.node(), {
+        attr: { r: isMobile ? 3 : 3.5 },
+        opacity: 0.9,
         duration: 0.5,
-        delay: 0.3 + i * 0.15,
+        delay: 0.2 + i * 0.15,
         ease: "power2.out",
       });
+
+      // Desktop: show labels; Mobile: hide labels (tap to reveal via React state)
+      if (!isMobile) {
+        const label = zonesGroup.append("text")
+          .attr("class", `region-label region-label-${i}`)
+          .attr("x", pos[0])
+          .attr("y", pos[1] + baseRadius * 0.5 + 14)
+          .attr("text-anchor", "middle")
+          .attr("fill", "#f0ede6")
+          .attr("font-size", "10px")
+          .attr("font-family", "var(--font-source-serif), serif")
+          .attr("opacity", 0)
+          .attr("pointer-events", "none")
+          .text(region.name);
+
+        gsap.to(label.node(), {
+          opacity: 0.6,
+          duration: 0.5,
+          delay: 0.4 + i * 0.15,
+          ease: "power2.out",
+        });
+      }
+
+      // Invisible hit area for tap-to-reveal (larger target for touch)
+      const hitRadius = Math.max(baseRadius, isMobile ? 30 : 20);
+      zonesGroup.append("circle")
+        .attr("class", `region-hit-area region-hit-${i}`)
+        .attr("cx", pos[0])
+        .attr("cy", pos[1])
+        .attr("r", hitRadius)
+        .attr("fill", "transparent")
+        .attr("cursor", "pointer")
+        .attr("opacity", 1)
+        .on("click", function(event: MouseEvent) {
+          event.stopPropagation();
+          handleRegionInteraction(region, event.clientX, event.clientY);
+        });
     });
-  }, [phases]);
+  }, [phases, handleRegionInteraction]);
 
   const renderMap = useCallback(async () => {
     if (!svgRef.current || !containerRef.current) return;
@@ -227,7 +301,11 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     svg.selectAll("*").remove();
 
     const width = containerRef.current.clientWidth || 900;
-    const height = Math.min(width * 0.55, 500);
+    const isMobile = width < 600;
+    isMobileRef.current = isMobile;
+    const height = isMobile
+      ? Math.min(width * 0.65, 400) // Taller ratio on mobile for more space
+      : Math.min(width * 0.55, 500);
     dimensionsRef.current = { width, height };
 
     svg.attr("viewBox", `0 0 ${width} ${height}`)
@@ -248,8 +326,9 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     });
 
     // Use Natural Earth projection fitted to all language regions
+    const padding = isMobile ? 40 : 80;
     const projection = d3.geoNaturalEarth1()
-      .fitSize([width - 80, height - 80], {
+      .fitSize([width - padding, height - padding], {
         type: "MultiPoint",
         coordinates: allCoords,
       } as d3.GeoPermissibleObjects)
@@ -261,17 +340,17 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
     // Defs for filters
     const defs = svg.append("defs");
 
-    // Glow filter
+    // Subtle glow filter — reduced blur for less visual noise
     const glowFilter = defs.append("filter")
       .attr("id", "zone-glow-filter")
-      .attr("x", "-100%")
-      .attr("y", "-100%")
-      .attr("width", "300%")
-      .attr("height", "300%");
+      .attr("x", "-50%")
+      .attr("y", "-50%")
+      .attr("width", "200%")
+      .attr("height", "200%");
 
     glowFilter.append("feGaussianBlur")
       .attr("in", "SourceGraphic")
-      .attr("stdDeviation", "8")
+      .attr("stdDeviation", isMobile ? "3" : "4")
       .attr("result", "blur");
 
     glowFilter.append("feMerge")
@@ -293,6 +372,11 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
 
     svg.call(zoom);
     zoomRef.current = zoom;
+
+    // Click on empty space dismisses tooltip
+    svg.on("click", () => {
+      setTappedRegion(null);
+    });
 
     // Draw world land masses
     const landFeatures = "features" in land ? land.features : [land];
@@ -348,6 +432,9 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
           e.preventDefault();
           handleNext();
           break;
+        case "Escape":
+          setTappedRegion(null);
+          break;
       }
     };
 
@@ -373,24 +460,81 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
           The Spread
         </h3>
 
-        {/* Phase Timeline */}
-        <div className="flex justify-center gap-2 mb-6 flex-wrap">
-          {phases.map((phase, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setIsPlaying(false);
-                setCurrentPhase(i);
-              }}
-              className={`px-3 py-1.5 text-xs font-body rounded-lg transition-all duration-300 cursor-pointer ${
-                currentPhase === i
-                  ? "bg-amber-glow/20 text-amber-glow border border-amber-glow/30"
-                  : "text-fog/50 hover:text-moonlight border border-transparent hover:border-moonlight/10"
-              }`}
-            >
-              {phase.era}
-            </button>
-          ))}
+        {/* Phase Timeline — Compact stepper design */}
+        <div className="flex items-center justify-center gap-1 sm:gap-2 mb-6">
+          {/* Prev button */}
+          <button
+            onClick={handlePrev}
+            disabled={currentPhase <= 0}
+            className="p-1.5 text-fog/50 hover:text-moonlight transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+            aria-label="Previous era"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+
+          {/* Desktop: show all era buttons in a horizontal scroll */}
+          <div className="hidden sm:flex items-center gap-1.5">
+            {phases.map((phase, i) => (
+              <button
+                key={i}
+                onClick={() => {
+                  setIsPlaying(false);
+                  setCurrentPhase(i);
+                }}
+                className={`px-3 py-1.5 text-xs font-body rounded-lg transition-all duration-300 cursor-pointer whitespace-nowrap ${
+                  currentPhase === i
+                    ? "bg-amber-glow/20 text-amber-glow border border-amber-glow/30"
+                    : "text-fog/50 hover:text-moonlight border border-transparent hover:border-moonlight/10"
+                }`}
+              >
+                {phase.era}
+              </button>
+            ))}
+          </div>
+
+          {/* Mobile: compact dot stepper with current era name */}
+          <div className="flex sm:hidden items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              {phases.map((_phase, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setIsPlaying(false);
+                    setCurrentPhase(i);
+                  }}
+                  className="cursor-pointer p-0.5"
+                  aria-label={`Go to ${phases[i].era}`}
+                >
+                  <div
+                    className={`rounded-full transition-all duration-300 ${
+                      currentPhase === i
+                        ? "w-2.5 h-2.5 bg-amber-glow"
+                        : i < currentPhase
+                          ? "w-1.5 h-1.5 bg-amber-glow/40"
+                          : "w-1.5 h-1.5 bg-fog/20"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <span className="text-xs font-body text-fog/60 min-w-0 truncate max-w-[140px]">
+              {activePhase.era}
+            </span>
+          </div>
+
+          {/* Next button */}
+          <button
+            onClick={handleNext}
+            disabled={currentPhase >= phases.length - 1}
+            className="p-1.5 text-fog/50 hover:text-moonlight transition-colors disabled:opacity-20 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+            aria-label="Next era"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
         </div>
 
         {/* SVG World Map */}
@@ -402,12 +546,40 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
           <svg
             ref={svgRef}
             className="w-full"
-            style={{ minHeight: "350px", cursor: "grab" }}
+            style={{ minHeight: "280px", cursor: "grab" }}
             preserveAspectRatio="xMidYMid meet"
           />
 
-          {/* Zoom controls */}
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 flex flex-col gap-1.5 sm:gap-2">
+          {/* Tap-to-reveal tooltip — shows on region tap */}
+          <AnimatePresence>
+            {tappedRegion && (
+              <motion.div
+                className="absolute z-10 pointer-events-none"
+                style={{
+                  left: Math.min(Math.max(tappedRegion.x, 80), dimensionsRef.current.width - 80),
+                  top: Math.max(tappedRegion.y - 60, 10),
+                  transform: "translateX(-50%)",
+                }}
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 4, scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+              >
+                <div className="px-3 py-2 rounded-lg bg-ink/95 border border-moonlight/15 backdrop-blur-sm text-center shadow-lg">
+                  <p className="text-xs font-body text-moonlight/90 whitespace-nowrap">
+                    {tappedRegion.name}
+                  </p>
+                  <p className="text-[10px] font-body text-fog/50 capitalize">
+                    {tappedRegion.dominance}
+                    {tappedRegion.speakerCount && ` · ${tappedRegion.speakerCount}`}
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Zoom controls — hidden on mobile (pinch to zoom) */}
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 hidden sm:flex flex-col gap-2">
             <button
               onClick={() => {
                 if (!svgRef.current || !zoomRef.current) return;
@@ -416,7 +588,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
                   zoomRef.current.scaleBy as never, 1.5
                 );
               }}
-              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-base sm:text-sm cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-sm cursor-pointer"
               aria-label="Zoom in"
             >
               +
@@ -429,27 +601,19 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
                   zoomRef.current.scaleBy as never, 0.67
                 );
               }}
-              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-base sm:text-sm cursor-pointer"
+              className="w-8 h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 text-sm cursor-pointer"
               aria-label="Zoom out"
             >
               −
             </button>
-            <button
-              onClick={handleReset}
-              className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg bg-ink/80 border border-moonlight/10 text-moonlight/70 hover:text-moonlight hover:border-moonlight/20 transition-all duration-300 cursor-pointer"
-              aria-label="Reset view"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 12a9 9 0 1 1 9 9M3 12V3m0 9h9" />
-              </svg>
-            </button>
           </div>
 
-          {/* Playback controls */}
-          <div className="absolute bottom-5 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-ink/90 border border-moonlight/10 backdrop-blur-sm">
+          {/* Playback — compact on mobile: just play/pause + speed indicator */}
+          <div className="absolute bottom-5 sm:bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 sm:gap-3 px-2.5 sm:px-4 py-1.5 sm:py-2.5 rounded-xl bg-ink/90 border border-moonlight/10 backdrop-blur-sm">
+            {/* Reset — desktop only */}
             <button
               onClick={handleReset}
-              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 cursor-pointer"
+              className="hidden sm:flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 cursor-pointer"
               aria-label="Reset"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -458,45 +622,49 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
               </svg>
             </button>
 
+            {/* Prev */}
             <button
               onClick={handlePrev}
               disabled={currentPhase <= 0}
-              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-8 h-8 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label="Previous era"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="sm:w-4 sm:h-4">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M19 20L9 12l10-8v16zM7 19V5H5v14h2z" />
               </svg>
             </button>
 
+            {/* Play/Pause */}
             <button
               onClick={isPlaying ? handlePause : handlePlay}
-              className="w-11 h-11 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-amber-glow/20 border border-amber-glow/30 text-amber-glow hover:bg-amber-glow/30 active:scale-95 transition-all duration-300 cursor-pointer"
+              className="w-10 h-10 sm:w-9 sm:h-9 flex items-center justify-center rounded-full bg-amber-glow/20 border border-amber-glow/30 text-amber-glow hover:bg-amber-glow/30 active:scale-95 transition-all duration-300 cursor-pointer"
               aria-label={isPlaying ? "Pause" : "Play through eras"}
             >
               {isPlaying ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <rect x="6" y="4" width="4" height="16" />
                   <rect x="14" y="4" width="4" height="16" />
                 </svg>
               ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
                   <polygon points="5,3 19,12 5,21" />
                 </svg>
               )}
             </button>
 
+            {/* Next */}
             <button
               onClick={handleNext}
               disabled={currentPhase >= phases.length - 1}
-              className="w-9 h-9 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="w-8 h-8 sm:w-auto sm:h-auto flex items-center justify-center text-fog/60 hover:text-moonlight transition-colors duration-200 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               aria-label="Next era"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="sm:w-4 sm:h-4">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M5 4l10 8-10 8V4zm12-1v14h2V5h-2z" />
               </svg>
             </button>
 
+            {/* Speed — desktop only */}
             <div className="hidden sm:flex items-center gap-1 ml-2 border-l border-moonlight/10 pl-3">
               {[0.5, 1, 2].map(speed => (
                 <button
@@ -515,7 +683,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
           </div>
 
           {/* Progress bar */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-moonlight/5">
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 sm:h-1 bg-moonlight/5">
             <motion.div
               className="h-full bg-amber-glow/60"
               initial={{ width: "0%" }}
@@ -524,17 +692,17 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
             />
           </div>
 
-          {/* Hint text */}
-          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[9px] sm:text-[10px] text-fog/40 font-body">
-            <span className="hidden sm:inline">Scroll to zoom · Drag to pan · Click eras to explore</span>
-            <span className="sm:hidden">Pinch to zoom · Swipe for prev/next</span>
+          {/* Hint text — minimal on mobile */}
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 text-[9px] sm:text-[10px] text-fog/30 font-body">
+            <span className="hidden sm:inline">Scroll to zoom · Drag to pan</span>
+            <span className="sm:hidden">Tap regions to explore</span>
           </div>
         </div>
 
         {/* Active phase detail card */}
         <AnimatePresence mode="wait">
           <motion.div
-            className="mt-6 p-6 rounded-2xl max-w-2xl mx-auto backdrop-blur-sm"
+            className="mt-4 sm:mt-6 p-4 sm:p-6 rounded-2xl max-w-2xl mx-auto backdrop-blur-sm"
             style={{
               background: "var(--theme-surface)",
               border: "1px solid var(--theme-border-strong)",
@@ -546,14 +714,14 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
             key={currentPhase}
           >
             {/* Phase header */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3 sm:mb-4">
               <div
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: activePhase.color }}
               />
-              <div>
+              <div className="min-w-0">
                 <h4
-                  className="font-display text-lg"
+                  className="font-display text-base sm:text-lg"
                   style={{ color: "var(--theme-text-primary)" }}
                 >
                   {activePhase.name}
@@ -565,9 +733,9 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
                   {activePhase.era}
                 </p>
               </div>
-              <div className="ml-auto">
+              <div className="ml-auto flex-shrink-0">
                 <span
-                  className="px-2 py-1 text-xs rounded-md"
+                  className="px-2 py-1 text-[11px] sm:text-xs rounded-md"
                   style={{
                     backgroundColor: "var(--theme-surface-hover)",
                     color: "var(--theme-accent)"
@@ -580,7 +748,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
 
             {/* Context */}
             <p
-              className="font-body text-sm leading-relaxed mb-4"
+              className="font-body text-sm leading-relaxed mb-3 sm:mb-4"
               style={{ color: "var(--theme-text-secondary)" }}
             >
               {activePhase.context}
@@ -588,7 +756,7 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
 
             {/* Key events */}
             {activePhase.keyEvents && activePhase.keyEvents.length > 0 && (
-              <div className="border-t pt-4" style={{ borderColor: "var(--theme-border)" }}>
+              <div className="border-t pt-3 sm:pt-4" style={{ borderColor: "var(--theme-border)" }}>
                 <h5
                   className="text-xs uppercase tracking-wider mb-2"
                   style={{ color: "var(--theme-text-tertiary)" }}
@@ -611,27 +779,24 @@ export default function LanguageHistoryMap({ language }: LanguageHistoryMapProps
             )}
 
             {/* Regions summary */}
-            <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--theme-border)" }}>
+            <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t" style={{ borderColor: "var(--theme-border)" }}>
               <h5
                 className="text-xs uppercase tracking-wider mb-2"
                 style={{ color: "var(--theme-text-tertiary)" }}
               >
                 Regions ({activePhase.regions.length})
               </h5>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {activePhase.regions.map((region, i) => (
                   <span
                     key={i}
-                    className="px-2 py-1 text-xs rounded-md"
+                    className="px-2 py-0.5 sm:py-1 text-[11px] sm:text-xs rounded-md"
                     style={{
                       backgroundColor: "var(--theme-surface-hover)",
                       color: "var(--theme-text-secondary)"
                     }}
                   >
                     {region.name}
-                    {region.speakerCount && (
-                      <span className="ml-1 opacity-60">({region.speakerCount})</span>
-                    )}
                   </span>
                 ))}
               </div>
