@@ -19,7 +19,7 @@ This document outlines research initiatives to elevate The Journey into the best
 | 7 | Accessibility & Internationalization | Medium | Low | Not Started |
 | 8 | Mobile App vs. Web | Medium | Low | Not Started |
 | 9 | Content Pipeline & AI | High | Medium | Not Started |
-| 10 | Comparative Linguistics Visualization | Medium | High | Not Started |
+| 10 | Comparative Linguistics Visualization | Medium | High | **Partial** — Language History M1 shipped |
 
 ---
 
@@ -225,24 +225,26 @@ This document outlines research initiatives to elevate The Journey into the best
 
 ---
 
-## 10. Comparative Linguistics Visualization
+## 10. Comparative Linguistics Visualization — PARTIALLY COMPLETE
 
-**Question:** How do we show relationships between words?
+**Question:** How do we show relationships between words and languages?
 
-**Why it matters:** The "relatives" feature is basic. Etymology trees and language family connections could be a killer differentiator.
+**Status:** Language History M1 shipped (February 2026). Zone-based map visualization, mobile UX patterns, and era transition techniques researched and documented. Language family trees still open.
 
-**Research questions:**
-- How do linguists visualize language evolution? (cognate trees, family trees)
-- What's the state of interactive etymology visualization?
-- Should we show the PIE (Proto-Indo-European) root as a "common ancestor"?
-- How do we make complex relationships understandable to non-linguists?
-- Could we have a "language family" view showing all connected words?
-- What data structure changes are needed to support trees?
+**What's been done:**
+- [x] Zone-based language spread maps (LanguageHistoryMap component)
+- [x] Research on best map visualization techniques (scrollytelling, small multiples, flow lines, heatmaps)
+- [x] Mobile-first map design patterns implemented
+- [x] Sanskrit + Persian language histories with phase-based animation
+- [x] Auto-zoom to active phase regions
 
-**Outputs:**
-- [ ] Etymology visualization survey
-- [ ] Language family tree prototype
-- [ ] Data model recommendations
+**What's still open:**
+- [ ] Language family tree visualization (branching from Proto-Indo-European)
+- [ ] Cognate explorer (related words across IE languages)
+- [ ] Etymology trees for individual words
+- [ ] Flow lines showing migration/diffusion routes
+
+**Full details:** See `docs/features/LANGUAGE_HISTORY_BACKLOG.md` for complete backlog, research findings, and design decisions.
 
 ---
 

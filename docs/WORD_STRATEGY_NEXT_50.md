@@ -1,8 +1,10 @@
 # Word Strategy: Next 50 Words
 
-## Current State: 100 Words
+> **Note (February 2026):** This document was written when the collection had ~100 words. We now have **302 words** across 29 batches. Many gaps identified below have been filled. The word suggestions and regional strategy remain useful for future expansion. Run `npm run words:check` and check `data/slug-registry.txt` for current coverage.
 
-### Coverage Strengths
+## State When Written: ~100 Words
+
+### Coverage Strengths (at time of writing)
 - Indo-Aryan (Hindi/Sanskrit/Urdu): 12 words
 - Arabic/Persian: 10 words
 - Austronesian (Malay/Polynesian): 6 words
@@ -11,15 +13,15 @@
 - Japanese: 4 words
 - Yiddish: 4 words
 
-### Critical Gaps to Fill
-1. **Southeast Asia**: 0 Vietnamese, Thai, Khmer, Filipino
-2. **Sub-Saharan Africa**: Only 2 words (ubuntu, safari)
-3. **Slavic Languages**: Only 3 words (robot, vodka, tsar)
-4. **Chinese**: Only 2 words (ketchup, tycoon)
-5. **Pacific Islands**: Limited (taboo, tattoo only)
-6. **Indigenous Americas**: Limited beyond Caribbean
-7. **Central Asia**: Missing Mongolian, Turkic
-8. **Nordic**: Could expand Finnish, Estonian
+### Gaps Identified (many since filled — check slug-registry.txt)
+1. **Southeast Asia**: Vietnamese, Thai, Khmer, Filipino
+2. **Sub-Saharan Africa**: Beyond ubuntu, safari
+3. **Slavic Languages**: Beyond robot, vodka, tsar
+4. **Chinese**: Beyond ketchup, tycoon
+5. **Pacific Islands**: Beyond taboo, tattoo
+6. **Indigenous Americas**: Beyond Caribbean origins
+7. **Central Asia**: Mongolian, Turkic
+8. **Nordic**: Finnish, Estonian
 
 ---
 

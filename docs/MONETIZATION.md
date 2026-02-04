@@ -1,4 +1,25 @@
-# The Journey — Premium / Monetization Research
+# The Journey — Monetization Strategy & Research
+
+> Consolidated document: market research (January 2025) + decided strategy (from PREMIUM_STRATEGY.md).
+
+## Decided Strategy (Current)
+
+**Positioning:** Knowledge-as-luxury. No ads ever. Museum exhibition, not dictionary.
+
+**Tier Structure:**
+| Tier | Price | Access |
+|------|-------|--------|
+| Free (Anonymous) | $0 | 5 words |
+| Free (Signed In) | $0 | 20 words |
+| Premium | $9.99 one-time | All words forever |
+
+**Infrastructure:** RevenueCat SDK integrated. "Journey Pass" entitlement configured. Purchase flow built in ExplorationProvider. **Currently disabled** — no revenue being captured yet.
+
+**4 Target Personas:** The Curious Explorer (25-45), The Language Lover (20-40), The Collector (25-35), The Gift Giver (30-55). See `docs/archive/PREMIUM_STRATEGY.md` for detailed persona profiles.
+
+---
+
+## Market Research
 
 > Research compiled January 2025. Focused on 2024-2026 trends for educational, etymology, and curated content apps.
 

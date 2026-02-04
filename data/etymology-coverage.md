@@ -1,5 +1,7 @@
 # Etymology Coverage Tracker
 
+> **Note (February 2026):** This document was created when the collection had ~30 words. We now have **302 words** across 29 batches, covering many more routes than listed below. The route examples below are incomplete — they only list the earliest words. For the definitive list of all words, check `data/slug-registry.txt` (auto-generated, 302 entries). The rules and uncovered route ideas remain useful guidance.
+
 This document tracks which etymological routes, language families, and semantic domains are already covered to prevent duplicate journeys.
 
 ## Covered Routes (DO NOT DUPLICATE)
