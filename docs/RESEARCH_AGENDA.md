@@ -19,7 +19,7 @@ This document outlines research initiatives to elevate The Journey into the best
 | 7 | Accessibility & Internationalization | Medium | Low | Not Started |
 | 8 | Mobile App vs. Web | Medium | Low | Not Started |
 | 9 | Content Pipeline & AI | High | Medium | Not Started |
-| 10 | Comparative Linguistics Visualization | Medium | High | **Partial** — Language History M1 shipped |
+| 10 | Comparative Linguistics Visualization | Medium | High | **Mostly Complete** — Language History M1 shipped, Family Tree research done |
 
 ---
 
@@ -225,11 +225,11 @@ This document outlines research initiatives to elevate The Journey into the best
 
 ---
 
-## 10. Comparative Linguistics Visualization — PARTIALLY COMPLETE
+## 10. Comparative Linguistics Visualization — MOSTLY COMPLETE
 
 **Question:** How do we show relationships between words and languages?
 
-**Status:** Language History M1 shipped (February 2026). Zone-based map visualization, mobile UX patterns, and era transition techniques researched and documented. Language family trees still open.
+**Status:** Language History M1 shipped (February 2026). Language Family Tree research completed (February 2026). Implementation starting.
 
 **What's been done:**
 - [x] Zone-based language spread maps (LanguageHistoryMap component)
@@ -237,14 +237,19 @@ This document outlines research initiatives to elevate The Journey into the best
 - [x] Mobile-first map design patterns implemented
 - [x] Sanskrit + Persian language histories with phase-based animation
 - [x] Auto-zoom to active phase regions
+- [x] Language family tree research: hierarchy depth, visualization approaches (sunburst, dendrogram, network graph), data model, loanword handling, UX navigation patterns
+- [x] Identified 5-8 families covering all 302 words, Indo-European mapped in full (10 branches)
 
 **What's still open:**
-- [ ] Language family tree visualization (branching from Proto-Indo-European)
+- [ ] Language family tree implementation (data model + pages + D3 dendrogram) — in LANGUAGE_HISTORY_BACKLOG.md M3
 - [ ] Cognate explorer (related words across IE languages)
 - [ ] Etymology trees for individual words
 - [ ] Flow lines showing migration/diffusion routes
+- [ ] Cross-family loanword arc visualization
 
-**Full details:** See `docs/features/LANGUAGE_HISTORY_BACKLOG.md` for complete backlog, research findings, and design decisions.
+**Research docs:**
+- Language spread maps: `docs/features/LANGUAGE_HISTORY_BACKLOG.md` (Learnings section)
+- Language family trees: `docs/research/LANGUAGE_FAMILY_TREE_RESEARCH.md`
 
 ---
 
@@ -280,4 +285,4 @@ Each completed research area produces:
 ---
 
 *Document created: January 2026*
-*Last updated: January 2026*
+*Last updated: February 2026*

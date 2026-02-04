@@ -48,6 +48,16 @@ Consolidated from completed research and ongoing product development. Organized 
 
 - [ ] **Flow Lines on Map** — Animated migration/diffusion paths between regions. Shows trade routes, conquest paths, religious expansion visually. *(Source: Flowmap.gl research, temporal flow map studies)*
 
+### Language Family Trees (M3 — Research Complete)
+
+- [ ] **Family Tree Data Model** — Nested `LanguageFamilyNode` structure: Family → Branch → Sub-branch → Language. Indo-European mapped with 10 branches. 5-8 families cover all 302 words. *(Source: Language Family Tree Research)*
+
+- [ ] **`/families` Index Page** — Museum-style family cards with word counts. Hero sunburst visualization (Phase 2). *(Source: Language Family Tree Research)*
+
+- [ ] **`/family/[slug]` Detail Pages** — Collapsible D3 dendrogram showing the full tree. Breadcrumb navigation. Narrative about the family's history and spread. *(Source: Language Family Tree Research)*
+
+- [ ] **Cross-Family Loanword Arcs** — Animated arcs showing word paths that jump between unrelated families (Arabic → Latin → English). The tree is the backbone; the arcs tell the etymology story. *(Source: Language Family Tree Research — ~24.2% of vocabulary is borrowed)*
+
 ### SEO Technical Fixes (from SEO Research)
 
 - [x] **DefinedTerm Schema + BreadcrumbList** — Replace Article JSON-LD with DefinedTerm on word pages. Add BreadcrumbList for navigation. Add AudioObject for pronunciation. *(Source: SEO Strategy Research — Merriam-Webster gold standard)*
@@ -145,7 +155,7 @@ These areas have open research items. Features here are speculative until resear
 | 7 | Accessibility & i18n | Screen readers with multi-script, RTL support, WCAG |
 | 8 | Mobile App vs. Web | Native app vs. PWA, notification strategy |
 | 9 | Content Pipeline & AI | How to scale to 500+ words without sacrificing quality |
-| 10 | ~~Comparative Linguistics Visualization~~ | ~~Etymology trees, language family connections~~ — **Partially researched**: Language History M1 shipped. Zone-based map visualization, mobile UX patterns, and era transition techniques researched. See `/docs/features/LANGUAGE_HISTORY_BACKLOG.md` for findings. Family trees still open. |
+| 10 | ~~Comparative Linguistics Visualization~~ | **Mostly complete**: Language History M1 shipped. Language Family Tree research done. Implementation starting (M3). See `/docs/research/LANGUAGE_FAMILY_TREE_RESEARCH.md`. |
 
 ---
 

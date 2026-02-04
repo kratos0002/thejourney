@@ -65,7 +65,8 @@ All completed research lives in `/docs/research/`. Each fed findings into the ba
 | [research/SOCIAL_SHARING_RESEARCH.md](research/SOCIAL_SHARING_RESEARCH.md) | Sharing behavior and virality | Complete |
 | [research/VISUAL_GEOGRAPHIC_LEARNING_RESEARCH.md](research/VISUAL_GEOGRAPHIC_LEARNING_RESEARCH.md) | Visual and geographic learning techniques | Complete |
 | [research/SEO_STRATEGY_RESEARCH.md](research/SEO_STRATEGY_RESEARCH.md) | SEO strategy for etymology content | Complete |
-| [RESEARCH_AGENDA.md](RESEARCH_AGENDA.md) | Master research roadmap (7/10 areas complete) | Current |
+| [research/LANGUAGE_FAMILY_TREE_RESEARCH.md](research/LANGUAGE_FAMILY_TREE_RESEARCH.md) | Language family hierarchy, tree visualization, data model, loanword patterns | Complete |
+| [RESEARCH_AGENDA.md](RESEARCH_AGENDA.md) | Master research roadmap (8/10 areas complete) | Current |
 
 ### Development Guides
 

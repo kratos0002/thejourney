@@ -104,25 +104,63 @@ Types live in `data/language-types.ts`. See file for current interfaces.
 
 ---
 
-## Milestone 3: Indo-European Family
+## Milestone 3: Language Family Trees ← RESEARCH COMPLETE, READY TO BUILD
 
-**Goal**: Show the great language family that connects Sanskrit, Persian, Greek, Latin, and most European languages.
+**Goal**: Add a hierarchical layer ABOVE individual languages. Show how Sanskrit, Persian, Greek, Latin, and English all descend from Proto-Indo-European. Create a 3-level navigation: Family Trees → Languages → Words.
 
-### 3.1 Additional Languages
+**Research**: See `/docs/research/LANGUAGE_FAMILY_TREE_RESEARCH.md` for full findings.
+
+### 3.1 Data Model & Tree Structure
+- [ ] Expand `LanguageFamilyNode` interface in `language-types.ts` (nested tree with level, status, classification)
+- [ ] Create `data/language-families/` directory for family tree data files
+- [ ] Build Indo-European tree data (10 branches, sub-branches, ~20 language nodes)
+- [ ] Build Afro-Asiatic tree data (Semitic branch, Arabic)
+- [ ] Wire word counts to tree nodes (how many of 302 words trace through each branch)
+- [ ] Connect existing language histories (Sanskrit, Persian) to their tree positions
+
+### 3.2 Family Tree Pages
+- [ ] Create `/families` index page with family cards (museum-style, matching `/languages`)
+- [ ] Create `/family/[slug]` route with `generateStaticParams`
+- [ ] Breadcrumb navigation: All Families → Indo-European → Indo-Iranian → Sanskrit → Word
+- [ ] Family detail page: hero + narrative + interactive tree + member languages
+- [ ] Handle size asymmetry (IE has ~270 words, others have 3-8)
+
+### 3.3 Tree Visualization (Phase 1: Collapsible Dendrogram)
+- [ ] Create `LanguageFamilyTree` component using D3 hierarchy + tree layout
+- [ ] Collapsible nodes: expand/collapse branches on click
+- [ ] Color-code by branch (Indo-Iranian, Germanic, Italic, etc.)
+- [ ] Node styling: living (solid), extinct (dimmed), reconstructed (dashed)
+- [ ] Word count badges on nodes showing content available
+- [ ] Click language node → navigate to `/language/[slug]` if it exists
+- [ ] Mobile: vertical tree with tap to expand, or drill-down pattern
+
+### 3.4 Tree Visualization (Phase 2: Sunburst — Future)
+- [ ] D3 zoomable sunburst as hero visualization on `/families`
+- [ ] Root at center, branches radiate outward
+- [ ] Arc sizes encode word count per branch
+- [ ] Tap to drill in, tap center to back out
+- [ ] Luxury aesthetic: dark background, constellation feel
+
+### 3.5 Cross-Family Features (Future)
+- [ ] Cross-family arcs showing loanword paths (Arabic → Latin → English)
+- [ ] "View on Tree" from word pages highlighting the word's journey through the tree
+- [ ] "Cognate explorer": related words across IE languages
+- [ ] "Shared roots": PIE roots that became words in multiple languages
+
+### 3.6 Additional Language Histories
 - [ ] Greek (Ancient → Koine → Byzantine → Modern)
 - [ ] Latin (Classical → Vulgar → Romance split)
 - [ ] Proto-Indo-European (reconstruction, theoretical homeland)
 
-### 3.2 Language Family Tree View
-- [ ] Create `LanguageFamilyTree` component
-- [ ] Show branching from Proto-Indo-European
-- [ ] Interactive: click branch to see that language's history
-- [ ] Timeline mode: show when branches diverged
+### Key Research Findings (from LANGUAGE_FAMILY_TREE_RESEARCH.md)
 
-### 3.3 Connection Features
-- [ ] "Cognate explorer": Show related words across IE languages
-- [ ] "Shared roots": Highlight PIE roots that became words in multiple languages
-- [ ] Link language histories to each other where they influenced one another
+**Visualization**: Collapsible dendrogram for explorer view (Phase 1), zoomable sunburst for hero (Phase 2). Sunburst naturally handles mobile (2 levels at a time, tap to zoom).
+
+**Data**: 5-8 language families cover all 302 words. Indo-European dominates (~250-270 words). 4-level depth is the sweet spot (family → branch → sub-branch → language).
+
+**Loanwords**: ~24.2% of any language's vocabulary is borrowed. The tree alone can't capture horizontal transmission — need cross-family arcs overlay. This is actually the most interesting part for etymology.
+
+**UX**: Drill-down with persistent breadcrumbs. On mobile, show only parent as back button. Sort families by content richness, not alphabetically.
 
 ---
 

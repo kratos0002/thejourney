@@ -141,6 +141,47 @@ These rules were learned from UX research and bug fixes. Follow them:
 
 ---
 
+## Language Family Tree Feature
+
+### File Structure
+
+```
+data/
+  language-types.ts              # LanguageFamilyNode interface (nested tree)
+  language-families/
+    index.ts                     # Central export, allFamilies array, getFamilyBySlug()
+    indo-european.ts             # Full IE tree (10 branches, sub-branches, languages)
+    afro-asiatic.ts              # Semitic branch (Arabic)
+
+components/
+  language/
+    LanguageFamilyTree.tsx       # D3 collapsible dendrogram
+
+app/
+  families/
+    page.tsx                     # Server component for /families index
+    FamiliesPage.tsx             # Client component with family cards
+  family/[slug]/
+    page.tsx                     # Server component (SEO, generateStaticParams)
+    FamilyPageClient.tsx         # Client component (hero, narrative, tree)
+```
+
+### Key Design Decisions (from research)
+
+1. **4-level depth**: Family → Branch → Sub-branch → Language. No deeper.
+2. **Collapsible dendrogram first** (D3 tree layout), sunburst hero second
+3. **Breadcrumbs**: All Families → Indo-European → Indo-Iranian → Sanskrit → Word
+4. **Sort by content richness**: Families with more words appear first
+5. **Cross-family arcs**: Show loanword paths jumping between trees (future)
+6. **Node styling**: Living (solid), extinct (dimmed), reconstructed (dashed), disputed (dashed border)
+7. **Word count badges**: Each node shows how many words trace through it
+
+### Research
+
+See `/docs/research/LANGUAGE_FAMILY_TREE_RESEARCH.md` for full findings on visualization approaches, data model, UX patterns, and loanword handling.
+
+---
+
 ## App Design Principles
 
 The app follows a "museum curator" voice. Key anti-patterns to avoid:

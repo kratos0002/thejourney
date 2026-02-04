@@ -71,7 +71,7 @@ export interface LanguageHistory {
 }
 
 /**
- * Language family for taxonomy/grouping
+ * Language family for taxonomy/grouping (legacy flat interface)
  */
 export interface LanguageFamily {
   slug: string;
@@ -81,6 +81,81 @@ export interface LanguageFamily {
   originRegion: string;
   originPeriod: string;
   memberLanguages: string[]; // slugs of LanguageHistory entries
+}
+
+/**
+ * Language Family Tree — nested hierarchical structure.
+ *
+ * Represents the genealogical relationships between languages:
+ *   Family → Branch → Sub-branch → Language
+ *
+ * Used for the /families and /family/[slug] pages.
+ * D3 hierarchy visualization reads this structure directly.
+ */
+export interface LanguageFamilyNode {
+  /** Unique identifier (e.g., "indo-european", "ie-indo-iranian") */
+  id: string;
+  /** Display name (e.g., "Indo-Iranian") */
+  name: string;
+  /** URL-friendly slug */
+  slug: string;
+  /** Position in the hierarchy */
+  level: 'family' | 'branch' | 'sub-branch' | 'language';
+
+  /** Child nodes in the tree */
+  children?: LanguageFamilyNode[];
+
+  /** Whether the language/branch is still spoken */
+  status: 'living' | 'extinct' | 'reconstructed';
+  /** Scholarly confidence in this classification */
+  classification: 'established' | 'widely-accepted' | 'disputed';
+
+  /** Alternate names (e.g., ["IE", "Indo-Germanic"]) */
+  alternateNames?: string[];
+
+  /** Reconstructed ancestor (e.g., "Proto-Indo-European") */
+  protoLanguage?: string;
+  /** Approximate age of divergence */
+  approximateAge?: string;
+  /** Geographic region of origin */
+  region?: string;
+  /** Brief description for UI display */
+  description?: string;
+
+  /** Number of words in our collection that trace through this node */
+  wordCount?: number;
+  /** Slugs of LanguageHistory entries (for language-level nodes) */
+  languageSlugs?: string[];
+  /** Color for visualization */
+  displayColor?: string;
+}
+
+/**
+ * Top-level language family tree with metadata for the /families index
+ */
+export interface LanguageFamilyTree {
+  /** URL slug (e.g., "indo-european") */
+  slug: string;
+  /** Display name */
+  name: string;
+  /** Compelling hook for the family card */
+  hook: string;
+  /** Brief description (1-2 sentences) */
+  description: string;
+  /** Region of origin */
+  originRegion: string;
+  /** Approximate origin period */
+  originPeriod: string;
+  /** Number of living languages worldwide */
+  livingLanguages: string;
+  /** Number of native speakers worldwide */
+  totalSpeakers: string;
+  /** Total words in our collection from this family */
+  wordCount: number;
+  /** The full tree structure */
+  tree: LanguageFamilyNode;
+  /** 2-3 paragraph story for the family detail page */
+  story: string[];
 }
 
 /**
