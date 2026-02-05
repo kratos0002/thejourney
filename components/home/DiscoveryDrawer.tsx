@@ -15,22 +15,26 @@ import {
 } from "@/lib/curated-journeys";
 import { useExploration } from "@/components/ExplorationProvider";
 import { JourneyIcon } from "@/components/icons/JourneyIcons";
+import SearchField from "@/components/home/SearchField";
 
 interface FilterChipProps {
   label: string;
   active: boolean;
+  dimmed: boolean;
   onClick: () => void;
 }
 
-function FilterChip({ label, active, onClick }: FilterChipProps) {
+function FilterChip({ label, active, dimmed, onClick }: FilterChipProps) {
   return (
     <button
       onClick={onClick}
       className="shrink-0 px-3 py-1.5 rounded-full text-xs font-body border transition-all duration-300 cursor-pointer"
-      style={active
-        ? { background: "var(--theme-accent-muted)", borderColor: "var(--theme-accent)", color: "var(--theme-accent)" }
-        : { background: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text-tertiary)" }
-      }
+      style={{
+        ...(active
+          ? { background: "var(--theme-accent-muted)", borderColor: "var(--theme-accent)", color: "var(--theme-accent)" }
+          : { background: "var(--theme-surface)", borderColor: "var(--theme-border)", color: "var(--theme-text-tertiary)" }),
+        opacity: dimmed ? 0.4 : 1,
+      }}
     >
       {label}
     </button>
@@ -41,14 +45,15 @@ interface FilterRowProps {
   title: string;
   chips: string[];
   activeChips: string[];
+  dimmed: boolean;
   onToggle: (chip: string) => void;
 }
 
-function FilterRow({ title, chips, activeChips, onToggle }: FilterRowProps) {
+function FilterRow({ title, chips, activeChips, dimmed, onToggle }: FilterRowProps) {
   if (chips.length === 0) return null;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" style={{ opacity: dimmed ? 0.4 : 1, transition: "opacity 300ms ease" }}>
       <p className="text-[10px] font-body tracking-widest uppercase px-1" style={{ color: "var(--theme-text-tertiary)" }}>
         {title}
       </p>
@@ -58,6 +63,7 @@ function FilterRow({ title, chips, activeChips, onToggle }: FilterRowProps) {
             key={chip}
             label={chip}
             active={activeChips.includes(chip)}
+            dimmed={dimmed}
             onClick={() => onToggle(chip)}
           />
         ))}
@@ -70,11 +76,12 @@ function FilterRow({ title, chips, activeChips, onToggle }: FilterRowProps) {
 interface JourneyCardProps {
   journey: CuratedJourney & { wordCount: number; wordSlugs: string[] };
   active: boolean;
+  dimmed: boolean;
   exploredCount: number;
   onClick: () => void;
 }
 
-function JourneyCard({ journey, active, exploredCount, onClick }: JourneyCardProps) {
+function JourneyCard({ journey, active, dimmed, exploredCount, onClick }: JourneyCardProps) {
   const progress = journey.wordCount > 0 ? (exploredCount / journey.wordCount) * 100 : 0;
 
   return (
@@ -86,6 +93,7 @@ function JourneyCard({ journey, active, exploredCount, onClick }: JourneyCardPro
           ? "var(--theme-accent-muted)"
           : "var(--theme-surface)",
         border: `1px solid ${active ? "var(--theme-accent)" : "var(--theme-border)"}`,
+        opacity: dimmed ? 0.4 : 1,
       }}
     >
       {/* Progress bar at bottom */}
@@ -128,12 +136,43 @@ function JourneyCard({ journey, active, exploredCount, onClick }: JourneyCardPro
   );
 }
 
+// ---------------------------------------------------------------------------
+// Main Drawer
+// ---------------------------------------------------------------------------
+
 interface DiscoveryDrawerProps {
   words: Word[];
   onFiltersChange: (matchingSlugs: Set<string>, hasActiveFilters: boolean) => void;
+  /** Whether to show the search field (requires signed-in + feature flag) */
+  searchEnabled?: boolean;
+  /** Search state — lifted from useWordSearch in HomePage */
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
+  onSearchClear?: () => void;
+  isSearching?: boolean;
+  searchMatchCount?: number;
+  searchMatchingSlugs?: Set<string>;
+  searchSuggestion?: string | null;
+  /** Called when the search field's state changes globe filtering */
+  onSearchFiltersChange?: (matchingSlugs: Set<string>, hasActiveFilters: boolean) => void;
+  /** Called when user navigates to a word from search (suggestion / serendipity) */
+  onNavigateToWord?: (slug: string) => void;
 }
 
-export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDrawerProps) {
+export default function DiscoveryDrawer({
+  words,
+  onFiltersChange,
+  searchEnabled = false,
+  searchQuery = "",
+  onSearchQueryChange,
+  onSearchClear,
+  isSearching = false,
+  searchMatchCount = 0,
+  searchMatchingSlugs,
+  searchSuggestion = null,
+  onSearchFiltersChange,
+  onNavigateToWord,
+}: DiscoveryDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [filters, setFilters] = useState<ActiveFilters>({
     languageFamilies: [],
@@ -147,18 +186,47 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
   const availableFilters = useMemo(() => getAvailableFilters(words), [words]);
   const journeysWithCounts = useMemo(() => getJourneysWithCounts(words), [words]);
 
-  const hasActiveFilters = filters.languageFamilies.length > 0 ||
+  const hasChipFilters = filters.languageFamilies.length > 0 ||
     filters.themes.length > 0 ||
     filters.journeyPaths.length > 0 ||
     activeJourneyId !== null;
 
+  // When search is active, it takes precedence over chip filters
+  const hasActiveFilters = isSearching || hasChipFilters;
+
   const matchingCount = useMemo(() => {
+    // Search takes precedence
+    if (isSearching) return searchMatchCount;
     if (activeJourneyId) {
       return getJourneySlugs(words, activeJourneyId).size;
     }
-    if (!hasActiveFilters) return words.length;
+    if (!hasChipFilters) return words.length;
     return filterWords(words, filters).size;
-  }, [words, filters, hasActiveFilters, activeJourneyId]);
+  }, [words, filters, hasChipFilters, activeJourneyId, isSearching, searchMatchCount]);
+
+  // When search is active, push search results to the globe
+  useEffect(() => {
+    if (isSearching && searchMatchingSlugs && onSearchFiltersChange) {
+      onSearchFiltersChange(searchMatchingSlugs, true);
+    }
+  }, [isSearching, searchMatchingSlugs, onSearchFiltersChange]);
+
+  // When search clears and chip filters exist, restore chip filter results
+  useEffect(() => {
+    if (!isSearching && hasChipFilters) {
+      if (activeJourneyId) {
+        const matching = getJourneySlugs(words, activeJourneyId);
+        onFiltersChange(matching, true);
+      } else {
+        const matching = filterWords(words, filters);
+        onFiltersChange(matching, true);
+      }
+    } else if (!isSearching && !hasChipFilters) {
+      onFiltersChange(new Set(words.map(w => w.slug)), false);
+    }
+  // Only re-run when isSearching toggles off
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSearching]);
 
   // Keyboard accessibility - close on Escape
   useEffect(() => {
@@ -190,6 +258,8 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
   const toggleFilter = useCallback((category: keyof ActiveFilters, value: string) => {
     // Clear journey selection when using chip filters
     setActiveJourneyId(null);
+    // Clear search when using chip filters
+    if (onSearchClear) onSearchClear();
 
     setFilters(prev => {
       const current = prev[category];
@@ -208,9 +278,12 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
 
       return newFilters;
     });
-  }, [words, onFiltersChange]);
+  }, [words, onFiltersChange, onSearchClear]);
 
   const selectJourney = useCallback((journeyId: string) => {
+    // Clear search when selecting a journey
+    if (onSearchClear) onSearchClear();
+
     if (activeJourneyId === journeyId) {
       // Deselect journey
       setActiveJourneyId(null);
@@ -222,17 +295,41 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
       const matching = getJourneySlugs(words, journeyId);
       onFiltersChange(matching, true);
     }
-  }, [words, onFiltersChange, activeJourneyId]);
+  }, [words, onFiltersChange, activeJourneyId, onSearchClear]);
 
-  const clearFilters = useCallback(() => {
+  const clearAll = useCallback(() => {
     setFilters({
       languageFamilies: [],
       themes: [],
       journeyPaths: [],
     });
     setActiveJourneyId(null);
+    if (onSearchClear) onSearchClear();
     onFiltersChange(new Set(words.map(w => w.slug)), false);
-  }, [words, onFiltersChange]);
+  }, [words, onFiltersChange, onSearchClear]);
+
+  // Random word for empty-state serendipity
+  const serendipityWord = useMemo(() => {
+    if (!isSearching || searchMatchCount > 0) return null;
+    const randomIndex = Math.floor(Math.random() * words.length);
+    const w = words[randomIndex];
+    return { slug: w.slug, hook: w.hook };
+  // Re-roll when query changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSearching, searchMatchCount, searchQuery]);
+
+  // Handle suggestion tap — fill search with the suggestion
+  const handleSuggestionTap = useCallback((slug: string) => {
+    if (onSearchQueryChange) onSearchQueryChange(slug);
+  }, [onSearchQueryChange]);
+
+  // Handle serendipity tap — navigate to the word
+  const handleSerendipityTap = useCallback((slug: string) => {
+    if (onNavigateToWord) {
+      setIsOpen(false);
+      onNavigateToWord(slug);
+    }
+  }, [onNavigateToWord]);
 
   return (
     <>
@@ -311,7 +408,7 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                 </div>
                 {hasActiveFilters && (
                   <button
-                    onClick={clearFilters}
+                    onClick={clearAll}
                     className="text-[10px] font-body transition-colors cursor-pointer"
                     style={{ color: "var(--theme-text-tertiary)" }}
                   >
@@ -322,8 +419,28 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
 
               {/* Content */}
               <div className="max-h-[60vh] overflow-y-auto">
+
+                {/* Search Field — signed-in users + feature flag only */}
+                {searchEnabled && (
+                  <SearchField
+                    query={searchQuery}
+                    onQueryChange={onSearchQueryChange || (() => {})}
+                    onClear={onSearchClear || (() => {})}
+                    isSearching={isSearching}
+                    matchCount={searchMatchCount}
+                    totalWords={words.length}
+                    suggestion={searchSuggestion}
+                    onSuggestionTap={handleSuggestionTap}
+                    serendipityWord={serendipityWord}
+                    onSerendipityTap={handleSerendipityTap}
+                  />
+                )}
+
                 {/* Curated Journeys Carousel */}
-                <div className="mb-4">
+                <div
+                  className="mb-4 transition-opacity duration-300"
+                  style={{ opacity: isSearching ? 0.4 : 1 }}
+                >
                   <p className="text-[10px] font-body tracking-widest uppercase px-5 mb-2" style={{ color: "var(--theme-text-tertiary)" }}>
                     Curated journeys
                   </p>
@@ -335,6 +452,7 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                           key={journey.id}
                           journey={journey}
                           active={activeJourneyId === journey.id}
+                          dimmed={isSearching}
                           exploredCount={exploredCount}
                           onClick={() => selectJourney(journey.id)}
                         />
@@ -360,23 +478,25 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                     title="Origin"
                     chips={availableFilters.languageFamilies}
                     activeChips={filters.languageFamilies}
+                    dimmed={isSearching}
                     onToggle={(chip) => toggleFilter("languageFamilies", chip)}
                   />
                   <FilterRow
                     title="Theme"
                     chips={availableFilters.themes}
                     activeChips={filters.themes}
+                    dimmed={isSearching}
                     onToggle={(chip) => toggleFilter("themes", chip)}
                   />
 
-                  {/* Empty state when no matches */}
-                  {hasActiveFilters && matchingCount === 0 && (
+                  {/* Empty state when no matches (chip filters only, not search) */}
+                  {!isSearching && hasChipFilters && matchingCount === 0 && (
                     <div className="text-center py-6">
                       <p className="font-body text-sm" style={{ color: "var(--theme-text-secondary)" }}>
                         No journeys walk all these paths...
                       </p>
                       <button
-                        onClick={clearFilters}
+                        onClick={clearAll}
                         className="mt-2 text-xs font-body transition-colors cursor-pointer"
                         style={{ color: "var(--theme-accent)" }}
                       >

@@ -95,6 +95,45 @@ scripts/
   seed-words.ts              # Seeds Supabase database
 ```
 
+## Search Feature ("The Summoning")
+
+Text search inside the Discovery Drawer. Behind `search_summoning` feature flag, signed-in users only.
+
+### File Structure
+
+```
+lib/
+  word-search.ts             # Search index builder, scoring, Levenshtein fuzzy match
+hooks/
+  useWordSearch.ts           # React hook: debounced search, matching slugs, highlighted result
+components/
+  home/
+    SearchField.tsx          # Input UI with empty state ("No word has answered your call...")
+    DiscoveryDrawer.tsx      # Modified: accepts search props, renders SearchField
+    BubbleNav.tsx            # Modified: highlightedSlug/highlightedHook props for glow ring
+    HomePage.tsx             # Modified: wires useWordSearch ↔ DiscoveryDrawer ↔ BubbleNav
+```
+
+### How Search ↔ Filters Interact
+
+- Search takes precedence over chip/journey filters (chips dim to 40% opacity)
+- Clearing search text restores chip filters if they were active
+- Selecting a chip or curated journey clears the search text
+- "Clear all" button clears search AND chips AND journey selection
+
+### Match Scoring (in `lib/word-search.ts`)
+
+| Tier | Score | What Matches |
+|------|-------|-------------|
+| Exact slug | 100 | `slug === query` |
+| Slug starts with | 80 | `slug.startsWith(query)` |
+| Primary includes | 60 | slug + word + romanization |
+| Secondary includes | 40 | hook + language + family |
+| Tertiary includes | 20 | story + journey locations + meaningNow + themes |
+| Fuzzy slug | 10 | Levenshtein distance ≤ 2 on slug |
+
+---
+
 ## Quality Standards
 
 Reference `data/words-batch26.ts` for quality examples. Each entry should:

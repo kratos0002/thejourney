@@ -315,4 +315,6 @@ lib/
 ---
 
 *Document created: January 2026*
-*Status: Phase 1 (Filtering) ready for implementation*
+*Updated: February 2026*
+*Status: Phase 1 (Filtering) shipped. Phase 2 (Text Search) implemented — see [features/SEARCH_WORD_SPEC.md](features/SEARCH_WORD_SPEC.md)*
+*Feature flag: `search_summoning` (signed-in users only)*

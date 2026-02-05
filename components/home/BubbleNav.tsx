@@ -64,9 +64,13 @@ interface BubbleNavProps {
   words: Word[];
   filteredSlugs?: Set<string>;
   hasActiveFilters?: boolean;
+  /** The top search result slug — gets the amber glow ring */
+  highlightedSlug?: string | null;
+  /** The hook text of the highlighted word — shown as a floating label */
+  highlightedHook?: string | null;
 }
 
-export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false }: BubbleNavProps) {
+export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false, highlightedSlug = null, highlightedHook = null }: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const { classroomMode } = useTheme();
@@ -328,6 +332,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
       {words.map((word, i) => {
         const explored = exploredSlugs.has(word.slug);
         const isMatch = !hasActiveFilters || (filteredSlugs?.has(word.slug) ?? true);
+        const isHighlighted = highlightedSlug === word.slug;
 
         // When filters active: matching words are bright, explored gets subtle indicator
         const shouldHighlight = hasActiveFilters && isMatch;
@@ -337,10 +342,19 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
         const fontSize = len <= 5 ? 0.875 : len <= 7 ? 0.75 : len <= 9 ? 0.625 : 0.5625;
 
         // Style logic:
+        // - If highlighted (search top result): always bright with glow ring
         // - If filtering and matches: always bright (ignore explored muting)
         // - If not filtering and explored: muted
         // - Otherwise: bright
-        const isMuted = !hasActiveFilters && explored;
+        const isMuted = !isHighlighted && !hasActiveFilters && explored;
+
+        // Build box-shadow: base glow + highlighted ring if top search result
+        const baseGlow = isMuted
+          ? "0 2px 8px var(--theme-bubble-shadow), inset 0 1px 2px var(--theme-bubble-shadow)"
+          : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`;
+        const highlightGlow = isHighlighted
+          ? `${baseGlow}, 0 0 24px var(--theme-accent-muted), 0 0 48px var(--theme-accent-muted)`
+          : baseGlow;
 
         return (
           <button
@@ -355,18 +369,18 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               opacity: 0,
             }}
             onClick={handleBubbleClick}
-            aria-label={`Explore ${word.slug}`}
+            aria-label={`Explore ${word.slug}${isHighlighted && highlightedHook ? `. ${highlightedHook}` : ""}`}
           >
             <div
-              className="w-full h-full rounded-full flex items-center justify-center relative"
+              className={`w-full h-full rounded-full flex items-center justify-center relative transition-shadow duration-500${isHighlighted ? " search-highlighted-bubble" : ""}`}
               style={{
                 background: isMuted
                   ? "var(--theme-bubble-bg-muted)"
                   : "var(--theme-bubble-bg)",
-                border: `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
-                boxShadow: isMuted
-                  ? "0 2px 8px var(--theme-bubble-shadow), inset 0 1px 2px var(--theme-bubble-shadow)"
-                  : `0 2px 12px var(--theme-bubble-shadow), 0 0 20px ${getLanguageTint(word.language)}, inset 0 1px 3px var(--theme-bubble-shadow)`,
+                border: isHighlighted
+                  ? "2px solid var(--theme-accent)"
+                  : `2px solid ${isMuted ? "var(--theme-border-strong)" : getLanguageTint(word.language)}`,
+                boxShadow: highlightGlow,
               }}
             >
               <span
@@ -382,7 +396,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                 {word.slug}
               </span>
               {/* Small checkmark for explored words when they're visible */}
-              {explored && (shouldHighlight || !hasActiveFilters) && (
+              {explored && (shouldHighlight || !hasActiveFilters) && !isHighlighted && (
                 <span
                   className="absolute rounded-full flex items-center justify-center"
                   style={{
@@ -400,6 +414,40 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                 </span>
               )}
             </div>
+
+            {/* Hook label — floating whisper below the highlighted bubble */}
+            {isHighlighted && highlightedHook && (
+              <div
+                className="absolute left-1/2 pointer-events-none"
+                style={{
+                  top: "calc(100% + 4px)",
+                  transform: "translateX(-50%)",
+                  width: "max(8rem, 130%)",
+                  animation: "search-hook-fade-in 600ms ease-out both",
+                }}
+              >
+                <p
+                  className="font-body italic text-center leading-tight"
+                  style={{
+                    fontSize: "0.5rem",
+                    color: "var(--theme-text-secondary)",
+                    background: "var(--theme-bg-secondary)",
+                    borderRadius: "0.375rem",
+                    padding: "0.2rem 0.375rem",
+                    opacity: 0.85,
+                    backdropFilter: "blur(8px)",
+                    WebkitBackdropFilter: "blur(8px)",
+                    lineClamp: 2,
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                  }}
+                >
+                  &ldquo;{highlightedHook}&rdquo;
+                </p>
+              </div>
+            )}
           </button>
         );
       })}

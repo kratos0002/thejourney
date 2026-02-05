@@ -16,6 +16,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
 import { useTransition } from "@/components/TransitionProvider";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import { useWordSearch } from "@/hooks/useWordSearch";
 
 const WorldBackground = dynamic(() => import("@/components/home/WorldBackground"), {
   ssr: false,
@@ -37,6 +38,11 @@ export default function HomePage({ words }: { words: Word[] }) {
   const { navigateToWord } = useTransition();
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
+  const searchSummoningEnabled = useFeatureFlag("search_summoning");
+
+  // Search state — only active for signed-in users with flag enabled
+  const searchActive = !!user && searchSummoningEnabled === true;
+  const search = useWordSearch(words);
 
   // Daily word: stable all day, independent of exploration state
   const dailyWord = useMemo(
@@ -59,10 +65,26 @@ export default function HomePage({ words }: { words: Word[] }) {
     return () => { clearTimeout(showTimer); clearTimeout(hideTimer); };
   }, [dailyWord, exploredCount]);
 
+  // Chip/journey filter callback (from DiscoveryDrawer)
   const handleFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
     setFilteredSlugs(matching);
     setHasActiveFilters(hasFilters);
   }, []);
+
+  // Search filter callback — updates the globe when search results change
+  const handleSearchFiltersChange = useCallback((matching: Set<string>, hasFilters: boolean) => {
+    setFilteredSlugs(matching);
+    setHasActiveFilters(hasFilters);
+  }, []);
+
+  // Navigate to word (used by search empty-state serendipity)
+  const handleNavigateToWord = useCallback((slug: string) => {
+    const word = words.find(w => w.slug === slug);
+    if (word) {
+      trackEvent("search_word_tapped", { slug, source: "serendipity" });
+      navigateToWord(word.slug, word.word, { x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    }
+  }, [words, navigateToWord]);
 
   useEffect(() => {
     const hasVisited = localStorage.getItem("journey-visited");
@@ -104,6 +126,8 @@ export default function HomePage({ words }: { words: Word[] }) {
           words={words}
           filteredSlugs={hasActiveFilters ? filteredSlugs : undefined}
           hasActiveFilters={hasActiveFilters}
+          highlightedSlug={search.isSearching ? search.highlightedSlug : null}
+          highlightedHook={search.isSearching ? search.highlightedHook : null}
         />
       </div>
 
@@ -193,7 +217,20 @@ export default function HomePage({ words }: { words: Word[] }) {
 
       {/* Discovery Drawer (behind feature flag) */}
       {discoveryDrawerEnabled && (
-        <DiscoveryDrawer words={words} onFiltersChange={handleFiltersChange} />
+        <DiscoveryDrawer
+          words={words}
+          onFiltersChange={handleFiltersChange}
+          searchEnabled={searchActive}
+          searchQuery={search.query}
+          onSearchQueryChange={search.setQuery}
+          onSearchClear={search.clearSearch}
+          isSearching={search.isSearching}
+          searchMatchCount={search.matchCount}
+          searchMatchingSlugs={search.matchingSlugs}
+          searchSuggestion={search.suggestion}
+          onSearchFiltersChange={handleSearchFiltersChange}
+          onNavigateToWord={handleNavigateToWord}
+        />
       )}
     </main>
   );

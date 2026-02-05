@@ -61,10 +61,12 @@
 - [x] SEO optimization (DefinedTerm schema, BreadcrumbList, keyword metadata)
 - [x] Sitemap and robots.txt
 - [x] Dynamic OG images per word
+- [x] Search word ("The Summoning") — text search in Discovery Drawer, globe highlighting, signed-in users only
 
 ### Built But Disabled
 - [ ] Premium gate (20-word limit) — `shouldShowPremiumGate = false`
 - [ ] Theme selector for users — behind `theme_selection` flag
+- [ ] Search word — behind `search_summoning` flag (admin-only for testing)
 
 ### In Progress
 - [ ] Word-to-language cross-links

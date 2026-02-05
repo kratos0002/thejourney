@@ -15,6 +15,7 @@ Consolidated from completed research and ongoing product development. Organized 
 - [x] **Language History (M2 partial)** — 8 additional language histories: Arabic (23 words), Latin (6), Ancient Greek (4), Japanese (6), Italian (14), Russian (9), Nahuatl (8), Tamil (4). Total 10 languages with 6-7 phases each.
 - [x] **Language Family Trees (M3)** — Interactive D3 collapsible dendrograms for 5 language families: Indo-European (~35 nodes), Afro-Asiatic, Dravidian, Japonic, Uto-Aztecan. `/families` index + `/family/[slug]` detail pages with breadcrumb navigation.
 - [x] **Word Creation Tooling** — Slug registry (`data/slug-registry.txt`) and validation scripts to prevent duplicate words. `npm run words:check` runs both.
+- [x] **Search Word ("The Summoning")** — Text search inside the Discovery Drawer. Fuzzy matching across slug, romanization, hook, story, journey locations. Matching bubbles glow on the globe; top result gets amber ring + hook whisper label. Signed-in users only. Behind `search_summoning` feature flag. See `docs/features/SEARCH_WORD_SPEC.md` for full spec.
 
 ---
 

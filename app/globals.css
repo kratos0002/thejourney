@@ -206,6 +206,39 @@ body {
   scroll-snap-align: start;
 }
 
+/* Search: hook label fade-in beneath highlighted bubble */
+@keyframes search-hook-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Search: breathing pulse for highlighted bubble */
+.search-highlighted-bubble {
+  animation: search-bubble-pulse 3s ease-in-out infinite;
+}
+
+@keyframes search-bubble-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .search-highlighted-bubble {
+    animation: none;
+  }
+  @keyframes search-hook-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
 /* Hide scrollbar for filter rows */
 .scrollbar-hide {
   -ms-overflow-style: none;

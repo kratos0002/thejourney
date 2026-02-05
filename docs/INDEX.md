@@ -39,10 +39,11 @@ Read these in order:
 | [SEARCH_VISION.md](SEARCH_VISION.md) | Discovery drawer design ("The Summoning"), filter taxonomy | Current |
 | [SHARE_CARD_DESIGN_PROPOSAL.md](SHARE_CARD_DESIGN_PROPOSAL.md) | Share card variants, visual design, technical implementation | Current |
 
-### Feature Backlogs
+### Feature Specs & Backlogs
 
 | Document | Purpose | Status |
 |----------|---------|--------|
+| [features/SEARCH_WORD_SPEC.md](features/SEARCH_WORD_SPEC.md) | "The Summoning" search feature: interaction design, match logic, component architecture | Current |
 | [features/LANGUAGE_HISTORY_BACKLOG.md](features/LANGUAGE_HISTORY_BACKLOG.md) | Language history feature: milestones, research learnings, design decisions | Current |
 
 ### Content Strategy
@@ -111,3 +112,4 @@ Key feature flags managed via admin dashboard:
 | `discovery_drawer` | Browse/filter drawer | Enabled |
 | `theme_selection` | User-facing theme selector | Disabled |
 | `premium_gate` | Premium paywall (20 word limit) | Disabled |
+| `search_summoning` | Text search in Discovery Drawer (signed-in users) | Admin-only |
