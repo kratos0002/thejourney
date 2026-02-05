@@ -41,7 +41,7 @@ const WordSound = dynamic(() => import("@/components/word/WordSound"), {
   ),
 });
 
-export default function WordPageClient({ word, suggestions }: { word: Word; suggestions: { slug: string; romanization: string }[] }) {
+export default function WordPageClient({ word, suggestions, languageSlug }: { word: Word; suggestions: { slug: string; romanization: string }[]; languageSlug?: string }) {
   const { navigateHome } = useTransition();
   const { markExplored } = useExploration();
   const shareCardsEnabled = useFeatureFlag("share_cards");
@@ -110,7 +110,7 @@ export default function WordPageClient({ word, suggestions }: { word: Word; sugg
         <JourneyMap journey={word.journey} word={word} />
         <WordSound sounds={word.sounds} />
         <WordRelatives relatives={word.relatives} />
-        <WordMeaning word={word} suggestions={suggestions} />
+        <WordMeaning word={word} suggestions={suggestions} languageSlug={languageSlug} />
       </div>
 
       {shareCardsEnabled && (

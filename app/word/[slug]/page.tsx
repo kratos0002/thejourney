@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getAllWords, getWordBySlug } from "@/lib/words";
 import type { Word, RelativeWord } from "@/data/word-types";
+import { getLanguageByName } from "@/data/languages";
 import WordPageClient from "./WordPageClient";
 
 interface PageProps {
@@ -148,7 +149,11 @@ export default async function WordPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <WordPageClient word={enrichedWord} suggestions={suggestions} />
+      <WordPageClient
+        word={enrichedWord}
+        suggestions={suggestions}
+        languageSlug={getLanguageByName(enrichedWord.language)?.slug}
+      />
     </>
   );
 }

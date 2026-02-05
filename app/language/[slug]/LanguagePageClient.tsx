@@ -27,9 +27,10 @@ const LanguageHistoryMap = dynamic(
 
 interface LanguagePageClientProps {
   language: LanguageHistory;
+  familySlug?: string;
 }
 
-export default function LanguagePageClient({ language }: LanguagePageClientProps) {
+export default function LanguagePageClient({ language, familySlug }: LanguagePageClientProps) {
   const { navigateHome } = useTransition();
 
   return (
@@ -38,7 +39,7 @@ export default function LanguagePageClient({ language }: LanguagePageClientProps
       style={{ background: "var(--theme-bg-primary)" }}
     >
 
-      {/* Header */}
+      {/* Breadcrumb Header */}
       <motion.header
         className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-6"
         style={{
@@ -49,14 +50,26 @@ export default function LanguagePageClient({ language }: LanguagePageClientProps
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.8 }}
       >
-        <button
-          onClick={navigateHome}
-          className="transition-colors duration-300 font-body text-sm cursor-pointer"
-          style={{ color: "var(--theme-text-tertiary)" }}
-          aria-label="Return home"
-        >
-          &larr; Back
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={navigateHome}
+            className="flex items-center gap-1 transition-opacity duration-300 hover:opacity-70 cursor-pointer"
+            style={{ color: "var(--theme-text-tertiary)" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
+            </svg>
+            <span className="text-xs font-body tracking-wider">Home</span>
+          </button>
+          <span className="text-xs font-body" style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}>/</span>
+          <Link href="/languages" className="text-xs font-body tracking-wider transition-opacity hover:opacity-70" style={{ color: "var(--theme-text-tertiary)" }}>
+            Languages
+          </Link>
+          <span className="text-xs font-body" style={{ color: "var(--theme-text-tertiary)", opacity: 0.4 }}>/</span>
+          <span className="text-xs font-body tracking-wider" style={{ color: "var(--theme-accent)", opacity: 0.8 }}>
+            {language.language}
+          </span>
+        </div>
         <div className="flex flex-col items-end gap-0.5">
           <span
             className="text-xs font-body tracking-wider"
@@ -105,7 +118,18 @@ export default function LanguagePageClient({ language }: LanguagePageClientProps
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.7 }}
           >
-            {language.romanization} · {language.languageFamily} · {language.parentFamily}
+            {language.romanization} · {language.languageFamily} ·{" "}
+            {familySlug ? (
+              <Link
+                href={`/family/${familySlug}`}
+                className="transition-opacity duration-300 hover:opacity-70"
+                style={{ color: "var(--theme-accent)", opacity: 0.8 }}
+              >
+                {language.parentFamily}
+              </Link>
+            ) : (
+              language.parentFamily
+            )}
           </motion.p>
 
           {/* Hook */}
@@ -274,6 +298,55 @@ export default function LanguagePageClient({ language }: LanguagePageClientProps
           </div>
         </section>
       )}
+
+      {/* Discovery Footer */}
+      <section className="py-16 px-6">
+        <motion.div
+          className="max-w-md mx-auto text-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="flex flex-col items-center gap-3">
+            {familySlug && (
+              <Link
+                href={`/family/${familySlug}`}
+                className="group inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-body transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: "var(--theme-surface)",
+                  color: "var(--theme-text-secondary)",
+                  border: "1px solid var(--theme-border)",
+                }}
+              >
+                Part of the{" "}
+                <span style={{ color: "var(--theme-accent)" }}>
+                  {language.parentFamily}
+                </span>{" "}
+                family
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="transition-transform duration-300 group-hover:translate-x-0.5"
+                >
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </Link>
+            )}
+            <Link
+              href="/languages"
+              className="text-xs font-body tracking-wide transition-opacity duration-300 hover:opacity-70"
+              style={{ color: "var(--theme-accent)", opacity: 0.5 }}
+            >
+              Explore all language histories &rarr;
+            </Link>
+          </div>
+        </motion.div>
+      </section>
 
       {/* Footer */}
       <footer className="py-12 text-center">

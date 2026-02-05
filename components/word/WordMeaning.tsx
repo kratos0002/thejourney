@@ -3,6 +3,7 @@
 import { motion, useInView } from "framer-motion";
 import { useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Word } from "@/data/word-types";
 import { trackEvent } from "@/lib/analytics";
 import { useExploration } from "@/components/ExplorationProvider";
@@ -10,9 +11,10 @@ import { useExploration } from "@/components/ExplorationProvider";
 interface WordMeaningProps {
   word: Word;
   suggestions: { slug: string; romanization: string }[];
+  languageSlug?: string;
 }
 
-export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
+export default function WordMeaning({ word, suggestions, languageSlug }: WordMeaningProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-20%" });
   const router = useRouter();
@@ -59,9 +61,9 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
           ))}
         </div>
 
-        {/* Action button */}
+        {/* Action buttons */}
         <motion.div
-          className="mt-16 flex items-center justify-center"
+          className="mt-16 flex flex-col items-center gap-4"
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ delay: 0.8 }}
@@ -73,6 +75,27 @@ export default function WordMeaning({ word, suggestions }: WordMeaningProps) {
           >
             Return to all words
           </button>
+
+          {languageSlug && (
+            <Link
+              href={`/language/${languageSlug}`}
+              className="group inline-flex items-center gap-1.5 text-xs font-body tracking-wide transition-opacity duration-300 hover:opacity-80"
+              style={{ color: "var(--theme-accent)", opacity: 0.6 }}
+            >
+              <span>Discover more from {word.language}</span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                className="transition-transform duration-300 group-hover:translate-x-0.5"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+            </Link>
+          )}
         </motion.div>
 
         {/* Explore more words */}

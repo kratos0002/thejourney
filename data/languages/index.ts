@@ -43,3 +43,8 @@ export function getLanguageBySlug(slug: string): LanguageHistory | undefined {
 export function getAllLanguageSlugs(): string[] {
   return allLanguages.map((lang) => lang.slug);
 }
+
+// Lookup by display name (e.g., "Arabic" → arabic object)
+export function getLanguageByName(name: string): LanguageHistory | undefined {
+  return allLanguages.find((lang) => lang.language === name);
+}

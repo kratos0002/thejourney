@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLanguageBySlug, getAllLanguageSlugs } from "@/data/languages";
+import { getFamilyByName } from "@/data/language-families";
 import LanguagePageClient from "./LanguagePageClient";
 
 interface PageProps {
@@ -50,5 +51,7 @@ export default async function LanguagePage({ params }: PageProps) {
     notFound();
   }
 
-  return <LanguagePageClient language={language} />;
+  const familySlug = getFamilyByName(language.parentFamily)?.slug;
+
+  return <LanguagePageClient language={language} familySlug={familySlug} />;
 }

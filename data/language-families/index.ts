@@ -84,3 +84,8 @@ export function getConnectedLanguages(node: LanguageFamilyNode): LanguageFamilyN
 export function countBranches(family: LanguageFamilyTree): number {
   return family.tree.children?.length || 0;
 }
+
+// Lookup by display name (e.g., "Indo-European" → indoEuropean object)
+export function getFamilyByName(name: string): LanguageFamilyTree | undefined {
+  return allFamilies.find((f) => f.name === name);
+}

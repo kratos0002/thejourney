@@ -386,8 +386,8 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                   )}
                 </div>
 
-                {/* Browse link */}
-                <div className="px-5 pb-8 pt-2 text-center">
+                {/* Discovery links */}
+                <div className="px-5 pb-8 pt-2 flex flex-col items-center gap-2">
                   <a
                     href="/browse"
                     className="inline-block font-body text-xs tracking-wide transition-opacity duration-300 hover:opacity-80"
@@ -395,6 +395,28 @@ export default function DiscoveryDrawer({ words, onFiltersChange }: DiscoveryDra
                   >
                     Or explore the full collection &rarr;
                   </a>
+                  <div className="flex items-center gap-4">
+                    <a
+                      href="/families"
+                      className="font-body text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-80"
+                      style={{ color: "var(--theme-accent)", opacity: 0.4 }}
+                    >
+                      Language families &rarr;
+                    </a>
+                    <span
+                      className="text-[8px]"
+                      style={{ color: "var(--theme-text-tertiary)", opacity: 0.2 }}
+                    >
+                      ·
+                    </span>
+                    <a
+                      href="/languages"
+                      className="font-body text-[10px] tracking-wide transition-opacity duration-300 hover:opacity-80"
+                      style={{ color: "var(--theme-accent)", opacity: 0.4 }}
+                    >
+                      Language histories &rarr;
+                    </a>
+                  </div>
                 </div>
               </div>
             </motion.div>
