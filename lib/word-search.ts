@@ -227,8 +227,8 @@ function scoreTerm(entry: SearchEntry, term: string): number {
 
   // Tier 6: Fuzzy match — only if no other tier matched this term
   if (score === 0 && term.length >= 3) {
-    // Adaptive distance: tighter for short words, looser for long words
-    const maxDist = term.length <= 5 ? 1 : 2;
+    // Adaptive distance: strict for short/medium words, looser for long
+    const maxDist = term.length <= 7 ? 1 : 2;
     const slugDist = levenshtein(term, entry.slugNorm);
     const wordDist = levenshtein(term, entry.wordNorm);
     const romanDist = entry.romanNorm
