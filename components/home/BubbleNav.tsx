@@ -6,6 +6,10 @@ import { useTransition } from "@/components/TransitionProvider";
 import { useExploration } from "@/components/ExplorationProvider";
 import { useTheme } from "@/components/ThemeProvider";
 
+// ---------------------------------------------------------------------------
+// Globe animation constants
+// ---------------------------------------------------------------------------
+
 const LERP = 0.10;
 const FRICTION = 0.91;
 const MAX_VEL = 0.015;
@@ -14,6 +18,35 @@ const DRAG_SENSITIVITY = 0.0035;
 const MAX_ROT_X = Math.PI / 3;
 const MIN_RADIUS = 120;
 const MAX_RADIUS = 500;
+
+// ---------------------------------------------------------------------------
+// Depth layer constants — controls which bubbles show text
+// ---------------------------------------------------------------------------
+
+/** z2 threshold: bubbles above this show full-size text (desktop) */
+const SURFACE_Z = 0.65;
+/** z2 threshold on mobile — fewer surface words to reduce clutter */
+const SURFACE_Z_MOBILE = 0.75;
+/** z2 threshold: mid-depth band (between MID_Z and SURFACE_Z) */
+const MID_Z = 0.0;
+
+/** Surface bubbles use full perspective scale */
+const SURFACE_SCALE = 1.0;
+/** Mid-depth: small orbs (~1.2rem when base is 4rem) */
+const MID_SCALE = 0.3;
+/** Deep: tiny dots (~0.5rem) */
+const DEEP_SCALE = 0.125;
+
+/** Smooth size interpolation per frame (~300-500ms transition at 60fps) */
+const SIZE_LERP = 0.08;
+/** Hysteresis band to prevent text flicker at layer boundary */
+const TEXT_HYSTERESIS = 0.05;
+/** Explored words get a small z2 boost toward the surface */
+const EXPLORED_BOOST = 0.05;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function fibonacciSphere(count: number): { lat: number; lon: number }[] {
   const points: { lat: number; lon: number }[] = [];
@@ -60,6 +93,10 @@ function getLanguageTint(language: string): string {
   return "rgba(240, 237, 230, 0.25)"; // default moonlight
 }
 
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 interface BubbleNavProps {
   words: Word[];
   filteredSlugs?: Set<string>;
@@ -68,21 +105,43 @@ interface BubbleNavProps {
   highlightedSlug?: string | null;
   /** The hook text of the highlighted word — shown as a floating label */
   highlightedHook?: string | null;
+  /** Slug of the daily featured word — always promoted to surface */
+  dailyWordSlug?: string | null;
+  /** Enable depth layers mode (feature flag gated) */
+  depthLayers?: boolean;
 }
 
-export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = false, highlightedSlug = null, highlightedHook = null }: BubbleNavProps) {
+export default function BubbleNav({
+  words,
+  filteredSlugs,
+  hasActiveFilters = false,
+  highlightedSlug = null,
+  highlightedHook = null,
+  dailyWordSlug = null,
+  depthLayers = false,
+}: BubbleNavProps) {
   const { navigateToWord } = useTransition();
   const { exploredSlugs } = useExploration();
   const { classroomMode } = useTheme();
   const spherePoints = useMemo(() => fibonacciSphere(words.length), [words.length]);
 
-  // Store filter state in refs for use in animation loop
+  // Store filter state in refs for use in animation loop (no React re-renders)
   const filteredSlugsRef = useRef<Set<string>>(filteredSlugs || new Set());
   const hasActiveFiltersRef = useRef(hasActiveFilters);
 
+  // Depth layer refs — synced from props for use in the rAF loop
+  const depthLayersRef = useRef(false);
+  const dailyWordSlugRef = useRef<string | null>(null);
+  const highlightedSlugRef = useRef<string | null>(null);
+  const exploredSlugsRef = useRef<Set<string>>(new Set());
+
   const containerRef = useRef<HTMLDivElement>(null);
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const textRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const loopRef = useRef<number>(0);
+
+  // Per-bubble lerped scale for smooth depth transitions (Float32Array: compact, no GC)
+  const layerScales = useRef<Float32Array>(new Float32Array(0));
 
   const anim = useRef({ rx: 0, ry: 0, radius: 280 });
   const target = useRef({ rx: 0, ry: 0, radius: 280 });
@@ -93,9 +152,17 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
   const lastPointer = useRef({ x: 0, y: 0, t: 0 });
   const lastInteraction = useRef(0);
   const pinchRef = useRef<{ dist: number; radius: number } | null>(null);
-  const viewSize = useRef({ w: 800, h: 600 });
+  const viewSize = useRef({ w: 800, h: 600, mobile: false });
 
-  // Only modifies transform and opacity — compositor-only, no layout/paint
+  // Initialize layerScales when word count changes
+  useEffect(() => {
+    layerScales.current = new Float32Array(words.length).fill(1.0);
+  }, [words.length]);
+
+  // ---------------------------------------------------------------------------
+  // updateBubbles — the core rendering loop (compositor-only: transform + opacity)
+  // ---------------------------------------------------------------------------
+
   const updateBubbles = useCallback(() => {
     const { rx, ry, radius } = anim.current;
     const perspective = radius * 3.5;
@@ -107,14 +174,14 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
 
     const isFiltering = hasActiveFiltersRef.current;
     const filtered = filteredSlugsRef.current;
+    const useDepth = depthLayersRef.current;
+    const surfaceZ = viewSize.current.mobile ? SURFACE_Z_MOBILE : SURFACE_Z;
 
     for (let i = 0; i < words.length; i++) {
       const el = bubbleRefs.current[i];
       if (!el) continue;
 
       const word = words[i];
-      const isMatch = !isFiltering || filtered.has(word.slug);
-
       const p = spherePoints[i];
       const x = Math.cos(p.lat) * Math.cos(p.lon);
       const y = Math.sin(p.lat);
@@ -130,37 +197,115 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
       const screenX = cx + x1 * radius * projScale;
       const screenY = cy - y2 * radius * projScale;
 
+      // Back-face cull — hide bubbles facing away
       if (z2 < -0.3) {
-        // Hide: opacity 0 (no display:none which triggers layout)
         el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(0)`;
         el.style.opacity = "0";
+        if (useDepth) {
+          const textEl = textRefs.current[i];
+          if (textEl) textEl.style.opacity = "0";
+        }
         continue;
       }
 
       let opacity = Math.max(0, Math.min(1, (z2 + 0.3) * 0.9));
-      let scale = projScale;
+      const isMatch = !isFiltering || filtered.has(word.slug);
 
-      // Apply filter dimming for non-matching words
-      if (isFiltering && !isMatch) {
-        opacity *= 0.15;
-        scale *= 0.85;
+      if (useDepth) {
+        // --- Depth layers mode ---
+        const isHighlighted = word.slug === highlightedSlugRef.current;
+        const isDailyWord = word.slug === dailyWordSlugRef.current;
+        const isExplored = exploredSlugsRef.current.has(word.slug);
+        const forcePromote = isHighlighted || isDailyWord || (isFiltering && isMatch);
+
+        // Effective z2 with explored boost
+        const effectiveZ2 = isExplored ? z2 + EXPLORED_BOOST : z2;
+
+        // Determine layer and target scale
+        let targetScale: number;
+        let showText: boolean;
+
+        if (forcePromote) {
+          // Force-promoted: full size with text
+          targetScale = projScale * SURFACE_SCALE;
+          showText = true;
+        } else if (effectiveZ2 >= surfaceZ) {
+          // Surface layer: close to viewer
+          targetScale = projScale * SURFACE_SCALE;
+          showText = true;
+        } else if (effectiveZ2 >= MID_Z) {
+          // Mid-depth: small orbs, no text
+          targetScale = MID_SCALE;
+          showText = false;
+          opacity *= 0.5;
+        } else {
+          // Deep: tiny dots, very faint
+          targetScale = DEEP_SCALE;
+          showText = false;
+          opacity *= 0.25;
+        }
+
+        // Filter dimming stacks on top of layer opacity
+        if (isFiltering && !isMatch) {
+          opacity *= 0.15;
+          targetScale *= 0.85;
+        }
+
+        // Smooth scale interpolation — prevents jarring pops between layers
+        const currentScale = layerScales.current[i];
+        const newScale = currentScale + (targetScale - currentScale) * SIZE_LERP;
+        layerScales.current[i] = newScale;
+
+        el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${newScale})`;
+        el.style.opacity = `${opacity}`;
+
+        // Toggle text with hysteresis to prevent flicker at boundary
+        const textEl = textRefs.current[i];
+        if (textEl) {
+          if (showText) {
+            textEl.style.opacity = "1";
+          } else if (effectiveZ2 < surfaceZ - TEXT_HYSTERESIS) {
+            textEl.style.opacity = "0";
+          }
+          // Between surfaceZ and surfaceZ - HYSTERESIS: keep current text state
+        }
+      } else {
+        // --- Legacy mode (no depth layers) ---
+        let scale = projScale;
+        if (isFiltering && !isMatch) {
+          opacity *= 0.15;
+          scale *= 0.85;
+        }
+        el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${scale})`;
+        el.style.opacity = `${opacity}`;
       }
-
-      // ONLY compositor properties: transform (position + scale) and opacity
-      el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) scale(${scale})`;
-      el.style.opacity = `${opacity}`;
     }
   }, [spherePoints, words]);
+
+  // ---------------------------------------------------------------------------
+  // Ref sync — keep refs in sync with props for the animation loop
+  // ---------------------------------------------------------------------------
 
   // Keep filter refs in sync with props and trigger update
   useEffect(() => {
     filteredSlugsRef.current = filteredSlugs || new Set();
     hasActiveFiltersRef.current = hasActiveFilters;
-    // Force a bubble update when filters change
     updateBubbles();
   }, [filteredSlugs, hasActiveFilters, updateBubbles]);
 
+  // Keep depth layer refs in sync
+  useEffect(() => {
+    depthLayersRef.current = depthLayers;
+    dailyWordSlugRef.current = dailyWordSlug;
+    highlightedSlugRef.current = highlightedSlug;
+    exploredSlugsRef.current = exploredSlugs;
+    updateBubbles();
+  }, [depthLayers, dailyWordSlug, highlightedSlug, exploredSlugs, updateBubbles]);
+
+  // ---------------------------------------------------------------------------
   // Animation loop — no React state, no layout-triggering properties
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
     let active = true;
     const tick = () => {
@@ -212,7 +357,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     const update = () => {
       if (!containerRef.current) return;
       const r = containerRef.current.getBoundingClientRect();
-      viewSize.current = { w: r.width, h: r.height };
+      viewSize.current = { w: r.width, h: r.height, mobile: r.width < 768 };
       // Use 48% of screen in classroom mode (desktop), 34% normally
       const isDesktop = r.width >= 1024;
       const radiusMultiplier = (classroomMode && isDesktop) ? 0.48 : 0.34;
@@ -246,7 +391,10 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  // Pointer handlers
+  // ---------------------------------------------------------------------------
+  // Pointer / touch handlers
+  // ---------------------------------------------------------------------------
+
   const onDown = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
     dragging.current = true;
@@ -316,6 +464,10 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
     navigateToWord(word.slug, word.word, origin);
   }, [navigateToWord]);
 
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
   return (
     <div
       ref={containerRef}
@@ -384,6 +536,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
               }}
             >
               <span
+                ref={(el) => { textRefs.current[i] = el; }}
                 className="font-display font-semibold leading-tight text-center px-1"
                 style={{
                   color: isMuted ? "var(--theme-bubble-text-muted)" : "var(--theme-bubble-text)",
@@ -391,6 +544,7 @@ export default function BubbleNav({ words, filteredSlugs, hasActiveFilters = fal
                   textShadow: isMuted
                     ? "var(--theme-bubble-text-shadow-muted)"
                     : "var(--theme-bubble-text-shadow)",
+                  transition: "opacity 300ms ease",
                 }}
               >
                 {word.slug}

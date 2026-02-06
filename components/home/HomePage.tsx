@@ -39,6 +39,7 @@ export default function HomePage({ words }: { words: Word[] }) {
   const discoveryDrawerEnabled = useFeatureFlag("discovery_drawer");
   const dailyWordRitualEnabled = useFeatureFlag("daily_word_ritual");
   const searchSummoningEnabled = useFeatureFlag("search_summoning");
+  const depthLayersEnabled = useFeatureFlag("depth_layers");
 
   // Search state — only active for signed-in users with flag enabled
   const searchActive = !!user && searchSummoningEnabled === true;
@@ -128,6 +129,8 @@ export default function HomePage({ words }: { words: Word[] }) {
           hasActiveFilters={hasActiveFilters}
           highlightedSlug={search.isSearching ? search.highlightedSlug : null}
           highlightedHook={search.isSearching ? search.highlightedHook : null}
+          dailyWordSlug={dailyWord?.slug ?? null}
+          depthLayers={depthLayersEnabled === true}
         />
       </div>
 
