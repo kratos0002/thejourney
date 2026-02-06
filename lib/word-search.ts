@@ -20,6 +20,8 @@ import { getLanguageFamily, detectThemes } from "@/lib/word-filters";
 
 export interface SearchEntry {
   slug: string;
+  /** Original hook text (for display in results) */
+  hook: string;
   /** Normalized slug for fuzzy matching */
   slugNorm: string;
   /** Normalized word name for fuzzy matching */
@@ -70,16 +72,16 @@ function escapeRegex(s: string): string {
 }
 
 /**
- * Test whether `query` appears at a word boundary in `text`.
- * "pajama" matches in "wearing pajamas" but "cat" does NOT
- * match inside "catastrophe" unless "cat" appears as a standalone
- * word or at the start of a word.
+ * Test whether `query` appears as a full word in `text`.
+ * Uses word boundaries on BOTH sides so "pajama" does NOT
+ * match "pajamas" in prose — only exact word occurrences.
+ * Primary/secondary fields use substring matching instead,
+ * so slug "pajamas" still matches query "pajama" there.
  */
-function matchesWordBoundary(text: string, query: string): boolean {
+function matchesFullWord(text: string, query: string): boolean {
   try {
-    return new RegExp(`\\b${escapeRegex(query)}`, "i").test(text);
+    return new RegExp(`\\b${escapeRegex(query)}\\b`, "i").test(text);
   } catch {
-    // Fallback for exotic unicode that breaks \b
     return text.includes(query);
   }
 }
@@ -126,16 +128,21 @@ function levenshtein(a: string, b: string): number {
  * that can be reused across searches.
  *
  * All text is Unicode-normalized (diacritics stripped + lowercased)
- * for accent-insensitive matching.
+ * for accent-insensitive matching. Duplicate slugs are skipped
+ * (keeps first occurrence).
  */
 export function buildSearchIndex(words: Word[]): SearchEntry[] {
-  return words.map((word) => {
+  const seen = new Set<string>();
+  return words.reduce<SearchEntry[]>((acc, word) => {
+    if (seen.has(word.slug)) return acc;
+    seen.add(word.slug);
     const family = getLanguageFamily(word.language);
     const themes = detectThemes(word);
     const journeyLocations = word.journey.map((j) => j.location).join(" ");
 
-    return {
+    acc.push({
       slug: word.slug,
+      hook: word.hook,
       slugNorm: normalize(word.slug),
       wordNorm: normalize(word.word || ""),
       romanNorm: normalize(word.romanization || ""),
@@ -155,8 +162,9 @@ export function buildSearchIndex(words: Word[]): SearchEntry[] {
         .filter(Boolean)
         .map(normalize)
         .join(" "),
-    };
-  });
+    });
+    return acc;
+  }, []);
 }
 
 // ---------------------------------------------------------------------------
@@ -211,8 +219,8 @@ function scoreTerm(entry: SearchEntry, term: string): number {
     if (entry.tertiaryStructured.includes(term)) {
       score += SCORES.tertiaryStructured;
     }
-    // 5b: Prose (story, meaningNow) — word-boundary match to avoid noise
-    if (matchesWordBoundary(entry.tertiaryProse, term)) {
+    // 5b: Prose (story, meaningNow) — full-word match to avoid noise
+    if (matchesFullWord(entry.tertiaryProse, term)) {
       score += SCORES.tertiaryProse;
     }
   }
@@ -242,13 +250,12 @@ function scoreTerm(entry: SearchEntry, term: string): number {
  * at least one field. Scores are cumulative across tiers and terms.
  *
  * @param index  - Pre-built search index from `buildSearchIndex`
- * @param words  - Original word array (for hook text)
  * @param query  - User input string (can be multi-word)
  * @returns Matching results sorted by score (highest first).
  */
 export function searchWords(
   index: SearchEntry[],
-  words: Word[],
+  _words: Word[],
   query: string
 ): SearchResult[] {
   const normalized = normalize(query.trim());
@@ -281,7 +288,7 @@ export function searchWords(
       results.push({
         slug: entry.slug,
         score: totalScore,
-        hook: words[i].hook,
+        hook: entry.hook,
       });
     }
   }
